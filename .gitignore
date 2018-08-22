@@ -1,0 +1,12 @@
+.idea/*
+
+vendor/**
+node_modules/**
+
+generated/*
+logs/*
+cache/*
+
+.envrc
+settings.json
+aws/credentials
