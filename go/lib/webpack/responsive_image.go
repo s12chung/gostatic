@@ -2,7 +2,7 @@ package webpack
 
 import (
 	"fmt"
-	"github.com/s12chung/go_homepage/go/lib/utils"
+	"github.com/s12chung/gostatic/go/lib/utils"
 	"github.com/sirupsen/logrus"
 	"path"
 	"regexp"

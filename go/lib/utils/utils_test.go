@@ -82,11 +82,11 @@ func TestCleanFilePath(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"/go/src/github.com/s12chung/go_homepage", "go/src/github.com/s12chung/go_homepage"},
-		{"/go/src/github.com/s12chung/go_homepage/", "go/src/github.com/s12chung/go_homepage"},
-		{"go/src/github.com/s12chung/go_homepage", "go/src/github.com/s12chung/go_homepage"},
-		{"./go/src/github.com/s12chung/go_homepage", "go/src/github.com/s12chung/go_homepage"},
-		{"./../go/src/github.com/s12chung/go_homepage", "../go/src/github.com/s12chung/go_homepage"},
+		{"/go/src/github.com/s12chung/gostatic", "go/src/github.com/s12chung/gostatic"},
+		{"/go/src/github.com/s12chung/gostatic/", "go/src/github.com/s12chung/gostatic"},
+		{"go/src/github.com/s12chung/gostatic", "go/src/github.com/s12chung/gostatic"},
+		{"./go/src/github.com/s12chung/gostatic", "go/src/github.com/s12chung/gostatic"},
+		{"./../go/src/github.com/s12chung/gostatic", "../go/src/github.com/s12chung/gostatic"},
 		{"", ""},
 		{"./", ""},
 		{".", ""},

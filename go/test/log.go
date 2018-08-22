@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/s12chung/go_homepage/vendor/github.com/sirupsen/logrus"
-	logTest "github.com/s12chung/go_homepage/vendor/github.com/sirupsen/logrus/hooks/test"
+	"github.com/sirupsen/logrus"
+	logTest "github.com/sirupsen/logrus/hooks/test"
 )
 
 func PrintLogEntries(t *testing.T, hook *logTest.Hook) {

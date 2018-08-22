@@ -1,13 +1,13 @@
 package cli
 
 import (
-	"github.com/s12chung/go_homepage/vendor/github.com/golang/mock/gomock"
+	"github.com/golang/mock/gomock"
 	"github.com/s12chung/gostatic/go/test"
 	"github.com/s12chung/gostatic/go/test/mocks"
 	"testing"
 )
 
-//go:generate mockgen -destination=../test/mocks/cli_app.go -package=mocks github.com/s12chung/go_homepage/go/cli App
+//go:generate mockgen -destination=../test/mocks/cli_app.go -package=mocks github.com/s12chung/gostatic/go/cli App
 
 func defaultCli(app App) *Cli {
 	return NewCli("random name", app)

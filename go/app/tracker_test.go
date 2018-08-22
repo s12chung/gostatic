@@ -2,7 +2,7 @@ package app
 
 import (
 	"fmt"
-	"github.com/s12chung/go_homepage/vendor/github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp"
 	"github.com/s12chung/gostatic/go/test"
 	"sort"
 	"testing"

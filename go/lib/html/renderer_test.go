@@ -10,8 +10,8 @@ import (
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
 	"fmt"
-	"github.com/s12chung/go_homepage/go/lib/markdown"
-	"github.com/s12chung/go_homepage/go/lib/webpack"
+	"github.com/s12chung/gostatic/go/lib/markdown"
+	"github.com/s12chung/gostatic/go/lib/webpack"
 	"github.com/s12chung/gostatic/go/test"
 	"html/template"
 )

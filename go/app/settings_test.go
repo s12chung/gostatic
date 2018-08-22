@@ -3,9 +3,9 @@ package app
 import (
 	"testing"
 
-	logTest "github.com/s12chung/go_homepage/vendor/github.com/sirupsen/logrus/hooks/test"
+	logTest "github.com/sirupsen/logrus/hooks/test"
 
-	"github.com/s12chung/go_homepage/vendor/github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp"
 	"github.com/s12chung/gostatic/go/test"
 	"path"
 )

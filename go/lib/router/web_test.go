@@ -15,7 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
-	"github.com/s12chung/go_homepage/go/lib/utils"
+	"github.com/s12chung/gostatic/go/lib/utils"
 	"github.com/s12chung/gostatic/go/test"
 )
 

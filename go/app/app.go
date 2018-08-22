@@ -6,11 +6,11 @@ import (
 	"path"
 	"time"
 
-	"github.com/s12chung/go_homepage/vendor/github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
-	"github.com/s12chung/go_homepage/go/lib/pool"
-	"github.com/s12chung/go_homepage/go/lib/router"
-	"github.com/s12chung/go_homepage/go/lib/utils"
+	"github.com/s12chung/gostatic/go/lib/pool"
+	"github.com/s12chung/gostatic/go/lib/router"
+	"github.com/s12chung/gostatic/go/lib/utils"
 )
 
 func DefaultLog() logrus.FieldLogger {

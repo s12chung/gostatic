@@ -1,6 +1,6 @@
 package app
 
-import "github.com/s12chung/go_homepage/go/lib/router"
+import "github.com/s12chung/gostatic/go/lib/router"
 
 type Setter interface {
 	SetRoutes(r router.Router, tracker *Tracker)

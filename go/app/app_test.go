@@ -1,4 +1,4 @@
-package app
+package app_test
 
 import (
 	"io/ioutil"
@@ -6,18 +6,18 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/s12chung/go_homepage/vendor/github.com/golang/mock/gomock"
-	"github.com/s12chung/go_homepage/vendor/github.com/sirupsen/logrus"
-	logTest "github.com/s12chung/go_homepage/vendor/github.com/sirupsen/logrus/hooks/test"
+	"github.com/golang/mock/gomock"
+	"github.com/sirupsen/logrus"
+	logTest "github.com/sirupsen/logrus/hooks/test"
 
 	"github.com/s12chung/gostatic/go/app"
-	"github.com/s12chung/go_homepage/go/lib/router"
-	"github.com/s12chung/go_homepage/go/lib/utils"
+	"github.com/s12chung/gostatic/go/lib/router"
+	"github.com/s12chung/gostatic/go/lib/utils"
 	"github.com/s12chung/gostatic/go/test"
 	"github.com/s12chung/gostatic/go/test/mocks"
 )
 
-//go:generate mockgen -destination=../test/mocks/app_setter.go -package=mocks github.com/s12chung/go_homepage/go/app Setter
+//go:generate mockgen -destination=../test/mocks/app_setter.go -package=mocks github.com/s12chung/gostatic/go/app Setter
 
 func defaultApp(setter app.Setter, generatedPath string) (*app.App, logrus.FieldLogger, *logTest.Hook) {
 	settings := app.DefaultSettings()
