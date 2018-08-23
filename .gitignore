@@ -2,8 +2,8 @@
 
 vendor/**
 node_modules/**
-external/**
 
+blueprint/external/**
 blueprint/generated/*
 blueprint/logs/*
 blueprint/cache/*

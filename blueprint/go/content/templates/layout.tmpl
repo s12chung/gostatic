@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{(title .)}}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <link rel="stylesheet" media="all" href="{{webpackUrl "vendor.css"}}">
+    <link rel="stylesheet" media="all" href="{{webpackUrl "main.css"}}">
+</head>
+<body>
+<a href="/"><img class="logo" style="width: 50px;" src="{{webpackUrl "images/logo.png"}}"/></a>
+{{template "content" .}}
+</body>
+</html>

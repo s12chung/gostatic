@@ -1,0 +1,17 @@
+version: "3"
+services:
+  web:
+    build:
+      context: .
+      args:
+        DOCKER_WORKDIR: $DOCKER_WORKDIR
+    tty: true
+    environment:
+      GENERATED_PATH: $GENERATED_PATH
+      ASSETS_PATH: $ASSETS_PATH
+      S3_BUCKET: $S3_BUCKET
+      AWS_SHARED_CREDENTIALS_FILE: ${DOCKER_WORKDIR}/aws/credentials
+      AWS_CONFIG_FILE: ${DOCKER_WORKDIR}/aws/config
+    ports:
+      - "3000:3000"
+      - "8080:8080"

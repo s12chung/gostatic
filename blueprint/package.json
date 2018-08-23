@@ -1,0 +1,17 @@
+{
+  "name": "blueprint",
+  "version": "1.0.0",
+  "main": "assets/js/index.js",
+  "repository": "https://github.com/s12chung/blueprint",
+  "author": "Steve Chung",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "normalize.css": "^8.0.0"
+  },
+  "devDependencies": {
+    "gostatic-webpack": "file:./external/gostatic-webpack",
+    "webpack": "^4.15.0",
+    "webpack-cli": "^3.0.8"
+  }
+}
