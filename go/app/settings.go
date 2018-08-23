@@ -2,10 +2,6 @@ package app
 
 import (
 	"os"
-
-	"github.com/sirupsen/logrus"
-
-	"github.com/s12chung/gostatic/go/lib/utils"
 )
 
 type Settings struct {
@@ -28,11 +24,4 @@ func DefaultSettings() *Settings {
 		3000,
 		nil,
 	}
-}
-
-func SettingsFromFile(path string, contentSettings interface{}, log logrus.FieldLogger) *Settings {
-	settings := DefaultSettings()
-	settings.Content = contentSettings
-	utils.SettingsFromFile(path, settings, log)
-	return settings
 }
