@@ -1,0 +1,7 @@
+{
+  "concurrency": 5,
+  "generated_path": "some_path",
+  "content": {
+    "number_of_posts": 98
+  }
+}
