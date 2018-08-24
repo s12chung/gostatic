@@ -205,6 +205,14 @@ func TestGetStringField(t *testing.T) {
 		newTestCase("test", "", func() (interface{}, interface{}) {
 			return nil, nil
 		}),
+		newTestCase("test", "", func() (interface{}, interface{}) {
+			data := ""
+			return data, &data
+		}),
+		newTestCase("test", "", func() (interface{}, interface{}) {
+			data := 1
+			return data, &data
+		}),
 		newTestCase("Name", "", func() (interface{}, interface{}) {
 			data := struct{}{}
 			return data, &data

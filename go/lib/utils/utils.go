@@ -108,6 +108,9 @@ func GetStringField(data interface{}, name string) string {
 		dataValue = dataValue.Elem()
 	}
 
+	if dataValue.Kind() != reflect.Struct {
+		return ""
+	}
 	field := dataValue.FieldByName(name)
 	if field.IsValid() && field.Type().Kind() == reflect.String {
 		return field.String()
