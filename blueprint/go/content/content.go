@@ -24,13 +24,20 @@ func NewContent(generatedPath string, settings *Settings, log logrus.FieldLogger
 	return &Content{ settings, log, htmlRenderer, w }
 }
 
+func (content *Content) RenderHtml(ctx router.Context, name, defaultTitle string, data interface{}) error {
+	bytes, err := content.HtmlRenderer.Render(name, defaultTitle, data)
+	if err != nil {
+		return err
+	}
+	return ctx.Respond(bytes)
+}
+
 func (content *Content) SetRoutes(r router.Router, tracker *app.Tracker) {
 	r.GetRootHTML(func(ctx router.Context) error {
-		bytes, err := content.HtmlRenderer.Render("root", "", nil)
-		if err != nil {
-			return err
-		}
-		return ctx.Respond(bytes)
+		return content.RenderHtml(ctx, "root", "", "Hello World!")
+	})
+	r.GetHTML("/404.html", func(ctx router.Context) error {
+		return content.RenderHtml(ctx, "404", "404", nil)
 	})
 }
 
