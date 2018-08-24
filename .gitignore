@@ -2,14 +2,3 @@
 
 vendor/**
 node_modules/**
-
-blueprint/external/**
-blueprint/generated/*
-blueprint/logs/*
-blueprint/cache/*
-blueprint/vendor/**
-blueprint/node_modules/**
-
-blueprint/.envrc
-blueprint/settings.json
-blueprint/aws/credentials
