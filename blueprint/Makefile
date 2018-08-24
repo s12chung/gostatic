@@ -8,7 +8,7 @@ all: install build
 
 install:
 	dep ensure
-	yarn install --pure-lockfile
+	yarn install
 
 build: build-assets build-go
 
@@ -46,9 +46,9 @@ docker-build-install:
 	docker-compose up --no-start
 
 # $(shell docker-compose ps -q web) breaks if this target is combined with docker-build
+DEP_MANAGER_PATHS := node_modules vendor yarn.lock Gopkg.lock
 docker-copy:
-	docker cp $(shell docker-compose ps -q web):$(DOCKER_WORKDIR)/node_modules ./node_modules
-	docker cp $(shell docker-compose ps -q web):$(DOCKER_WORKDIR)/vendor ./vendor
+	$(foreach dep_path,$(DEP_MANAGER_PATHS),docker cp $(shell docker-compose ps -q web):$(DOCKER_WORKDIR)/$(dep_path) ./$(dep_path);)
 
 docker-build:
 	docker-compose up --build --no-start
