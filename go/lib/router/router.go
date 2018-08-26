@@ -21,6 +21,9 @@ type Context interface {
 	Log() logrus.FieldLogger
 	SetLog(log logrus.FieldLogger)
 
+	ContentType() string
+	SetContentType(contentType string)
+
 	UrlParts() []string
 	Url() string
 }
@@ -30,7 +33,7 @@ type Router interface {
 	GetWildcardHTML(handler ContextHandler)
 	GetRootHTML(handler ContextHandler)
 	GetHTML(pattern string, handler ContextHandler)
-	Get(pattern, mimeType string, handler ContextHandler)
+	Get(pattern string, handler ContextHandler)
 
 	StaticUrls() []string
 	Requester() Requester

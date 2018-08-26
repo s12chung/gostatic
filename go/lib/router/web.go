@@ -23,6 +23,7 @@ type WebHandler func(w http.ResponseWriter, r *http.Request) error
 //
 type WebContext struct {
 	log logrus.FieldLogger
+	contentType string
 
 	url      string
 	urlParts []string
@@ -41,6 +42,14 @@ func (ctx *WebContext) Log() logrus.FieldLogger {
 
 func (ctx *WebContext) SetLog(log logrus.FieldLogger) {
 	ctx.log = log
+}
+
+func (ctx *WebContext) ContentType() string {
+	return ctx.contentType
+}
+
+func (ctx *WebContext) SetContentType(contentType string) {
+	ctx.contentType = contentType
 }
 
 func (ctx *WebContext) UrlParts() []string {
@@ -112,9 +121,9 @@ func (router *WebRouter) GetHTML(pattern string, handler ContextHandler) {
 	router.get(pattern, router.htmlHandler(handler))
 }
 
-func (router *WebRouter) Get(pattern, mimeType string, handler ContextHandler) {
+func (router *WebRouter) Get(pattern string, handler ContextHandler) {
 	router.checkAndSetRoutes(pattern)
-	router.get(pattern, router.handler(mimeType, handler))
+	router.get(pattern, router.handler(mime.TypeByExtension(path.Ext(pattern)), handler))
 }
 
 func (router *WebRouter) checkAndSetRoutes(pattern string) error {
@@ -144,11 +153,10 @@ func (router *WebRouter) htmlHandler(handler ContextHandler) WebHandler {
 	return router.handler(mime.TypeByExtension(".html"), handler)
 }
 
-func (router *WebRouter) handler(mimeType string, handler ContextHandler) WebHandler {
+func (router *WebRouter) handler(contentType string, handler ContextHandler) WebHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		w.Header().Set("Content-Type", mimeType)
-
 		ctx := NewWebContext(router.log)
+		ctx.contentType = contentType
 		ctx.url = r.URL.String()
 		parts, err := urlParts(ctx.url)
 		if err != nil {
@@ -159,7 +167,10 @@ func (router *WebRouter) handler(mimeType string, handler ContextHandler) WebHan
 		ctx.responseWriter = w
 		ctx.request = r
 
-		return callArounds(router.arounds, handler, ctx)
+		err = callArounds(router.arounds, handler, ctx)
+		w.Header().Set("Content-Type", ctx.contentType)
+
+		return err
 	}
 }
 

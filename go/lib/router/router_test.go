@@ -3,15 +3,56 @@ package router
 import (
 	"fmt"
 	"sort"
+	"mime"
 	"testing"
+	"path/filepath"
+	"os"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/sirupsen/logrus"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
 	"github.com/s12chung/gostatic/go/test"
-	"path/filepath"
 )
+
+func TestMain(m *testing.M) {
+	err := setExtraMimeTypes()
+	if err != nil {
+		fmt.Println(err)
+	}
+	os.Exit(m.Run())
+}
+
+var extraMimeTypes = map[string]bool{
+	".atom": true,
+	".ico":  true,
+	".txt":  true,
+}
+
+var contentTypes = map[string]string{
+	".atom": "application/xml; charset=utf-8",
+	".css":  "text/css; charset=utf-8",
+	".gif":  "image/gif",
+	".html": "text/html; charset=utf-8",
+	".ico":  "image/x-icon",
+	".jpg":  "image/jpeg",
+	".js":   "application/x-javascript",
+	".png":  "image/png",
+	".svg":  "image/svg+xml",
+	".txt":  "text/plain; charset=utf-8",
+	".xml":  "text/xml; charset=utf-8",
+}
+
+func setExtraMimeTypes() error {
+	for ext := range extraMimeTypes {
+		err := mime.AddExtensionType(ext, contentTypes[ext])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 
 type RouterSetup interface {
 	DefaultRouter() (Router, logrus.FieldLogger, *logTest.Hook)
@@ -109,8 +150,8 @@ var AllGetTypesWithResponse = []struct {
 	{RootUrlPattern, "text/html; charset=utf-8", `<p>the root of it all</p>`},
 	{"/page", "text/html; charset=utf-8", `<html>some page</html>`},
 	{"/another_page", "text/html; charset=utf-8", `<html>another_page</html>`},
-	{"/something.atom", "application/xml", `<?xml version="1.0" encoding="UTF-8"?>`},
-	{"/robots.txt", "text/plain", "User-agent: *\nDisallow: /"},
+	{"/something.atom", "application/xml; charset=utf-8", `<?xml version="1.0" encoding="UTF-8"?>`},
+	{"/robots.txt", "text/plain; charset=utf-8", "User-agent: *\nDisallow: /"},
 }
 
 func SetupAllGetTypesWithResponse(router Router) {
@@ -129,7 +170,7 @@ func SetupAllGetTypesWithResponse(router Router) {
 			if filepath.Ext(allGetTypeWithResponse.pattern) == "" {
 				router.GetHTML(allGetTypeWithResponse.pattern, handler)
 			} else {
-				router.Get(allGetTypeWithResponse.pattern, allGetTypeWithResponse.mimeType, handler)
+				router.Get(allGetTypeWithResponse.pattern, handler)
 			}
 		}
 
@@ -164,8 +205,8 @@ func SetupAllGetTypeVaried(router Router, allGetType AllGetType) {
 	for _, htmlRoute := range allGetType.htmlRoutes {
 		router.GetHTML(htmlRoute, handler)
 	}
-	for i, route := range allGetType.otherRoutes {
-		router.Get(route, allGetType.mimeTypes[i], handler)
+	for _, route := range allGetType.otherRoutes {
+		router.Get(route, handler)
 	}
 }
 
@@ -202,16 +243,20 @@ func (tester *RouterTester) TestRequester_Get(t *testing.T) {
 			got = response.MimeType
 			exp = allGetTypeWithResponse.mimeType
 			if got != exp {
-				t.Error(context.GotExpString("Response.MimeType", got, exp))
+				t.Error(context.GotExpString("Response.ContentType", got, exp))
 			}
 		}
 	})
 }
 
-func (tester *RouterTester) NewGetTester(requestUrl string, testFunc func(router Router, handler ContextHandler)) *GetTester {
+func (tester *RouterTester) NewGetTester(requestUrl, contentType string, testFunc func(router Router, handler ContextHandler)) *GetTester {
+	if testFunc == nil {
+		testFunc = func(router Router, handler ContextHandler) {}
+	}
 	return &GetTester{
 		tester.setup,
 		requestUrl,
+		contentType,
 		testFunc,
 	}
 }
@@ -219,10 +264,11 @@ func (tester *RouterTester) NewGetTester(requestUrl string, testFunc func(router
 type GetTester struct {
 	setup      RouterSetup
 	requestUrl string
+	contentType string
 	testFunc   func(router Router, handler ContextHandler)
 }
 
-func (getTester *GetTester) TestGet(t *testing.T) {
+func (getTester *GetTester) Test_Get(t *testing.T) {
 	getTester.testRouterContext(t)
 	getTester.testRouterErrors(t)
 }
@@ -235,6 +281,7 @@ func (getTester *GetTester) testRouterContext(t *testing.T) {
 		called = true
 		test.AssertLabel(t, "ctx.Log()", ctx.Log(), log)
 		test.AssertLabel(t, "ctx.Url()", ctx.Url(), getTester.requestUrl)
+		test.AssertLabel(t, "ctx.ContentType()", ctx.ContentType(), getTester.contentType)
 		urlParts, _ := urlParts(getTester.requestUrl)
 		if !cmp.Equal(ctx.UrlParts(), urlParts) {
 			t.Error(test.AssertLabelString("ctx.UrlParts()", ctx.UrlParts(), urlParts))
@@ -282,28 +329,50 @@ func (getTester *GetTester) testRouterErrors(t *testing.T) {
 	}()
 }
 
+func (tester *RouterTester) TestRouter_GetInvalidRoute(t *testing.T) {
+	router, _, _ := tester.setup.DefaultRouter()
+	tester.setup.RunServer(router, func() {
+		response, err := tester.setup.Requester(router).Get("/does_not_exist")
+		if err == nil {
+			t.Error("expecting error")
+		}
+		if response != nil {
+			t.Error("expecting no response")
+		}
+	})
+}
+
 func (tester *RouterTester) TestRouter_GetWildcardHTML(t *testing.T) {
-	tester.NewGetTester("/anything", func(router Router, handler ContextHandler) {
+	tester.NewGetTester("/anything", "text/html; charset=utf-8", func(router Router, handler ContextHandler) {
 		router.GetWildcardHTML(handler)
-	}).TestGet(t)
+	}).Test_Get(t)
 }
 
 func (tester *RouterTester) TestRouter_GetRootHTML(t *testing.T) {
-	tester.NewGetTester(RootUrlPattern, func(router Router, handler ContextHandler) {
+	tester.NewGetTester(RootUrlPattern, "text/html; charset=utf-8", func(router Router, handler ContextHandler) {
 		router.GetRootHTML(handler)
-	}).TestGet(t)
+	}).Test_Get(t)
 }
 
 func (tester *RouterTester) TestRouter_GetHTML(t *testing.T) {
-	tester.NewGetTester("/blah", func(router Router, handler ContextHandler) {
+	tester.NewGetTester("/blah", "text/html; charset=utf-8", func(router Router, handler ContextHandler) {
 		router.GetHTML("/blah", handler)
-	}).TestGet(t)
+	}).Test_Get(t)
 }
 
 func (tester *RouterTester) TestRouter_Get(t *testing.T) {
-	tester.NewGetTester("/blah.atom", func(router Router, handler ContextHandler) {
-		router.Get("/blah.atom", "application/xml", handler)
-	}).TestGet(t)
+	tester.NewGetTester("/blah.atom", "application/xml; charset=utf-8", func(router Router, handler ContextHandler) {
+		router.Get("/blah.atom", handler)
+	}).Test_Get(t)
+}
+
+func (tester *RouterTester) TestRouter_GetWithContentTypeSet(t *testing.T) {
+	tester.NewGetTester("/something.fakeext", "text/plain; charset=utf-8", func(router Router, handler ContextHandler) {
+		router.Get("/something.fakeext", func(ctx Context) error {
+			ctx.SetContentType("text/plain; charset=utf-8")
+			return handler(ctx)
+		})
+	}).Test_Get(t)
 }
 
 func (tester *RouterTester) TestRouter_StaticUrls(t *testing.T) {

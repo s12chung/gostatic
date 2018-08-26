@@ -3,7 +3,6 @@ package router
 import (
 	"fmt"
 	"io/ioutil"
-	"mime"
 	"net/http/httptest"
 	"net/url"
 	"path"
@@ -73,6 +72,10 @@ func TestWebRouter_Around(t *testing.T) {
 	webRouterTester().TestRouter_Around(t)
 }
 
+func TestWebRouter_GetInvalidRoute(t *testing.T) {
+	generateRouterTester().TestRouter_GetInvalidRoute(t)
+}
+
 func TestWebRouter_GetWildcardHTML(t *testing.T) {
 	webRouterTester().TestRouter_GetWildcardHTML(t)
 }
@@ -89,28 +92,12 @@ func TestWebRouter_Get(t *testing.T) {
 	webRouterTester().TestRouter_Get(t)
 }
 
+func TestWebRouterRouter_GetWithContentTypeSet(t *testing.T) {
+	generateRouterTester().TestRouter_GetWithContentTypeSet(t)
+}
+
 func TestWebRouter_StaticUrls(t *testing.T) {
 	webRouterTester().TestRouter_StaticUrls(t)
-}
-
-var mimeTypes = map[string]string{
-	".atom": "application/xml",
-	".css":  "text/css; charset=utf-8",
-	".gif":  "image/gif",
-	".html": "text/html; charset=utf-8",
-	".ico":  "image/x-icon",
-	".jpg":  "image/jpeg",
-	".js":   "application/x-javascript",
-	".png":  "image/png",
-	".svg":  "image/svg+xml",
-	".txt":  "text/plain; charset=utf-8",
-	".xml":  "text/xml; charset=utf-8",
-}
-
-var extraMimeTypes = map[string]bool{
-	".atom": true,
-	".ico":  true,
-	".txt":  true,
 }
 
 func TestWebRouter_FileServe(t *testing.T) {
@@ -144,29 +131,16 @@ func TestWebRouter_FileServe(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if len(mimeTypes) != len(filePaths) {
+		if len(contentTypes) != len(filePaths) {
 			t.Error("Mime types does not match number of test files")
 		}
 
 		failedMimeExts := testAllFiles(t, filePaths, requester)
-		for ext := range failedMimeExts {
-			if !extraMimeTypes[ext] {
-				t.Errorf("Could not find mime type for ext, not even in extraMimeTypes: %v", ext)
-			}
-		}
-
-		for ext := range extraMimeTypes {
-			err := mime.AddExtensionType(ext, mimeTypes[ext])
-			if err != nil {
-				t.Error(err)
-			}
-		}
-		failedMimeExts = testAllFiles(t, filePaths, requester)
 		for ext, got := range failedMimeExts {
 			context := test.NewContext().SetFields(test.ContextFields{
 				"ext": ext,
 			})
-			t.Error(context.GotExpString("mimeType", got, mimeTypes[ext]))
+			t.Error(context.GotExpString("mimeType", got, contentTypes[ext]))
 		}
 	})
 }
@@ -183,7 +157,7 @@ func testAllFiles(t *testing.T, filePaths []string, requester Requester) map[str
 		}
 
 		ext := path.Ext(filePath)
-		if response.MimeType != mimeTypes[ext] {
+		if response.MimeType != contentTypes[ext] {
 			failedMimeTypes[ext] = response.MimeType
 		}
 

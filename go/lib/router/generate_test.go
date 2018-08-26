@@ -35,6 +35,10 @@ func TestGenerateRouter_Around(t *testing.T) {
 	generateRouterTester().TestRouter_Around(t)
 }
 
+func TestGenerateRouter_GetInvalidRoute(t *testing.T) {
+	generateRouterTester().TestRouter_GetInvalidRoute(t)
+}
+
 func TestGenerateRouter_GetWildcardHTML(t *testing.T) {
 	generateRouterTester().TestRouter_GetWildcardHTML(t)
 }
@@ -49,6 +53,10 @@ func TestGenerateRouter_GetHTML(t *testing.T) {
 
 func TestGenerateRouter_Get(t *testing.T) {
 	generateRouterTester().TestRouter_Get(t)
+}
+
+func TestGenerateRouterRouter_GetWithContentTypeSet(t *testing.T) {
+	generateRouterTester().TestRouter_GetWithContentTypeSet(t)
 }
 
 func TestGenerateRouter_StaticUrls(t *testing.T) {
