@@ -73,7 +73,7 @@ func mergeFuncMap(dest, src template.FuncMap) {
 	}
 }
 
-func (renderer *Renderer) Render(name, defaultTitle string, data interface{}) ([]byte, error) {
+func (renderer *Renderer) RenderWithLayout(layoutName, name, defaultTitle string, data interface{}) ([]byte, error) {
 	partialPaths, err := renderer.partialPaths()
 	if err != nil {
 		return nil, err
@@ -81,8 +81,8 @@ func (renderer *Renderer) Render(name, defaultTitle string, data interface{}) ([
 
 	rootTemplateFilename := name + renderer.settings.TemplateExt
 	templatePaths := append(partialPaths, path.Join(renderer.settings.TemplatePath, rootTemplateFilename))
-	if renderer.settings.LayoutName != "" {
-		rootTemplateFilename = renderer.settings.LayoutName + renderer.settings.TemplateExt
+	if layoutName != "" {
+		rootTemplateFilename = layoutName + renderer.settings.TemplateExt
 		templatePaths = append(templatePaths, path.Join(renderer.settings.TemplatePath, rootTemplateFilename))
 	}
 
@@ -99,4 +99,8 @@ func (renderer *Renderer) Render(name, defaultTitle string, data interface{}) ([
 		return nil, err
 	}
 	return buffer.Bytes(), nil
+}
+
+func (renderer *Renderer) Render(name, defaultTitle string, data interface{}) ([]byte, error) {
+	return renderer.RenderWithLayout(renderer.settings.LayoutName, name, defaultTitle, data)
 }

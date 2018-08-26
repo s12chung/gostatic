@@ -28,30 +28,34 @@ func defaultRenderer() (*Renderer, *logTest.Hook) {
 	return NewRenderer(settings, []Plugin{w, md}, log), hook
 }
 
-func TestRenderer_Render(t *testing.T) {
+func TestRenderer_RenderWithLayout(t *testing.T) {
 	renderer, hook := defaultRenderer()
 
 	testCases := []struct {
+		layoutName   string
 		name         string
 		defaultTitle string
 		data         interface{}
 	}{
-		{"title", "", nil},
-		{"title", "The Default", nil},
-		{"title", "The Default", struct{ Title string }{"The Given"}},
-		{"title", "", struct{ Title string }{"The Given"}},
-		{"helpers", "", map[string]interface{}{"Html": `<span>html_data</span>`, "Date": test.Time(1)}},
+		{"layout", "title", "", nil},
+		{"layout", "title", "The Default", nil},
+		{"layout", "title", "The Default", struct{ Title string }{"The Given"}},
+		{"layout", "title", "", struct{ Title string }{"The Given"}},
+		{"layout2", "title", "", nil},
+		{"", "no_template_content", "", nil},
+		{"layout", "helpers", "", map[string]interface{}{"Html": `<span>html_data</span>`, "Date": test.Time(1)}},
 	}
 
 	for testCaseIndex, tc := range testCases {
 		context := test.NewContext().SetFields(test.ContextFields{
 			"index":        testCaseIndex,
+			"layoutName":   tc.layoutName,
 			"name":         tc.name,
 			"defaultTitle": tc.defaultTitle,
 			"data":         tc.data,
 		})
 
-		renderered, err := renderer.Render(tc.name, tc.defaultTitle, tc.data)
+		renderered, err := renderer.RenderWithLayout(tc.layoutName, tc.name, tc.defaultTitle, tc.data)
 		if err != nil {
 			test.PrintLogEntries(t, hook)
 			t.Error(context.String(err))
