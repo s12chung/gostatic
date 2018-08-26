@@ -2,15 +2,6 @@
 
 
 [[projects]]
-  name = "github.com/golang/mock"
-  packages = [
-    "mockgen",
-    "mockgen/model"
-  ]
-  revision = "c34cdb4725f4c3844d095133c6e40e448b86589b"
-  version = "v1.1.1"
-
-[[projects]]
   branch = "master"
   name = "github.com/s12chung/gostatic"
   packages = [
@@ -18,11 +9,12 @@
     "go/cli",
     "go/lib/html",
     "go/lib/pool",
+    "go/lib/robots",
     "go/lib/router",
     "go/lib/utils",
     "go/lib/webpack"
   ]
-  revision = "16cfc4fc2b001ee55267a1322adfcd13de57f69e"
+  revision = "13b1196dd9bd77d35656b60fd38969ea895cf7b9"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -48,6 +40,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c523dc8933c0b55608270e91ed509343f9c36afbd0fb1344df6311ef278aeae5"
+  inputs-digest = "615e39467b2bfd38e04b58ad02fd700cac69918a09dfec3972d6aa3af2748892"
   solver-name = "gps-cdcl"
   solver-version = 1
