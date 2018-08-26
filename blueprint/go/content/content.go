@@ -7,6 +7,7 @@ import (
 	"github.com/s12chung/gostatic/go/lib/html"
 	"github.com/s12chung/gostatic/go/lib/router"
 	"github.com/s12chung/gostatic/go/lib/webpack"
+	"github.com/s12chung/gostatic/go/lib/robots"
 )
 
 type Content struct {
@@ -46,6 +47,7 @@ func (content *Content) RenderHtml(ctx router.Context, name, defaultTitle string
 func (content *Content) SetRoutes(r router.Router, tracker *app.Tracker) {
 	r.GetRootHTML(content.getRoot)
 	r.GetHTML("/404.html", content.get404)
+	r.GetHTML("/robots.txt", content.getRobots)
 }
 
 func (content *Content) getRoot(ctx router.Context) error {
@@ -54,4 +56,11 @@ func (content *Content) getRoot(ctx router.Context) error {
 
 func (content *Content) get404(ctx router.Context) error {
 	return content.RenderHtml(ctx, "404", "404", nil)
+}
+
+func (content *Content) getRobots(ctx router.Context) error {
+	userAgents := []*robots.UserAgent {
+		robots.NewUserAgent(robots.EverythingUserAgent, []string { "/" }),
+	}
+	return ctx.Respond([]byte(robots.ToFileString(userAgents)))
 }
