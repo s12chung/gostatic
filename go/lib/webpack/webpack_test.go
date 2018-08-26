@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	logTest "github.com/sirupsen/logrus/hooks/test"
@@ -15,12 +16,12 @@ import (
 var generatedPath = path.Join(test.FixturePath, "generated")
 
 var jpgResponsiveImage = &ResponsiveImage{
-	"assets/test-37a65f446db3e9da33606b7eb48721bb-325.jpg",
-	"assets/test-37a65f446db3e9da33606b7eb48721bb-325.jpg 325w, assets/test-c9d1dad468456287c20a476ade8a4d3f-750.jpg 750w, assets/test-be268849aa760a62798817c27db7c430-1500.jpg 1500w, assets/test-38e5ee006bf91e6af6d508bce2a9da4c-3000.jpg 3000w, assets/test-84800b3286f76133d1592c9e68fa10be-4000.jpg 4000w",
+	"assets/content/images/test-37a65f446db3e9da33606b7eb48721bb-325.jpg",
+	"assets/content/images/test-37a65f446db3e9da33606b7eb48721bb-325.jpg 325w, assets/content/images/test-c9d1dad468456287c20a476ade8a4d3f-750.jpg 750w, assets/content/images/test-be268849aa760a62798817c27db7c430-1500.jpg 1500w, assets/content/images/test-38e5ee006bf91e6af6d508bce2a9da4c-3000.jpg 3000w, assets/content/images/test-84800b3286f76133d1592c9e68fa10be-4000.jpg 4000w",
 }
 var pngResponsiveImage = &ResponsiveImage{
-	"assets/test-afe607afeab81578d972f0ce9a92bdf4-325.png",
-	"assets/test-afe607afeab81578d972f0ce9a92bdf4-325.png 325w, assets/test-d31be3db558b4fe54b2c098abdd96306-750.png 750w, assets/test-e4b7c37523ea30081ad02f6191b299f6-1440.png 1440w",
+	"assets/content/images/test-afe607afeab81578d972f0ce9a92bdf4-325.png",
+	"assets/content/images/test-afe607afeab81578d972f0ce9a92bdf4-325.png 325w, assets/content/images/test-d31be3db558b4fe54b2c098abdd96306-750.png 750w, assets/content/images/test-e4b7c37523ea30081ad02f6191b299f6-1440.png 1440w",
 }
 
 func setAssetsPath(val string, callback func()) {
@@ -32,9 +33,6 @@ func setAssetsPath(val string, callback func()) {
 func defaultWebpack() (*Webpack, *logTest.Hook) {
 	log, hook := logTest.NewNullLogger()
 	settings := DefaultSettings()
-	settings.ResponsiveImageMap = map[string]string{
-		"test": "",
-	}
 	return NewWebpack(generatedPath, settings, log), hook
 }
 
@@ -88,77 +86,81 @@ func TestWebpack_GetResponsiveImage(t *testing.T) {
 	webpack, hook := defaultWebpack()
 
 	testCases := []struct {
-		originalSrc      string
-		expected         *ResponsiveImage
-		badKey           bool
-		notHasResponsive bool
+		originalSrc string
+		expected    *ResponsiveImage
+		unsafeLog   bool
 	}{
-		{"test.jpg", jpgResponsiveImage, false, false},
-		{"test.png", pngResponsiveImage, false, false},
-		{"test.png", &ResponsiveImage{Src: "test.png"}, true, false},
-		{"test.gif", &ResponsiveImage{Src: "assets/test.gif"}, false, true},
+		{"content/images/test.jpg", jpgResponsiveImage, false},
+		{"content/images/test.png", pngResponsiveImage, false},
+		{"test.gif", &ResponsiveImage{Src: "assets/test.gif"}, false},
+		{"does_not_exist.png", &ResponsiveImage{Src: "assets/does_not_exist.png"}, true},
+		{"content/images/test_again.png", &ResponsiveImage{Src: "assets/content/images/test_again-1440.png"}, true},
 	}
 
 	for testCaseIndex, tc := range testCases {
 		context := test.NewContext().SetFields(test.ContextFields{
-			"index":            testCaseIndex,
-			"originalSrc":      tc.originalSrc,
-			"badKey":           tc.badKey,
-			"notHasResponsive": tc.notHasResponsive,
+			"index":       testCaseIndex,
+			"originalSrc": tc.originalSrc,
+			"unsafeLog":   tc.unsafeLog,
 		})
 
-		key := "test"
-		if tc.badKey {
-			key = ""
-		}
-		got := webpack.GetResponsiveImage(key, tc.originalSrc)
+		got := webpack.GetResponsiveImage(tc.originalSrc)
 		if !cmp.Equal(got, tc.expected) {
 			t.Error(context.GotExpString("result", got, tc.expected))
 		}
-		if tc.badKey && test.SafeLogEntries(hook) {
+		if test.SafeLogEntries(hook) == tc.unsafeLog {
 			test.PrintLogEntries(t, hook)
-			t.Error(context.String("expecting unsafe log entry"))
+			t.Error(context.GotExpString("test.SafeLogEntries(hook)", test.SafeLogEntries(hook), tc.unsafeLog))
 		}
 	}
 }
 
 func TestWebpack_ReplaceResponsiveAttrs(t *testing.T) {
-	complexImg := `<img alt="blah" src="test.jpg" class="haha"/>`
 	testCases := []struct {
-		responsiveKey string
+		imageFilename string
+		srcPrefix     string
 		input         string
 		expected      string
 	}{
-		{"", complexImg, complexImg},
-		{"test", `<img src="test.jpg"/>`, fmt.Sprintf(`<img %v/>`, jpgResponsiveImage.HtmlAttrs())},
-		{"test", `<img src="test.jpg" class="haha"/>`, fmt.Sprintf(`<img %v class="haha"/>`, jpgResponsiveImage.HtmlAttrs())},
-		{"test", `<img alt="blah" src="test.jpg"/>`, fmt.Sprintf(`<img alt="blah" %v/>`, jpgResponsiveImage.HtmlAttrs())},
-		{"test", complexImg, fmt.Sprintf(`<img alt="blah" %v class="haha"/>`, jpgResponsiveImage.HtmlAttrs())},
+		{"test.jpg", "content/images", `<img src="SRC"/>`, fmt.Sprintf(`<img %v/>`, jpgResponsiveImage.HtmlAttrs())},
+		{"test.jpg", "content/images", `<img src="SRC" class="haha"/>`, fmt.Sprintf(`<img %v class="haha"/>`, jpgResponsiveImage.HtmlAttrs())},
+		{"test.jpg", "content/images", `<img alt="blah" src="SRC"/>`, fmt.Sprintf(`<img alt="blah" %v/>`, jpgResponsiveImage.HtmlAttrs())},
+		{"test.jpg", "content/images", `<img alt="blah" src="SRC" class="haha"/>`, fmt.Sprintf(`<img alt="blah" %v class="haha"/>`, jpgResponsiveImage.HtmlAttrs())},
+		{"test_again.png", "content/images", `<img src="SRC"/>`, `<img src="assets/content/images/test_again-1440.png"/>`},
+		{"test.gif", "", `<img src="SRC"/>`, `<img src="assets/test.gif"/>`},
+		{"test.jpg", "doesnt_exist", `<img src="SRC"/>`, `<img src="assets/doesnt_exist/test.jpg"/>`},
 	}
+
 	for testCaseIndex, tc := range testCases {
 		context := test.NewContext().SetFields(test.ContextFields{
 			"index":         testCaseIndex,
-			"responsiveKey": tc.responsiveKey,
+			"imageFilename": tc.imageFilename,
+			"srcPrefix":     tc.srcPrefix,
 			"input":         tc.input,
 		})
 
-		webpack, hook := defaultWebpack()
-		webpack.settings.ReplaceResponsiveAttrs = tc.responsiveKey
+		webpack, _ := defaultWebpack()
 
-		got := webpack.ReplaceResponsiveAttrs(tc.input)
-		if got != tc.expected {
-			t.Error(context.GotExpString("result", got, tc.expected))
+		srcPrefixCases := []struct {
+			srcPrefix string
+			input     string
+		}{
+			{tc.srcPrefix, strings.Replace(tc.input, "SRC", tc.imageFilename, -1)},
+			{"", strings.Replace(tc.input, "SRC", path.Join(tc.srcPrefix, tc.imageFilename), -1)},
 		}
-		if tc.responsiveKey == "" && test.SafeLogEntries(hook) {
-			test.PrintLogEntries(t, hook)
-			t.Error(context.String("expecting unsafe log entry"))
+
+		for _, stc := range srcPrefixCases {
+			got := webpack.ReplaceResponsiveAttrs(stc.srcPrefix, stc.input)
+			if got != tc.expected {
+				t.Error(context.GotExpString(fmt.Sprintf("result with srcPrefix: %v", stc.srcPrefix), got, tc.expected))
+			}
 		}
 	}
 }
 
 func TestWebpack_ResponsiveHtmlAttrs(t *testing.T) {
 	webpack, _ := defaultWebpack()
-	got := string(webpack.ResponsiveHtmlAttrs("test", "test.jpg"))
+	got := string(webpack.ResponsiveHtmlAttrs("content/images/test.jpg"))
 	exp := jpgResponsiveImage.HtmlAttrs()
 	if got != exp {
 		t.Error(test.AssertLabelString("result", got, exp))

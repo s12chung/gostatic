@@ -1,6 +1,7 @@
 package webpack
 
 import (
+	"path"
 	"strings"
 	"testing"
 
@@ -41,7 +42,7 @@ func TestResponsiveImage_ChangeSrcPrefix(t *testing.T) {
 		},
 		{
 			&ResponsiveImage{"blah.png", "blah-125.png 125w, blah-125.png 250w, blah-125.png 125w, blah-500.png 500w"},
-			&ResponsiveImage{placeholder + "blah.png", placeholder + "blah-125.png 125w, PREFIX/blah-125.png 250w, PREFIX/blah-125.png 125w, PREFIX/blah-500.png 500w"},
+			&ResponsiveImage{placeholder + "blah.png", placeholder + "blah-125.png 125w, " + placeholder + "blah-125.png 250w, " + placeholder + "blah-125.png 125w, " + placeholder + "blah-500.png 500w"},
 			true,
 		},
 		{
@@ -56,7 +57,7 @@ func TestResponsiveImage_ChangeSrcPrefix(t *testing.T) {
 		},
 		{
 			&ResponsiveImage{"content/images/blah.png", "content/images/blah-125.png 125w, content/images/blah-125.png 250w, content/images/blah-125.png 125w, content/images/blah-500.png 500w"},
-			&ResponsiveImage{placeholder + "blah.png", placeholder + "blah-125.png 125w, PREFIX/blah-125.png 250w, PREFIX/blah-125.png 125w, PREFIX/blah-500.png 500w"},
+			&ResponsiveImage{placeholder + "blah.png", placeholder + "blah-125.png 125w, " + placeholder + "blah-125.png 250w, " + placeholder + "blah-125.png 125w, " + placeholder + "blah-500.png 500w"},
 			true,
 		},
 		{
@@ -70,12 +71,12 @@ func TestResponsiveImage_ChangeSrcPrefix(t *testing.T) {
 		},
 		{
 			&ResponsiveImage{"content/images/blah.png", "content/images/blah-125.png 125w, content/images/blah-125.png 250w, content/images/blah-125.png 125w, content/images/blah-500.png 500w,"},
-			&ResponsiveImage{placeholder + "blah.png", placeholder + "blah-125.png 125w, PREFIX/blah-125.png 250w, PREFIX/blah-125.png 125w, PREFIX/blah-500.png 500w"},
+			&ResponsiveImage{placeholder + "blah.png", placeholder + "blah-125.png 125w, " + placeholder + "blah-125.png 250w, " + placeholder + "blah-125.png 125w, " + placeholder + "blah-500.png 500w"},
 			false,
 		},
 		{
 			&ResponsiveImage{"content/images/blah.png", "content/images/blah-125.png 125w, , content/images/blah-125.png 250w, , content/images/blah-125.png 125w, content/images/blah-500.png 500w,"},
-			&ResponsiveImage{placeholder + "blah.png", placeholder + "blah-125.png 125w, PREFIX/blah-125.png 250w, PREFIX/blah-125.png 125w, PREFIX/blah-500.png 500w"},
+			&ResponsiveImage{placeholder + "blah.png", placeholder + "blah-125.png 125w, " + placeholder + "blah-125.png 250w, " + placeholder + "blah-125.png 125w, " + placeholder + "blah-500.png 500w"},
 			false,
 		},
 	}
@@ -101,15 +102,16 @@ func TestResponsiveImage_ChangeSrcPrefix(t *testing.T) {
 
 			log, hook := logTest.NewNullLogger()
 			got := copyResponsiveImage(tc.img)
-			got.ChangeSrcPrefix(prefix, log)
+			got.PrependSrcPath(prefix, log)
 
 			exp := copyResponsiveImage(tc.exp)
-			cleanPrefix := utils.CleanFilePath(prefix)
-			if cleanPrefix != "" {
-				cleanPrefix = cleanPrefix + "/"
+
+			fullPrefix := path.Join(utils.CleanFilePath(prefix), path.Dir(tc.img.Src)) + "/"
+			if fullPrefix == "./" {
+				fullPrefix = ""
 			}
-			exp.Src = strings.Replace(exp.Src, placeholder, cleanPrefix, 1)
-			exp.SrcSet = strings.Replace(exp.SrcSet, placeholder, cleanPrefix, -1)
+			exp.Src = strings.Replace(exp.Src, placeholder, fullPrefix, 1)
+			exp.SrcSet = strings.Replace(exp.SrcSet, placeholder, fullPrefix, -1)
 
 			if !cmp.Equal(got, exp) {
 				t.Error(context.GotExpString("Result", got, exp))

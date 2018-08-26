@@ -16,8 +16,8 @@ type ResponsiveImage struct {
 
 var spacesRegex = regexp.MustCompile(`\s+`)
 
-func (r *ResponsiveImage) ChangeSrcPrefix(prefix string, log logrus.FieldLogger) {
-	r.Src = changeSrcPrefix(prefix, r.Src)
+func (r *ResponsiveImage) PrependSrcPath(prefix string, log logrus.FieldLogger) {
+	r.Src = prependSrcPath(prefix, r.Src)
 	if r.SrcSet == "" {
 		return
 	}
@@ -29,7 +29,7 @@ func (r *ResponsiveImage) ChangeSrcPrefix(prefix string, log logrus.FieldLogger)
 			log.Warn("skipping, srcSet is not formatted correctly with '%v' for img src='%v'", srcWidth, r.Src)
 			continue
 		}
-		newSrcSet = append(newSrcSet, fmt.Sprintf("%v %v", changeSrcPrefix(prefix, srcWidthSplit[0]), srcWidthSplit[1]))
+		newSrcSet = append(newSrcSet, fmt.Sprintf("%v %v", prependSrcPath(prefix, srcWidthSplit[0]), srcWidthSplit[1]))
 	}
 
 	r.SrcSet = strings.Join(newSrcSet, ", ")
@@ -46,15 +46,14 @@ func (r *ResponsiveImage) HtmlAttrs() string {
 	return strings.Join(htmlAttrs, " ")
 }
 
-func changeSrcPrefix(prefix, src string) string {
+func prependSrcPath(prefix, src string) string {
 	if src == "" {
 		return ""
 	}
 
 	prefix = utils.CleanFilePath(prefix)
-	base := path.Base(src)
 	if prefix == "" {
-		return base
+		return src
 	}
-	return fmt.Sprintf("%v/%v", prefix, base)
+	return path.Join(prefix, src)
 }

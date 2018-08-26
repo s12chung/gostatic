@@ -3,6 +3,7 @@ package webpack
 import (
 	"fmt"
 	"html/template"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -16,21 +17,16 @@ type Webpack struct {
 	generatedPath string
 	settings      *Settings
 	manifest      *Manifest
-	responsiveMap map[string]*Responsive
+	responsive    *Responsive
 	log           logrus.FieldLogger
 }
 
 func NewWebpack(generatedPath string, settings *Settings, log logrus.FieldLogger) *Webpack {
-	responsiveMap := map[string]*Responsive{}
-	for k, imagePath := range settings.ResponsiveImageMap {
-		responsiveMap[k] = NewResponsive(generatedPath, settings.AssetsPath, imagePath, log)
-	}
-
 	return &Webpack{
 		generatedPath,
 		settings,
 		NewManifest(generatedPath, settings.AssetsPath, log),
-		responsiveMap,
+		NewResponsive(generatedPath, settings.AssetsPath, log),
 		log,
 	}
 }
@@ -51,34 +47,31 @@ func (w *Webpack) ManifestUrl(key string) string {
 	return w.manifest.ManifestUrl(key)
 }
 
-func (w *Webpack) GetResponsiveImage(key, originalSrc string) *ResponsiveImage {
-	responsive, has := w.responsiveMap[key]
-	if !has {
-		w.log.Errorf("Invalid key given to GetResponsiveImage: %v", key)
-		return &ResponsiveImage{Src: originalSrc}
+func (w *Webpack) GetResponsiveImage(originalSrc string) *ResponsiveImage {
+	manifestImage := func() *ResponsiveImage {
+		return &ResponsiveImage{Src: w.ManifestUrl(originalSrc)}
 	}
+
 	if !HasResponsive(originalSrc) {
-		manifestKey := filepath.Join(responsive.imagePath, filepath.Base(originalSrc))
-		return &ResponsiveImage{Src: w.ManifestUrl(manifestKey)}
+		return manifestImage()
 	}
-	return responsive.GetResponsiveImage(originalSrc)
+	responsiveImage := w.responsive.GetResponsiveImage(originalSrc)
+	if responsiveImage == nil {
+		return manifestImage()
+	}
+	return responsiveImage
 }
 
-func (w *Webpack) ReplaceResponsiveAttrs(html string) string {
-	responsiveKey := w.settings.ReplaceResponsiveAttrs
-	if w.settings.ReplaceResponsiveAttrs == "" {
-		w.log.Errorf("no settings.ReplaceResponsiveAttrs found")
-		return html
-	}
+func (w *Webpack) ReplaceResponsiveAttrs(srcPrefix, html string) string {
 	return imgRegex.ReplaceAllStringFunc(html, func(imgTag string) string {
 		matches := imgRegex.FindStringSubmatch(imgTag)
-		responsiveImage := w.GetResponsiveImage(responsiveKey, matches[2])
+		responsiveImage := w.GetResponsiveImage(path.Join(srcPrefix, matches[2]))
 		return strings.Replace(imgTag, matches[1], responsiveImage.HtmlAttrs(), 1)
 	})
 }
 
-func (w *Webpack) ResponsiveHtmlAttrs(key, originalSrc string) template.HTMLAttr {
-	responsiveImage := w.GetResponsiveImage(key, originalSrc)
+func (w *Webpack) ResponsiveHtmlAttrs(originalSrc string) template.HTMLAttr {
+	responsiveImage := w.GetResponsiveImage(originalSrc)
 	return template.HTMLAttr(responsiveImage.HtmlAttrs())
 }
 

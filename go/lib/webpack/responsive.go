@@ -20,12 +20,11 @@ var responsiveExtensions = map[string]bool{
 type Responsive struct {
 	generatedPath string
 	assetsFolder  string
-	imagePath     string
 	log           logrus.FieldLogger
 }
 
-func NewResponsive(generatedPath, assetsFolder, imagePath string, log logrus.FieldLogger) *Responsive {
-	return &Responsive{generatedPath, assetsFolder, imagePath, log}
+func NewResponsive(generatedPath, assetsFolder string, log logrus.FieldLogger) *Responsive {
+	return &Responsive{generatedPath, assetsFolder, log}
 }
 
 func HasResponsive(originalSrc string) bool {
@@ -37,7 +36,7 @@ func (r *Responsive) GetResponsiveImage(originalSrc string) *ResponsiveImage {
 	responsiveImage, err := r.getResponsiveImage(originalSrc)
 	if err != nil {
 		r.log.Errorf("GetResponsiveImage error: %v", err)
-		return &ResponsiveImage{Src: originalSrc}
+		return nil
 	}
 	return responsiveImage
 }
@@ -55,13 +54,13 @@ func (r *Responsive) getResponsiveImage(originalSrc string) (*ResponsiveImage, e
 	if err != nil {
 		return nil, err
 	}
-	responsiveImage.ChangeSrcPrefix(path.Join(r.assetsFolder, r.imagePath), r.log)
+	responsiveImage.PrependSrcPath(r.assetsFolder, r.log)
 	return responsiveImage, nil
 }
 
 func (r *Responsive) readResponsiveImageJSON(originalSrc string) (*ResponsiveImage, error) {
-	filename := fmt.Sprintf("%v.json", filepath.Base(originalSrc))
-	filePath := path.Join(r.generatedPath, r.assetsFolder, r.imagePath, responsiveFolder, filename)
+	filename := fmt.Sprintf("%v.json", path.Base(originalSrc))
+	filePath := path.Join(r.generatedPath, r.assetsFolder, path.Dir(originalSrc), responsiveFolder, filename)
 
 	bytes, err := ioutil.ReadFile(filePath)
 	if err != nil {

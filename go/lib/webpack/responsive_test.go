@@ -9,7 +9,7 @@ import (
 
 func defaultResponsive() (*Responsive, *logTest.Hook) {
 	log, hook := logTest.NewNullLogger()
-	return NewResponsive(generatedPath, DefaultSettings().AssetsPath, "", log), hook
+	return NewResponsive(generatedPath, DefaultSettings().AssetsPath, log), hook
 }
 
 func TestHasResponsive(t *testing.T) {
@@ -38,30 +38,25 @@ func TestHasResponsive(t *testing.T) {
 func TestResponsive_GetResponsiveImage(t *testing.T) {
 	testCases := []struct {
 		originalSrc string
-		imagePath   string
 		exp         *ResponsiveImage
 	}{
-		{"test.jpg", "", jpgResponsiveImage},
-		{"test.png", "", pngResponsiveImage},
-		{"test.gif", "", &ResponsiveImage{Src: "test.gif"}},
-		{"test.png", "does_not_exist", &ResponsiveImage{Src: "test.png"}},
-		{"http://testy.com/test.png", "", &ResponsiveImage{Src: "http://testy.com/test.png"}},
+		{"content/images/test.jpg", jpgResponsiveImage},
+		{"content/images/test.png", pngResponsiveImage},
+		{"http://testy.com/test.png", &ResponsiveImage{Src: "http://testy.com/test.png"}},
+		{"test.gif", nil},
+		{"content/images/test.gif", nil},
+		{"does_not_exist/test.png", nil},
 	}
 
 	for testCaseIndex, tc := range testCases {
 		context := test.NewContext().SetFields(test.ContextFields{
 			"index":       testCaseIndex,
 			"originalSrc": tc.originalSrc,
-			"imagePath":   tc.imagePath,
 		})
 
-		responsive, hook := defaultResponsive()
-		responsive.imagePath = tc.imagePath
+		responsive, _ := defaultResponsive()
 		got := responsive.GetResponsiveImage(tc.originalSrc)
 
-		if tc.imagePath != "" && test.SafeLogEntries(hook) {
-			t.Error(context.String("expecting unsafe log entry"))
-		}
 		if !cmp.Equal(got, tc.exp) {
 			t.Error(context.GotExpString("result", got, tc.exp))
 		}
