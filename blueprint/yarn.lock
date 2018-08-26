@@ -467,18 +467,7 @@ bin-version@^1.0.0:
   dependencies:
     find-versions "^1.0.0"
 
-bin-wrapper@^3.0.0:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/bin-wrapper/-/bin-wrapper-3.0.2.tgz#67d3306262e4b1a5f2f88ee23464f6a655677aeb"
-  dependencies:
-    bin-check "^2.0.0"
-    bin-version-check "^2.1.0"
-    download "^4.0.0"
-    each-async "^1.1.1"
-    lazy-req "^1.0.0"
-    os-filter-obj "^1.0.0"
-
-"bin-wrapper@github:s12chung/bin-wrapper#use_system_bin":
+bin-wrapper@^3.0.0, "bin-wrapper@github:s12chung/bin-wrapper#use_system_bin":
   version "3.0.2"
   resolved "https://codeload.github.com/s12chung/bin-wrapper/tar.gz/b58da90d39c23b01f976fbb1d03202b80675fb61"
   dependencies:
