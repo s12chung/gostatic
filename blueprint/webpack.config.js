@@ -1,24 +1,32 @@
 const isProduction = process.env.NODE_ENV === "production";
 const filename = isProduction ? '[name]-[hash]' : '[name]';
+
 const defaults = require('gostatic-webpack')(__dirname, filename, isProduction);
+const babelDefaults = require('gostatic-webpack-babel')(__dirname, filename, isProduction);
+
+const relativePath = function(p) { return require('path').resolve(__dirname, p); };
 
 module.exports = {
     mode: isProduction ? "production" : "development",
+    devtool: "cheap-source-map",
 
     entry: Object.assign(defaults.entry(), {
-        // add your own
+        // entryChunkName: relativePath('assets/js/filename.js'),
     }),
     output: Object.assign(defaults.output(), {
-        // add your own
+        // customize
     }),
 
     module: {
-        rules: defaults.allRules().concat([
-            // add your own
-        ])
+        rules: defaults.allRules()
+            .concat(babelDefaults.babelRules())
+            .concat([
+                // customize
+            ])
     },
 
-    plugins: defaults.allPlugins().concat([
-        // add your own
-    ])
+    plugins: defaults.allPlugins()
+        .concat([
+            // customize
+        ])
 };

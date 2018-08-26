@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "gostatic-webpack": "github:s12chung/gostatic-webpack",
+    "gostatic-webpack-babel": "github:s12chung/gostatic-webpack-babel",
     "webpack": "^4.15.0",
     "webpack-cli": "^3.0.8"
   }
