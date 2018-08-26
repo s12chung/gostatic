@@ -1,7 +1,6 @@
 const isProduction = process.env.NODE_ENV === "production";
-const filenameF = function() { return isProduction ? '[name]-[hash]' : '[name]'; };
-
-const defaults = require('gostatic-webpack')(__dirname, filenameF);
+const filename = isProduction ? '[name]-[hash]' : '[name]';
+const defaults = require('gostatic-webpack')(__dirname, filename, isProduction);
 
 module.exports = {
     mode: isProduction ? "production" : "development",
