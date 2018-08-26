@@ -1,0 +1,11 @@
+version: "3"
+services:
+  web:
+    command: "make test"
+    build:
+      context: .
+      args:
+        DOCKER_WORKDIR: $DOCKER_WORKDIR
+    tty: true
+    volumes:
+    - .:${DOCKER_WORKDIR}:cached
