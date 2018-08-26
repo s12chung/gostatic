@@ -5,19 +5,27 @@ import (
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"path/filepath"
+	"sync"
 )
 
 const manifestPath = "manifest.json"
 
 type Manifest struct {
-	generatedPath string
-	assetsFolder  string
-	manifestMap   map[string]string
-	log           logrus.FieldLogger
+	generatedPath   string
+	assetsFolder    string
+	manifestMap     map[string]string
+	manifestMapLock *sync.RWMutex
+	log             logrus.FieldLogger
 }
 
 func NewManifest(generatedPath, assetsFolder string, log logrus.FieldLogger) *Manifest {
-	return &Manifest{generatedPath, assetsFolder, map[string]string{}, log}
+	return &Manifest{
+		generatedPath,
+		assetsFolder,
+		map[string]string{},
+		&sync.RWMutex{},
+		log,
+	}
 }
 
 func (w *Manifest) ManifestUrl(key string) string {
@@ -25,6 +33,7 @@ func (w *Manifest) ManifestUrl(key string) string {
 }
 
 func (w *Manifest) manifestValue(key string) string {
+	w.manifestMapLock.Lock()
 	if len(w.manifestMap) == 0 {
 		err := w.readManifest()
 		if err != nil {
@@ -32,7 +41,12 @@ func (w *Manifest) manifestValue(key string) string {
 			return key
 		}
 	}
+	w.manifestMapLock.Unlock()
+
+	w.manifestMapLock.RLock()
 	value := w.manifestMap[key]
+	w.manifestMapLock.RUnlock()
+
 	if value == "" {
 		w.log.Errorf("webpack manifestValue not found for key: %v", key)
 		return key
