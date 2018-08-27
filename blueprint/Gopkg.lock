@@ -9,7 +9,6 @@
     "go/cli",
     "go/lib/html",
     "go/lib/pool",
-    "go/lib/robots",
     "go/lib/router",
     "go/lib/utils",
     "go/lib/webpack"
@@ -40,6 +39,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "615e39467b2bfd38e04b58ad02fd700cac69918a09dfec3972d6aa3af2748892"
+  inputs-digest = "56d4f2926a0829dd1af1591283cfde5c4ecfd85e04286d9a484d074334787033"
   solver-name = "gps-cdcl"
   solver-version = 1

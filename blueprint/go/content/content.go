@@ -7,7 +7,6 @@ import (
 	"github.com/s12chung/gostatic/go/lib/html"
 	"github.com/s12chung/gostatic/go/lib/router"
 	"github.com/s12chung/gostatic/go/lib/webpack"
-	"github.com/s12chung/gostatic/go/lib/robots"
 )
 
 type Content struct {
@@ -59,8 +58,9 @@ func (content *Content) get404(ctx router.Context) error {
 }
 
 func (content *Content) getRobots(ctx router.Context) error {
-	userAgents := []*robots.UserAgent {
-		robots.NewUserAgent(robots.EverythingUserAgent, []string { "/" }),
-	}
-	return ctx.Respond([]byte(robots.ToFileString(userAgents)))
+	//userAgents := []*robots.UserAgent {
+	//	robots.NewUserAgent(robots.EverythingUserAgent, []string { "/" }),
+	//}
+	//return ctx.Respond([]byte(robots.ToFileString(userAgents)))
+	return ctx.Respond([]byte{})
 }
