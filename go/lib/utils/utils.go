@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -38,6 +39,30 @@ func MkdirAll(path string) error {
 
 func WriteFile(path string, bytes []byte) error {
 	return ioutil.WriteFile(path, bytes, 0644)
+}
+
+// from: https://stackoverflow.com/a/21067803/1090482
+func CopyFile(src, dst string) (err error) {
+	in, err := os.Open(src)
+	if err != nil {
+		return
+	}
+	defer in.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return
+	}
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+	if _, err = io.Copy(out, in); err != nil {
+		return
+	}
+	err = out.Sync()
+	return
 }
 
 func CleanFilePath(filePath string) string {

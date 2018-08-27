@@ -36,6 +36,12 @@
   version = "v2.0.0"
 
 [[projects]]
+  name = "github.com/s12chung/fastwalk"
+  packages = ["."]
+  revision = "769a7cfcaa17ff4e40f926091af6bd3e4dc42a31"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/shurcooL/sanitized_anchor_name"
   packages = ["."]
@@ -74,6 +80,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "90800530cf8e6cc54022f9706b2e35dba4273ce457957578c3af131aa2983176"
+  inputs-digest = "086a6dbb99c4d7778e29b6e638655ea813a6f5c0dae7202f7e4b9ba9b6d0f08f"
   solver-name = "gps-cdcl"
   solver-version = 1
