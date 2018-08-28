@@ -65,15 +65,15 @@ func NewBlueprint(srcDir, destDir, namespace string) *Blueprint {
 	return &Blueprint{srcDir, destDir, namespace}
 }
 
-func (blueprint *Blueprint) Init() error {
+func (blueprint *Blueprint) Init() (string, error) {
 	ignoreMap, err := blueprint.IgnoreMap()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	utils.MkdirAll(blueprint.destPath(""))
 	var exampleFiles []string
-	return blueprint.IgnoreWalk(ignoreMap, func(srcPath string, typ os.FileMode) error {
+	err = blueprint.IgnoreWalk(ignoreMap, func(srcPath string, typ os.FileMode) error {
 		if srcPath == blueprint.srcDir {
 			return nil
 		}
@@ -85,9 +85,8 @@ func (blueprint *Blueprint) Init() error {
 
 		destPaths := []string{destPath}
 		if path.Ext(srcPath) == exampleExt {
-			baseExampleFilename := strings.TrimSuffix(destPath, exampleExt)
-			exampleFiles = append(exampleFiles, baseExampleFilename)
-			destPaths = append(destPaths, baseExampleFilename)
+			exampleFiles = append(exampleFiles, blueprint.srcRelativePath(srcPath))
+			destPaths = append(destPaths, strings.TrimSuffix(destPath, exampleExt))
 		}
 
 		for _, m := range replaceFuncsMappings {
@@ -108,6 +107,16 @@ func (blueprint *Blueprint) Init() error {
 			return utils.CopyFile(srcPath, destPath)
 		})
 	})
+	if err != nil {
+		return "", err
+	}
+
+	messageArray := []string{"Note these files, which are in .gitignore and have .example version:"}
+	for _, exampleFile := range exampleFiles {
+		messageArray = append(messageArray, "- "+strings.TrimSuffix(exampleFile, exampleExt))
+	}
+	messageArray = append(messageArray, "You may need to fill in personal data in them, such as AWS credentials.\n")
+	return strings.Join(messageArray, "\n"), nil
 }
 
 func (blueprint *Blueprint) ProjectName() string {
@@ -118,8 +127,8 @@ func (blueprint *Blueprint) ProjectDir() string {
 	return path.Join(blueprint.destDir, blueprint.ProjectName())
 }
 
-func (blueprint *Blueprint) srcRelativePath(p string) string {
-	return strings.TrimPrefix(p, blueprint.srcDir+"/")
+func (blueprint *Blueprint) srcRelativePath(srcPath string) string {
+	return strings.TrimPrefix(srcPath, blueprint.srcDir+"/")
 }
 
 func (blueprint *Blueprint) destPath(srcPath string) string {

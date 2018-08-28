@@ -54,7 +54,7 @@ func TestBlueprint_Init(t *testing.T) {
 	}
 	defer func() { utils.CopyFile(gitIgnoreFilePath, testGitIgnorePath) }()
 
-	err = blueprint.Init()
+	_, err = blueprint.Init()
 	if err != nil {
 		t.Error(err)
 		return

@@ -1,6 +1,10 @@
 install:
 	dep ensure
 
+dev:
+	go install .
+	$(GOPATH)/bin/gostatic init dev
+
 test:
 	go test ./go/...
 
