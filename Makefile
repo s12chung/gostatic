@@ -1,12 +1,13 @@
 install:
 	dep ensure
 
-dev:
-	go install .
-	$(GOPATH)/bin/gostatic init dev
-
 test:
 	go test ./go/...
+
+test-init:
+	bash -c './test-init.sh'
+
+test-all: test test-init
 
 mock:
 	go install ./vendor/github.com/golang/mock/mockgen
@@ -26,4 +27,4 @@ docker-test:
 	docker-compose up --exit-code-from web
 
 docker-run-sh:
-	docker-compose run web ash
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml run web ash

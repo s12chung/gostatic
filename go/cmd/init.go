@@ -34,14 +34,14 @@ var initCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		projectName := args[0]
 		fmt.Printf("New project: %v\n", projectName)
-		err := initProject(projectName)
+		err := initProject(projectName, test)
 		if err != nil {
 			fmt.Printf("\nError: %v\n", err)
 		}
 	},
 }
 
-func initProject(projectName string) error {
+func initProject(projectName string, test bool) error {
 	pwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -52,25 +52,29 @@ func initProject(projectName string) error {
 	}
 
 	fmt.Print("\n")
-	tempDir, err := ioutil.TempDir("", "gostatic")
-	if err != nil {
-		return err
-	}
-	defer func() { os.RemoveAll(tempDir) }()
-	zipPath := path.Join(tempDir, goStaticZipFilename+".zip")
-	fmt.Printf("Downloading gostatic@master from %v.\n", goStaticDownloadUrl)
-	err = downloadfile(goStaticDownloadUrl, zipPath)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Downloaded and unzipping in temp dir.\n")
-	err = unzip(zipPath, tempDir)
-	if err != nil {
-		return err
-	}
-	fmt.Print("\n")
 
-	bp := blueprint.NewBlueprint(path.Join(tempDir, goStaticZipFilename, "blueprint"), pwd, namespace)
+	srcDir := "./blueprint"
+	if !test {
+		tempDir, err := ioutil.TempDir("", "gostatic")
+		if err != nil {
+			return err
+		}
+		defer func() { os.RemoveAll(tempDir) }()
+		zipPath := path.Join(tempDir, goStaticZipFilename+".zip")
+		fmt.Printf("Downloading gostatic@master from %v.\n", goStaticDownloadUrl)
+		err = downloadfile(goStaticDownloadUrl, zipPath)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Downloaded and unzipping in temp dir.\n")
+		err = unzip(zipPath, tempDir)
+		if err != nil {
+			return err
+		}
+		fmt.Print("\n")
+		srcDir = path.Join(tempDir, goStaticZipFilename, "blueprint")
+	}
+	bp := blueprint.NewBlueprint(srcDir, pwd, namespace)
 
 	_, err = os.Stat(bp.ProjectDir())
 	if !os.IsNotExist(err) {
@@ -92,28 +96,22 @@ func initProject(projectName string) error {
 	}
 
 	err = exec.Command("direnv", "version").Run()
-	hasDirEnv := true
+	dirEnvMessage := ""
 	if err != nil {
-		hasDirEnv = false
-		fmt.Println("direnv not installed, please note that Makefile and Docker use the environment variables set in .envrc.")
+		dirEnvMessage = " (without direnv, you require DOCKER_WORKDIR ENV variable from .envrc)"
+		fmt.Print("direnv not installed, please note that Makefile and Docker use the environment variables set in .envrc.\n\n")
 	}
 
 	err = exec.Command("docker", "-v").Run()
 	if err != nil {
-		fmt.Println("docker not installed. To install locally, you can see the Dockerfile to view system dependencies.")
-	}
-
-	env := "DOCKER_WORKDIR=" + "/go/src/" + namespace + " "
-	if hasDirEnv {
-		env = ""
+		fmt.Print("docker not installed. To install locally, you can see the Dockerfile to view system dependencies.\n\n")
 	}
 
 	if bpMessage != "" {
-		fmt.Print("\n")
 		fmt.Print(bpMessage)
 	}
 	fmt.Print("\n")
-	fmt.Printf("Project creation success! Install the project in docker via: `%vmake docker-install`\n", env)
+	fmt.Printf("Project creation success! Install the project in docker via: `make docker-install`%v\n", dirEnvMessage)
 	return nil
 }
 

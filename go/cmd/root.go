@@ -18,6 +18,12 @@ See https://github.com/s12chung/gostatic for more.`,
 	},
 }
 
+var test bool
+
+func init() {
+	rootCmd.PersistentFlags().BoolVarP(&test, "test", "t", false, "Running in test mode")
+}
+
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
