@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/s12chung/fastwalk"
@@ -21,7 +22,8 @@ var ignoredFiles = map[string]bool{
 	".DS_Store": true,
 }
 
-const exampleExt = ".example"
+var exampleRegex = regexp.MustCompile(`\.example(\.[a-zA-Z]{1,8})?$`)
+
 const projectNameString = "blueprint"
 const namespaceString = "github.com/s12chung/gostatic/blueprint"
 
@@ -42,7 +44,7 @@ var extToFuncs = map[string][]ReplaceFunc{
 }
 
 var filenameToFuncs = map[string][]ReplaceFunc{
-	".envrc.example": {replaceNamespace},
+	".example.envrc": {replaceNamespace},
 	"Makefile":       {replaceProjectName},
 	"package.json":   {replaceProjectName},
 }
@@ -84,9 +86,10 @@ func (blueprint *Blueprint) Init() (string, error) {
 		}
 
 		destPaths := []string{destPath}
-		if path.Ext(srcPath) == exampleExt {
-			exampleFiles = append(exampleFiles, blueprint.srcRelativePath(srcPath))
-			destPaths = append(destPaths, strings.TrimSuffix(destPath, exampleExt))
+		if exampleRegex.MatchString(destPath) {
+			realFileDestPath := exampleRegex.ReplaceAllString(destPath, "$1")
+			exampleFiles = append(exampleFiles, blueprint.destRelativePath(realFileDestPath))
+			destPaths = append(destPaths, realFileDestPath)
 		}
 
 		for _, m := range replaceFuncsMappings {
@@ -113,7 +116,7 @@ func (blueprint *Blueprint) Init() (string, error) {
 
 	messageArray := []string{"Note these files, which are in .gitignore and have .example version:"}
 	for _, exampleFile := range exampleFiles {
-		messageArray = append(messageArray, "- "+strings.TrimSuffix(exampleFile, exampleExt))
+		messageArray = append(messageArray, "- "+exampleFile)
 	}
 	messageArray = append(messageArray, "You may need to fill in personal data in them, such as AWS credentials.\n")
 	return strings.Join(messageArray, "\n"), nil
@@ -129,6 +132,10 @@ func (blueprint *Blueprint) ProjectDir() string {
 
 func (blueprint *Blueprint) srcRelativePath(srcPath string) string {
 	return strings.TrimPrefix(srcPath, blueprint.srcDir+"/")
+}
+
+func (blueprint *Blueprint) destRelativePath(srcPath string) string {
+	return strings.TrimPrefix(srcPath, path.Join(blueprint.destDir, blueprint.ProjectName())+"/")
 }
 
 func (blueprint *Blueprint) destPath(srcPath string) string {
