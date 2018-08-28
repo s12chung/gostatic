@@ -71,6 +71,21 @@ func initProject(projectName string) error {
 	fmt.Print("\n")
 
 	bp := blueprint.NewBlueprint(path.Join(tempDir, goStaticZipFilename, "blueprint"), pwd, namespace)
+
+	_, err = os.Stat(bp.ProjectDir())
+	if !os.IsNotExist(err) {
+		fmt.Printf("%v already exists, do you want to replace it's files with init?\n", bp.ProjectDir())
+		yn, err := promptStdIn("Replace? (y/n)")
+		if err != nil {
+			return err
+		}
+		yn = strings.ToLower(yn[:1])
+		if yn != "y" {
+			fmt.Println("Response did not start with `y`, aborting.")
+			return nil
+		}
+	}
+
 	bpMessage, err := bp.Init()
 	if err != nil {
 		return err
@@ -111,6 +126,9 @@ func getNamepace(pwd, projectName string) (string, error) {
 		namespace, err = promptStdIn(fmt.Sprintf("Go namespace (%v)", namespaceDefault))
 		if err != nil {
 			return "", err
+		}
+		if namespace == "" {
+			namespace = namespaceDefault
 		}
 	} else {
 		namespace = fmt.Sprintf("%v/%v", rel, projectName)
