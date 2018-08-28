@@ -3,6 +3,7 @@ package webpack
 import (
 	"fmt"
 	"html/template"
+	"net/url"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -47,17 +48,22 @@ func (w *Webpack) ManifestUrl(key string) string {
 	return w.manifest.ManifestUrl(key)
 }
 
+func (w *Webpack) manifestImage(originalSrc string) *ResponsiveImage {
+	return &ResponsiveImage{Src: w.ManifestUrl(originalSrc)}
+}
+
 func (w *Webpack) GetResponsiveImage(originalSrc string) *ResponsiveImage {
-	manifestImage := func() *ResponsiveImage {
-		return &ResponsiveImage{Src: w.ManifestUrl(originalSrc)}
+	u, err := url.Parse(originalSrc)
+	if err == nil && u.Hostname() != "" {
+		return &ResponsiveImage{Src: originalSrc}
 	}
 
 	if !HasResponsive(originalSrc) {
-		return manifestImage()
+		return w.manifestImage(originalSrc)
 	}
 	responsiveImage := w.responsive.GetResponsiveImage(originalSrc)
 	if responsiveImage == nil {
-		return manifestImage()
+		return w.manifestImage(originalSrc)
 	}
 	return responsiveImage
 }
@@ -65,7 +71,14 @@ func (w *Webpack) GetResponsiveImage(originalSrc string) *ResponsiveImage {
 func (w *Webpack) ReplaceResponsiveAttrs(srcPrefix, html string) string {
 	return imgRegex.ReplaceAllStringFunc(html, func(imgTag string) string {
 		matches := imgRegex.FindStringSubmatch(imgTag)
-		responsiveImage := w.GetResponsiveImage(path.Join(srcPrefix, matches[2]))
+		originalSrc := matches[2]
+
+		u, err := url.Parse(originalSrc)
+		if err == nil && u.Hostname() != "" {
+			return imgTag
+		}
+
+		responsiveImage := w.GetResponsiveImage(path.Join(srcPrefix, originalSrc))
 		return strings.Replace(imgTag, matches[1], responsiveImage.HtmlAttrs(), 1)
 	})
 }

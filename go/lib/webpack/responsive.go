@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
-	"net/url"
 	"path"
 	"path/filepath"
 )
@@ -42,14 +41,6 @@ func (r *Responsive) GetResponsiveImage(originalSrc string) *ResponsiveImage {
 }
 
 func (r *Responsive) getResponsiveImage(originalSrc string) (*ResponsiveImage, error) {
-	u, err := url.Parse(originalSrc)
-	if err != nil {
-		return nil, err
-	}
-	if u.Hostname() != "" {
-		return &ResponsiveImage{Src: originalSrc}, nil
-	}
-
 	responsiveImage, err := r.readResponsiveImageJSON(originalSrc)
 	if err != nil {
 		return nil, err

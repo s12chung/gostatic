@@ -93,6 +93,8 @@ func TestWebpack_GetResponsiveImage(t *testing.T) {
 		{"content/images/test.jpg", jpgResponsiveImage, false},
 		{"content/images/test.png", pngResponsiveImage, false},
 		{"test.gif", &ResponsiveImage{Src: "assets/test.gif"}, false},
+		{"http://testy.com/test.png", &ResponsiveImage{Src: "http://testy.com/test.png"}, false},
+		{"http://testy.com/something.bad", &ResponsiveImage{Src: "http://testy.com/something.bad"}, false},
 		{"does_not_exist.png", &ResponsiveImage{Src: "assets/does_not_exist.png"}, true},
 		{"content/images/test_again.png", &ResponsiveImage{Src: "assets/content/images/test_again-1440.png"}, true},
 	}
@@ -117,18 +119,21 @@ func TestWebpack_GetResponsiveImage(t *testing.T) {
 
 func TestWebpack_ReplaceResponsiveAttrs(t *testing.T) {
 	testCases := []struct {
-		imageFilename string
-		srcPrefix     string
-		input         string
-		expected      string
+		imageFilename      string
+		srcPrefix          string
+		input              string
+		skipEmptyNamespace bool
+		expected           string
 	}{
-		{"test.jpg", "content/images", `<img src="SRC"/>`, fmt.Sprintf(`<img %v/>`, jpgResponsiveImage.HtmlAttrs())},
-		{"test.jpg", "content/images", `<img src="SRC" class="haha"/>`, fmt.Sprintf(`<img %v class="haha"/>`, jpgResponsiveImage.HtmlAttrs())},
-		{"test.jpg", "content/images", `<img alt="blah" src="SRC"/>`, fmt.Sprintf(`<img alt="blah" %v/>`, jpgResponsiveImage.HtmlAttrs())},
-		{"test.jpg", "content/images", `<img alt="blah" src="SRC" class="haha"/>`, fmt.Sprintf(`<img alt="blah" %v class="haha"/>`, jpgResponsiveImage.HtmlAttrs())},
-		{"test_again.png", "content/images", `<img src="SRC"/>`, `<img src="assets/content/images/test_again-1440.png"/>`},
-		{"test.gif", "", `<img src="SRC"/>`, `<img src="assets/test.gif"/>`},
-		{"test.jpg", "doesnt_exist", `<img src="SRC"/>`, `<img src="assets/doesnt_exist/test.jpg"/>`},
+		{"test.jpg", "content/images", `<img src="SRC"/>`, false, fmt.Sprintf(`<img %v/>`, jpgResponsiveImage.HtmlAttrs())},
+		{"test.jpg", "content/images", `<img src="SRC" class="haha"/>`, false, fmt.Sprintf(`<img %v class="haha"/>`, jpgResponsiveImage.HtmlAttrs())},
+		{"test.jpg", "content/images", `<img alt="blah" src="SRC"/>`, false, fmt.Sprintf(`<img alt="blah" %v/>`, jpgResponsiveImage.HtmlAttrs())},
+		{"test.jpg", "content/images", `<img alt="blah" src="SRC" class="haha"/>`, false, fmt.Sprintf(`<img alt="blah" %v class="haha"/>`, jpgResponsiveImage.HtmlAttrs())},
+		{"test_again.png", "content/images", `<img src="SRC"/>`, false, `<img src="assets/content/images/test_again-1440.png"/>`},
+		{"test.gif", "", `<img src="SRC"/>`, false, `<img src="assets/test.gif"/>`},
+		{"test.jpg", "doesnt_exist", `<img src="SRC"/>`, false, `<img src="assets/doesnt_exist/test.jpg"/>`},
+		{"http://testy.com/test.png", "content/images", `<img src="SRC"/>`, true, `<img src="http://testy.com/test.png"/>`},
+		{"http://testy.com/something.bad", "content/images", `<img src="SRC"/>`, true, `<img src="http://testy.com/something.bad"/>`},
 	}
 
 	for testCaseIndex, tc := range testCases {
@@ -149,7 +154,11 @@ func TestWebpack_ReplaceResponsiveAttrs(t *testing.T) {
 			{"", strings.Replace(tc.input, "SRC", path.Join(tc.srcPrefix, tc.imageFilename), -1)},
 		}
 
-		for _, stc := range srcPrefixCases {
+		for i, stc := range srcPrefixCases {
+			if i == 1 && tc.skipEmptyNamespace {
+				continue
+			}
+
 			got := webpack.ReplaceResponsiveAttrs(stc.srcPrefix, stc.input)
 			if got != tc.expected {
 				t.Error(context.GotExpString(fmt.Sprintf("result with srcPrefix: %v", stc.srcPrefix), got, tc.expected))

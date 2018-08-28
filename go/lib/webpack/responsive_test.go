@@ -42,7 +42,6 @@ func TestResponsive_GetResponsiveImage(t *testing.T) {
 	}{
 		{"content/images/test.jpg", jpgResponsiveImage},
 		{"content/images/test.png", pngResponsiveImage},
-		{"http://testy.com/test.png", &ResponsiveImage{Src: "http://testy.com/test.png"}},
 		{"test.gif", nil},
 		{"content/images/test.gif", nil},
 		{"does_not_exist/test.png", nil},

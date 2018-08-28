@@ -23,7 +23,7 @@ DEP_MANAGER_PATHS := vendor Gopkg.lock
 docker-copy:
 	$(foreach dep_path,$(DEP_MANAGER_PATHS),docker cp $(shell docker-compose ps -q web):$(DOCKER_WORKDIR)/$(dep_path) ./$(dep_path);)
 
-docker-test:
+docker-test-all:
 	docker-compose up --exit-code-from web
 
 docker-run-sh:
