@@ -2,15 +2,20 @@ package cmd
 
 import (
 	"fmt"
-
-	"github.com/s12chung/gostatic/go/blueprint"
-	"github.com/spf13/cobra"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/spf13/cobra"
+
+	"github.com/s12chung/gostatic/go/blueprint"
+	"io/ioutil"
 )
+
+const goStaticDownloadUrl = "https://codeload.github.com/s12chung/gostatic/zip/master"
+const goStaticZipFilename = "gostatic-master"
 
 func init() {
 	rootCmd.AddCommand(initCmd)
@@ -46,10 +51,28 @@ func initProject(projectName string) error {
 		return err
 	}
 
-	bluPrint := blueprint.NewBlueprint("./blueprint", pwd, namespace)
-	bluPrintMessage, err := bluPrint.Init()
+	fmt.Print("\n")
+	tempDir, err := ioutil.TempDir("", "gostatic")
 	if err != nil {
-		fmt.Printf("ERROR: %v", err)
+		return err
+	}
+	defer func() { os.RemoveAll(tempDir) }()
+	zipPath := path.Join(tempDir, goStaticZipFilename+".zip")
+	fmt.Printf("Downloading gostatic@master from %v.\n", goStaticDownloadUrl)
+	err = downloadfile(goStaticDownloadUrl, zipPath)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Downloaded and unzipping in temp dir.\n")
+	err = unzip(zipPath, tempDir)
+	if err != nil {
+		return err
+	}
+	fmt.Print("\n")
+
+	bp := blueprint.NewBlueprint(path.Join(tempDir, goStaticZipFilename, "blueprint"), pwd, namespace)
+	bpMessage, err := bp.Init()
+	if err != nil {
 		return err
 	}
 
@@ -63,7 +86,6 @@ func initProject(projectName string) error {
 	err = exec.Command("docker", "-v").Run()
 	if err != nil {
 		fmt.Println("docker not installed. To install locally, you can see the Dockerfile to view system dependencies.")
-		return nil
 	}
 
 	env := "DOCKER_WORKDIR=" + "/go/src/" + namespace + " "
@@ -72,7 +94,7 @@ func initProject(projectName string) error {
 	}
 
 	fmt.Print("\n")
-	fmt.Print(bluPrintMessage)
+	fmt.Print(bpMessage)
 	fmt.Print("\n")
 	fmt.Printf("Project creation success! Install the project in docker via: `%vmake docker-install`\n", env)
 	return nil
