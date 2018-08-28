@@ -8,7 +8,7 @@ const relativePath = function(p) { return require('path').resolve(__dirname, p);
 
 module.exports = {
     mode: isProduction ? "production" : "development",
-    devtool: "cheap-source-map",
+    devtool: isProduction ? undefined : "eval",
 
     entry: Object.assign(defaults.entry(), {
         // entryChunkName: relativePath('assets/js/filename.js'),
