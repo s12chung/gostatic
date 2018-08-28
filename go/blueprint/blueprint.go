@@ -74,6 +74,7 @@ func (blueprint *Blueprint) Init() (string, error) {
 	}
 
 	utils.MkdirAll(blueprint.destPath(""))
+
 	var exampleFiles []string
 	err = blueprint.IgnoreWalk(ignoreMap, func(srcPath string, typ os.FileMode) error {
 		if srcPath == blueprint.srcDir {
@@ -86,10 +87,14 @@ func (blueprint *Blueprint) Init() (string, error) {
 		}
 
 		destPaths := []string{destPath}
+
 		if exampleRegex.MatchString(destPath) {
 			realFileDestPath := exampleRegex.ReplaceAllString(destPath, "$1")
-			exampleFiles = append(exampleFiles, blueprint.destRelativePath(realFileDestPath))
-			destPaths = append(destPaths, realFileDestPath)
+			_, err = os.Stat(realFileDestPath)
+			if os.IsNotExist(err) {
+				exampleFiles = append(exampleFiles, blueprint.destRelativePath(realFileDestPath))
+				destPaths = append(destPaths, realFileDestPath)
+			}
 		}
 
 		for _, m := range replaceFuncsMappings {
@@ -112,6 +117,9 @@ func (blueprint *Blueprint) Init() (string, error) {
 	})
 	if err != nil {
 		return "", err
+	}
+	if len(exampleFiles) == 0 {
+		return "", nil
 	}
 
 	messageArray := []string{"Note these files, which are in .gitignore and have .example version:"}

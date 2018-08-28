@@ -108,8 +108,10 @@ func initProject(projectName string) error {
 		env = ""
 	}
 
-	fmt.Print("\n")
-	fmt.Print(bpMessage)
+	if bpMessage != "" {
+		fmt.Print("\n")
+		fmt.Print(bpMessage)
+	}
 	fmt.Print("\n")
 	fmt.Printf("Project creation success! Install the project in docker via: `%vmake docker-install`\n", env)
 	return nil
