@@ -131,7 +131,7 @@ func getNamepace(pwd, projectName string) (string, error) {
 			namespace = namespaceDefault
 		}
 	} else {
-		namespace = fmt.Sprintf("%v/%v", rel, projectName)
+		namespace = path.Join(rel, projectName)
 		fmt.Println("In $GOPATH/src, defaulting namespace to: " + namespace)
 	}
 	return namespace, nil
