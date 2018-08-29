@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{(title .)}}</title>
+    <title>{{(title .Title)}}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
     <link rel="stylesheet" media="all" href="{{webpackUrl "vendor.css"}}">
@@ -9,7 +9,7 @@
 </head>
 <body>
 <a href="/"><img class="logo" style="width: 50px;" src="{{webpackUrl "images/logo.png"}}"/></a>
-{{template "content" .}}
+{{template "content" .ContentData}}
 
 <script src="{{webpackUrl "browser.js"}}"></script>
 </body>
