@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"encoding/json"
 	"io"
 	"io/ioutil"
 	"os"
@@ -9,29 +8,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
-
-	"github.com/sirupsen/logrus"
 )
-
-func SettingsFromFile(path string, settings interface{}, log logrus.FieldLogger) {
-	_, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		log.Warnf("%v not found, using defaults...", path)
-		return
-	}
-
-	file, err := ioutil.ReadFile(path)
-	if err != nil {
-		log.Warnf("error reading %v, using defaults...", path)
-		return
-	}
-
-	err = json.Unmarshal(file, settings)
-	if err != nil {
-		log.Warnf("error reading %v, using defaults...", path)
-		return
-	}
-}
 
 func MkdirAll(path string) error {
 	return os.MkdirAll(path, 0755)
