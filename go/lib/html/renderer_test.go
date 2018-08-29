@@ -28,34 +28,35 @@ func defaultRenderer() (*Renderer, *logTest.Hook) {
 	return NewRenderer(settings, []Plugin{w, md}, log), hook
 }
 
+type layoutData struct {
+	Title       string
+	ContentData interface{}
+}
+
 func TestRenderer_RenderWithLayout(t *testing.T) {
 	renderer, hook := defaultRenderer()
 
 	testCases := []struct {
-		layoutName   string
-		name         string
-		defaultTitle string
-		data         interface{}
+		layoutName string
+		name       string
+		layoutData layoutData
 	}{
-		{"layout", "title", "", nil},
-		{"layout", "title", "The Default", nil},
-		{"layout", "title", "The Default", struct{ Title string }{"The Given"}},
-		{"layout", "title", "", struct{ Title string }{"The Given"}},
-		{"layout2", "title", "", nil},
-		{"", "no_template_content", "", nil},
-		{"layout", "helpers", "", map[string]interface{}{"Html": `<span>html_data</span>`, "Date": test.Time(1)}},
+		{"layout_with_title", "title", layoutData{"", nil}},
+		{"layout_with_title", "title", layoutData{"The Given", nil}},
+		{"layout_with_title", "title", layoutData{"something", nil}},
+		{"", "no_template_content", layoutData{}},
+		{"layout", "helpers", layoutData{"", map[string]interface{}{"Html": `<span>html_data</span>`, "Date": test.Time(1)}}},
 	}
 
 	for testCaseIndex, tc := range testCases {
 		context := test.NewContext().SetFields(test.ContextFields{
-			"index":        testCaseIndex,
-			"layoutName":   tc.layoutName,
-			"name":         tc.name,
-			"defaultTitle": tc.defaultTitle,
-			"data":         tc.data,
+			"index":      testCaseIndex,
+			"layoutName": tc.layoutName,
+			"name":       tc.name,
+			"layoutData": tc.layoutData,
 		})
 
-		rendered, err := renderer.RenderWithLayout(tc.layoutName, tc.name, tc.defaultTitle, tc.data)
+		rendered, err := renderer.RenderWithLayout(tc.layoutName, tc.name, tc.layoutData)
 		if err != nil {
 			test.PrintLogEntries(t, hook)
 			t.Error(context.String(err))
@@ -100,7 +101,7 @@ func TestRenderer_Render_Settings(t *testing.T) {
 		renderer, hook := defaultRenderer()
 		renderer.settings.LayoutName = tc.layoutName
 		renderer.settings.TemplateExt = tc.templateExt
-		rendered, err := renderer.Render("settings", "", nil)
+		rendered, err := renderer.Render("settings", nil)
 		if err != nil {
 			test.PrintLogEntries(t, hook)
 			t.Error(context.String(err))
@@ -157,7 +158,7 @@ func TestRenderer_Render_Plugins(t *testing.T) {
 
 		renderer, hook := defaultRenderer()
 		renderer.plugins = tc.plugins
-		rendered, err := renderer.Render("plugins", "", nil)
+		rendered, err := renderer.Render("plugins", nil)
 		if err != nil {
 			if len(tc.plugins) != 0 {
 				test.PrintLogEntries(t, hook)

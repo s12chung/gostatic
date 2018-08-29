@@ -46,19 +46,14 @@ func (renderer *Renderer) partialPaths() ([]string, error) {
 	return partialPaths, nil
 }
 
-func (renderer *Renderer) templateFuncs(defaultTitle string) template.FuncMap {
+func (renderer *Renderer) templateFuncs() template.FuncMap {
 	defaults := defaultTemplateFuncs()
 	mergeFuncMap(defaults, template.FuncMap{
-		"title": func(data interface{}) string {
-			title := utils.GetStringField(data, "Title")
-			if title == "" {
-				title = defaultTitle
-			}
-
-			if title == "" {
+		"title": func(t string) string {
+			if t == "" {
 				return renderer.settings.WebsiteTitle
 			}
-			return fmt.Sprintf("%v - %v", strings.Title(title), renderer.settings.WebsiteTitle)
+			return fmt.Sprintf("%v - %v", t, renderer.settings.WebsiteTitle)
 		},
 	})
 	for _, plugin := range renderer.plugins {
@@ -73,7 +68,7 @@ func mergeFuncMap(dest, src template.FuncMap) {
 	}
 }
 
-func (renderer *Renderer) RenderWithLayout(layoutName, name, defaultTitle string, data interface{}) ([]byte, error) {
+func (renderer *Renderer) RenderWithLayout(layoutName, name string, layoutData interface{}) ([]byte, error) {
 	partialPaths, err := renderer.partialPaths()
 	if err != nil {
 		return nil, err
@@ -87,20 +82,20 @@ func (renderer *Renderer) RenderWithLayout(layoutName, name, defaultTitle string
 	}
 
 	tmpl, err := template.New("self").
-		Funcs(renderer.templateFuncs(defaultTitle)).
+		Funcs(renderer.templateFuncs()).
 		ParseFiles(templatePaths...)
 	if err != nil {
 		return nil, err
 	}
 
 	buffer := &bytes.Buffer{}
-	err = tmpl.ExecuteTemplate(buffer, rootTemplateFilename, data)
+	err = tmpl.ExecuteTemplate(buffer, rootTemplateFilename, layoutData)
 	if err != nil {
 		return nil, err
 	}
 	return buffer.Bytes(), nil
 }
 
-func (renderer *Renderer) Render(name, defaultTitle string, data interface{}) ([]byte, error) {
-	return renderer.RenderWithLayout(renderer.settings.LayoutName, name, defaultTitle, data)
+func (renderer *Renderer) Render(name string, layoutData interface{}) ([]byte, error) {
+	return renderer.RenderWithLayout(renderer.settings.LayoutName, name, layoutData)
 }
