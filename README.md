@@ -4,7 +4,7 @@ Use Go and Webpack to generate static websites like a standard Go web applicatio
 
 ## Limitations
 
-Meant to be simple, so defaults are given (SASS, image optimization, S3 deployment, etc.). You can rip the defaults out and use your own Go HTML templates, CSS preprocessor, etc. Router is only 1 level deep (`page.com` and `page.com/about` are ok, but you can't `page.com/projects/about`). Feel free to make a PR to add more to the [router](https://godoc.org/github.com/s12chung/gostatic/go/lib/router). I just never needed the feature yet.
+Meant to be simple, so defaults are given (SASS, image optimization, S3 deployment, etc.). You can rip the defaults out and use your own Go HTML templates, CSS preprocessor, etc. Router is only 1 level deep (`page.com/`, `page.com/about`, and `page.com/dynamic_url` are ok, but you can't `page.com/projects/about`). Feel free to make a PR to add more to the [router](https://godoc.org/github.com/s12chung/gostatic/go/lib/router). I just never needed the feature yet.
 
 ## Requirements
 - [Docker Desktop](https://www.docker.com) (if no Docker, see [`Dockerfile`](Dockerfile) for system requirements)
@@ -139,6 +139,12 @@ You can host your project directly from Amazon S3. This is easier, but you won't
 I find it best to use Amazon CloudFront CDN with Amazon Certificate Manager to provide SSL. See [CloudFront instructions on wiki](https://github.com/s12chung/gostatic/wiki/Hosting-via-CloudFront).
 
 Also, note about [CNAMEs on Root domains](https://serverfault.com/questions/613829/why-cant-a-cname-record-be-used-at-the-apex-aka-root-of-a-domain), which can break your emails.
+
+## Projects
+Here are my projects built with `gostatic`:
+
+- [s12chung/go_homepage](https://github.com/s12chung/go_homepage) - my homepage, where most of this code was extracted from
+- [s12chung/photoswipestory](https://github.com/s12chung/photoswipestory) - a static website as a photo book type project for a birthday present (so not my best code)
 
 ## Inspiration
 Much inspiration was taken from [brandur/sorg](https://github.com/brandur/sorg).
