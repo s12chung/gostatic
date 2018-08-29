@@ -26,6 +26,7 @@ var exampleRegex = regexp.MustCompile(`\.example(\.[a-zA-Z]{1,8})?$`)
 
 const projectNameString = "blueprint"
 const namespaceString = "github.com/s12chung/gostatic/blueprint"
+const lockFileExt = ".lock"
 
 type ReplaceFunc func(blueprint *Blueprint, srcPath string) (string, error)
 
@@ -84,6 +85,9 @@ func (blueprint *Blueprint) Init() (string, error) {
 		destPath := blueprint.destPath(srcPath)
 		if typ.IsDir() {
 			return utils.MkdirAll(destPath)
+		}
+		if path.Ext(srcPath) == lockFileExt {
+			return nil
 		}
 
 		destPaths := []string{destPath}
