@@ -98,8 +98,8 @@ func initProject(projectName string, test bool) error {
 	err = exec.Command("direnv", "version").Run()
 	dirEnvMessage := ""
 	if err != nil {
-		dirEnvMessage = " (without direnv, you require DOCKER_WORKDIR ENV variable from .envrc)"
-		fmt.Print("direnv not installed, please note that Makefile and Docker use the environment variables set in .envrc.\n\n")
+		dirEnvMessage = " (without direnv, you require DOCKER_WORKDIR ENV variable from .envrc file)"
+		fmt.Print("direnv not installed, please note that Makefile and Docker use the environment variables set in .envrc file.\n\n")
 	}
 
 	err = exec.Command("docker", "-v").Run()

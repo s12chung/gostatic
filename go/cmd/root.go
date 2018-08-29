@@ -10,8 +10,8 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "gostatic",
 	Short: "Static site generator for web developers",
-	Long: `Use Go and Webpack to generate static websites using
-web developer patterns like mapping routes to functions.
+	Long: `Use Go and Webpack to generate static websites like a standard Go web application.
+You can even run gostatic apps, as a web app.
 See https://github.com/s12chung/gostatic for more.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Command without args does not exist yet!")

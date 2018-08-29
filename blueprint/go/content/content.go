@@ -58,6 +58,7 @@ func (content *Content) get404(ctx router.Context) error {
 }
 
 func (content *Content) getRobots(ctx router.Context) error {
+	// "github.com/s12chung/gostatic/go/lib/robots"
 	//userAgents := []*robots.UserAgent {
 	//	robots.NewUserAgent(robots.EverythingUserAgent, []string { "/" }),
 	//}
