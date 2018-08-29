@@ -10,15 +10,14 @@ import (
 	"path"
 )
 
+// RunFileServer hosts the files of targetDir into given port with the log
 func RunFileServer(targetDir string, port int, log logrus.FieldLogger) error {
 	log.Infof("Serving files from '%v' at http://localhost:%v/", targetDir, port)
 	handler := http.FileServer(http.Dir(targetDir))
 	return http.ListenAndServe(":"+strconv.Itoa(port), handler)
 }
 
-//
-// Context
-//
+// See the Context interface.
 type GenerateContext struct {
 	log         logrus.FieldLogger
 	contentType string
@@ -62,21 +61,24 @@ func (ctx *GenerateContext) Respond(bytes []byte) error {
 	return nil
 }
 
-//
-// Router
-//
-type GenerateRoute struct {
+type generateRoute struct {
 	ContentType string
 	handler     ContextHandler
 }
 
-func NewGenerateRoute(contentType string, handler ContextHandler) *GenerateRoute {
-	return &GenerateRoute{contentType, handler}
+func NewGenerateRoute(contentType string, handler ContextHandler) *generateRoute {
+	return &generateRoute{contentType, handler}
 }
 
+// The router to generate static files, note that ContentType is respected by the router's Response struct,
+// by default via calling mime.TypeByExtension (Go std lib) on the route pattern
+// or setting it via Context. However, generated files DO NOT have a ContentType,
+// as ContentType is a http thing and will be set when files are uploaded to S3.
+//
+// See the Router interface.
 type GenerateRouter struct {
 	log    logrus.FieldLogger
-	routes map[string]*GenerateRoute
+	routes map[string]*generateRoute
 
 	arounds []AroundHandler
 }
@@ -84,7 +86,7 @@ type GenerateRouter struct {
 func NewGenerateRouter(log logrus.FieldLogger) *GenerateRouter {
 	return &GenerateRouter{
 		log,
-		make(map[string]*GenerateRoute),
+		make(map[string]*generateRoute),
 		nil,
 	}
 }
@@ -162,9 +164,7 @@ func (router *GenerateRouter) Requester() Requester {
 	}
 }
 
-//
-// Requester
-//
+// Object to make requests on the router
 type GenerateRequester struct {
 	router *GenerateRouter
 }

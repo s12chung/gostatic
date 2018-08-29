@@ -10,6 +10,7 @@ import (
 
 const manifestPath = "manifest.json"
 
+// Representation of a Manifest file
 type Manifest struct {
 	generatedPath   string
 	assetsFolder    string

@@ -16,6 +16,7 @@ var responsiveExtensions = map[string]bool{
 	".jpg": true,
 }
 
+// Handles the overview logic of responsive images.
 type Responsive struct {
 	generatedPath string
 	assetsFolder  string

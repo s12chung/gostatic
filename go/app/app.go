@@ -1,3 +1,6 @@
+/*
+	Glues your routes together to generate files concurrently or host them in a server.
+*/
 package app
 
 import (
@@ -24,6 +27,11 @@ func DefaultLog() logrus.FieldLogger {
 	}
 }
 
+//	A wrapper around the router, to provide the functionality of the cli.App interface.
+//	Provides defaults to give the app structure and connects things together to generate
+//	route responses concurrently.
+//
+//	See cli.App interface for core functions.
 type App struct {
 	routeSetter Setter
 	settings    *Settings
@@ -42,12 +50,12 @@ func (app *App) RunFileServer() error {
 	return router.RunFileServer(app.settings.GeneratedPath, app.settings.FileServerPort, app.log)
 }
 
-func (app *App) GeneratedPath() string {
-	return app.settings.GeneratedPath
-}
-
 func (app *App) FileServerPort() int {
 	return app.settings.FileServerPort
+}
+
+func (app *App) GeneratedPath() string {
+	return app.settings.GeneratedPath
 }
 
 func (app *App) Host() error {
@@ -62,6 +70,12 @@ func (app *App) ServerPort() int {
 	return app.settings.ServerPort
 }
 
+// Generates the static web pages concurrently.
+//
+// For speed and concurrency reasons (like file/map read/writing), this is done in two stages:
+// First, the Tracker.IndependentUrls routes are generated. After, the Tracker.DependentUrls.
+//
+// Use Tracker.AddDependentUrl to generate the route's file during the second stage.
 func (app *App) Generate() error {
 	start := time.Now()
 	defer func() {

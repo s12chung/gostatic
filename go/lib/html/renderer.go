@@ -1,3 +1,6 @@
+/*
+	Maps your filesystem to `html/template` and handles templates.
+*/
 package html
 
 import (
@@ -13,6 +16,7 @@ import (
 	"github.com/s12chung/gostatic/go/lib/utils"
 )
 
+// A struct of settings and config to Render with
 type Renderer struct {
 	settings *Settings
 	plugins  []Plugin
@@ -27,6 +31,7 @@ func NewRenderer(settings *Settings, plugins []Plugin, log logrus.FieldLogger) *
 	}
 }
 
+// A plugin for Renderer to add template functions with
 type Plugin interface {
 	TemplateFuncs() template.FuncMap
 }
@@ -68,22 +73,26 @@ func mergeFuncMap(dest, src template.FuncMap) {
 	}
 }
 
-func (renderer *Renderer) RenderWithLayout(layoutName, name string, layoutData interface{}) ([]byte, error) {
+// RenderWithLayout renders the given templateName with the given layoutName and data
+// It finds the templates within the given html.Settings.TemplatePath.
+//
+// Default template functions are provided in addition to the plugin template functions.
+// See https://github.com/s12chung/gostatic/blob/master/go/lib/html/helpers.go for a list
+// of default helper functions.
+func (renderer *Renderer) RenderWithLayout(layoutName, templateName string, layoutData interface{}) ([]byte, error) {
 	partialPaths, err := renderer.partialPaths()
 	if err != nil {
 		return nil, err
 	}
 
-	rootTemplateFilename := name + renderer.settings.TemplateExt
+	rootTemplateFilename := templateName + renderer.settings.TemplateExt
 	templatePaths := append(partialPaths, path.Join(renderer.settings.TemplatePath, rootTemplateFilename))
 	if layoutName != "" {
 		rootTemplateFilename = layoutName + renderer.settings.TemplateExt
 		templatePaths = append(templatePaths, path.Join(renderer.settings.TemplatePath, rootTemplateFilename))
 	}
 
-	tmpl, err := template.New("self").
-		Funcs(renderer.templateFuncs()).
-		ParseFiles(templatePaths...)
+	tmpl, err := template.New("self").Funcs(renderer.templateFuncs()).ParseFiles(templatePaths...)
 	if err != nil {
 		return nil, err
 	}
@@ -96,6 +105,7 @@ func (renderer *Renderer) RenderWithLayout(layoutName, name string, layoutData i
 	return buffer.Bytes(), nil
 }
 
+// Render calls RenderWithLayout with the default layoutName from html.Settings.LayoutName
 func (renderer *Renderer) Render(name string, layoutData interface{}) ([]byte, error) {
 	return renderer.RenderWithLayout(renderer.settings.LayoutName, name, layoutData)
 }

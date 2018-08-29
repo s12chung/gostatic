@@ -70,7 +70,7 @@ The following packages are used in the bare bones Hello World app provided for y
 - [`cli`](https://godoc.org/github.com/s12chung/gostatic/go/cli) - Basic CLI interface for for your main.go
 - [`app`](https://godoc.org/github.com/s12chung/gostatic/go/app) - Does high level commands of the [`cli.App` interface](https://godoc.org/github.com/s12chung/gostatic/go/cli#App) (generate, file-server, server) by taking your routes to generate files concurrently or serving it via http
 - [`html`](https://godoc.org/github.com/s12chung/gostatic/go/lib/html) - Wrapper around Go std lib `html/template` to render templates, handle layouts, etc.
-- [`webpack`](https://godoc.org/github.com/s12chung/gostatic/go/lib/webpack) - Maps paths generated asset paths, `Manifest.json`, and `images/responsive` folder of JSON files
+- [`webpack`](https://godoc.org/github.com/s12chung/gostatic/go/lib/webpack) - Lets Go see into the generated asset paths, `Manifest.json`, and `images/responsive` folder of JSON files from Webpack
 - [`router`](https://godoc.org/github.com/s12chung/gostatic/go/lib/router) - Maps the URL paths to your functions like a http router, so that it can generate files or host a web app
 
 It's best to start at [go/content/content.go](blueprint/go/content/content.go) and add more routes:
@@ -99,7 +99,7 @@ func (content *Content) get404(ctx router.Context) error {
 }
 ```
 
-See [`router.Router` interface](https://godoc.org/github.com/s12chung/gostatic/go/lib/router#Router) and the [`app.Setter` interface](https://godoc.org/github.com/s12chung/gostatic/go/app#Setter). There are other [helpful packages too](go/lib).
+See [`router.Router` interface](https://godoc.org/github.com/s12chung/gostatic/go/lib/router#Router) and the [`app.Setter` interface](https://godoc.org/github.com/s12chung/gostatic/go/app#Setter). There are other [helpful packages too](https://godoc.org/github.com/s12chung/gostatic/go/lib).
 
 ## Webpack
 

@@ -30,6 +30,7 @@ func DefaultSettings() *Settings {
 	}
 }
 
+// SettingsFromFile loads settings from the given file path into the given Settings
 func SettingsFromFile(path string, settings interface{}, log logrus.FieldLogger) {
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {

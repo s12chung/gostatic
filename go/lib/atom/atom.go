@@ -1,3 +1,6 @@
+/*
+	Represent your Atom xml data into structs and Marshall them.
+*/
 package atom
 
 import (

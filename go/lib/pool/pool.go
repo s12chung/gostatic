@@ -1,3 +1,6 @@
+/*
+	Run your tasks concurrently.
+*/
 package pool
 
 import (
@@ -6,9 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//
-// Task
-//
+// Task that runs and stores any errors.
 type Task struct {
 	run   func() error
 	Log   logrus.FieldLogger
@@ -24,9 +25,7 @@ func (task *Task) Run(waitGroup *sync.WaitGroup) {
 	waitGroup.Done()
 }
 
-//
-// Pool
-//
+// Pool represents a set of tasks.
 type Pool struct {
 	Tasks []*Task
 

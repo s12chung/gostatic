@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// Representation of a ResponsiveImage
 type ResponsiveImage struct {
 	Src    string `json:"src"`
 	SrcSet string `json:"srcSet"`

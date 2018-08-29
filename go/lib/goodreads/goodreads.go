@@ -1,3 +1,6 @@
+/*
+	Get Goodreads books and ratings through the Goodsreads API.
+*/
 package goodreads
 
 import (
@@ -19,6 +22,7 @@ import (
 
 const booksCacheFilename = "books.json"
 
+// Counts the ratings and makes a map of ratingNumber=>count
 func RatingMap(books []*Book) map[int]int {
 	ratingMap := map[int]int{1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
 	i := 0
@@ -41,6 +45,9 @@ func NewClient(settings *Settings, log logrus.FieldLogger) *Client {
 	}
 }
 
+// GetBooks returns read Books with their review ratings from the GoodsApi.
+//
+// It caches these results in goodreads.Settings.CachePath for later.
 func (client *Client) GetBooks() ([]*Book, error) {
 	err := utils.MkdirAll(client.Settings.CachePath)
 	if err != nil {
@@ -134,6 +141,7 @@ type xmlReviews struct {
 	TotalBooks int `xml:"total,attr"`
 }
 
+// Requests for the books and goes through pagination for the given userId
 func (client *Client) GetBooksRequest(userId int, bookMap map[string]*Book) map[string]*Book {
 	if bookMap == nil {
 		bookMap = map[string]*Book{}
@@ -287,10 +295,12 @@ func (book *Book) convertDates() {
 	book.DateUpdated = time.Time(book.XXMLDateUpdated)
 }
 
+// Returns the String representation of a Book: "The Book Title" by Berry, Jerry & Daisy ****
 func (book *Book) ReviewString() string {
 	return fmt.Sprintf("\"%v\" by %v %v", book.Title, utils.SliceList(book.Authors), strings.Repeat("*", book.Rating))
 }
 
+// returns the recommended date to Sort on
 func (book *Book) SortedDate() time.Time {
 	return book.DateAdded
 }

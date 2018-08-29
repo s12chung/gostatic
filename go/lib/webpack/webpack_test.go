@@ -2,7 +2,6 @@ package webpack
 
 import (
 	"fmt"
-	"os"
 	"path"
 	"strings"
 	"testing"
@@ -24,42 +23,10 @@ var pngResponsiveImage = &ResponsiveImage{
 	"assets/content/images/test-afe607afeab81578d972f0ce9a92bdf4-325.png 325w, assets/content/images/test-d31be3db558b4fe54b2c098abdd96306-750.png 750w, assets/content/images/test-e4b7c37523ea30081ad02f6191b299f6-1440.png 1440w",
 }
 
-func setAssetsPath(val string, callback func()) {
-	os.Setenv("ASSETS_PATH", val)
-	callback()
-	os.Setenv("ASSETS_PATH", "")
-}
-
 func defaultWebpack() (*Webpack, *logTest.Hook) {
 	log, hook := logTest.NewNullLogger()
 	settings := DefaultSettings()
 	return NewWebpack(generatedPath, settings, log), hook
-}
-
-func TestWebpack_AssetsPath(t *testing.T) {
-	testCases := []struct {
-		env      string
-		expected string
-	}{
-		{"", "assets"},
-		{"test_env", "test_env"},
-	}
-
-	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
-			"index": testCaseIndex,
-			"env":   tc.env,
-		})
-
-		setAssetsPath(tc.env, func() {
-			os.Setenv("ASSETS_PATH", tc.env)
-			webpack, _ := defaultWebpack()
-			got := webpack.AssetsPath()
-			if got != tc.expected {
-				t.Error(context.GotExpString("Result", got, tc.expected))
-			}
-		})
-	}
 }
 
 func TestWebpack_AssetsUrl(t *testing.T) {
@@ -71,7 +38,7 @@ func TestWebpack_AssetsUrl(t *testing.T) {
 func TestWebpack_GeneratedAssetsPath(t *testing.T) {
 	webpack, _ := defaultWebpack()
 	got := webpack.GeneratedAssetsPath()
-	test.AssertLabel(t, "Result", got, path.Join(generatedPath, webpack.AssetsPath()))
+	test.AssertLabel(t, "Result", got, path.Join(generatedPath, webpack.settings.AssetsPath))
 }
 
 func TestWebpack_ManifestUrl(t *testing.T) {
@@ -79,7 +46,7 @@ func TestWebpack_ManifestUrl(t *testing.T) {
 	got := webpack.ManifestUrl("vendor.css")
 
 	test.PrintLogEntries(t, hook)
-	test.AssertLabel(t, "Result", got, path.Join(webpack.AssetsPath(), "vendor-32267303b2484ed8b3aa.css"))
+	test.AssertLabel(t, "Result", got, path.Join(webpack.settings.AssetsPath, "vendor-32267303b2484ed8b3aa.css"))
 }
 
 func TestWebpack_GetResponsiveImage(t *testing.T) {

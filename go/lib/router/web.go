@@ -16,11 +16,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type WebHandler func(w http.ResponseWriter, r *http.Request) error
+type webHandler func(w http.ResponseWriter, r *http.Request) error
 
-//
-// Context
-//
+// See the Context interface.
 type WebContext struct {
 	log         logrus.FieldLogger
 	contentType string
@@ -65,9 +63,13 @@ func (ctx *WebContext) Respond(bytes []byte) error {
 	return err
 }
 
+// The router to host a web application server. It's simplified such that all errors
+// are give http.StatusBadRequest and print out the error.
 //
-// Router
+// Content-Type is respected by default via calling mime.TypeByExtension (Go std lib) on the route pattern
+// or setting it via Context.
 //
+// See the Router interface.
 type WebRouter struct {
 	serveMux *http.ServeMux
 	log      logrus.FieldLogger
@@ -149,11 +151,11 @@ func (router *WebRouter) Requester() Requester {
 	return newWebRequester(router.port)
 }
 
-func (router *WebRouter) htmlHandler(handler ContextHandler) WebHandler {
+func (router *WebRouter) htmlHandler(handler ContextHandler) webHandler {
 	return router.handler(mime.TypeByExtension(".html"), handler)
 }
 
-func (router *WebRouter) handler(contentType string, handler ContextHandler) WebHandler {
+func (router *WebRouter) handler(contentType string, handler ContextHandler) webHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		ctx := NewWebContext(router.log)
 		ctx.contentType = contentType
@@ -174,7 +176,7 @@ func (router *WebRouter) handler(contentType string, handler ContextHandler) Web
 	}
 }
 
-func (router *WebRouter) getRequestHandler(handler WebHandler) http.HandlerFunc {
+func (router *WebRouter) getRequestHandler(handler webHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			err := handler(w, r)
@@ -195,6 +197,8 @@ func (router *WebRouter) handleWildcard() {
 	})
 }
 
+// FileServe sets the router to redirect requests with a pattern to a file directory.
+// Content-Type is respected via calling mime.TypeByExtension (Go std lib).
 func (router *WebRouter) FileServe(pattern, dirPath string) {
 	router.get(pattern, func(w http.ResponseWriter, r *http.Request) error {
 		regex := regexp.MustCompile(strings.Replace(`^/`+pattern+`/`, "//", "/", -1))
@@ -211,7 +215,7 @@ func (router *WebRouter) FileServe(pattern, dirPath string) {
 	})
 }
 
-func (router *WebRouter) get(pattern string, handler WebHandler) {
+func (router *WebRouter) get(pattern string, handler webHandler) {
 	if pattern == RootUrlPattern {
 		router.log.Errorf("Can not use pattern that touches root, use GetRootHTML or GetWildcardHTML instead")
 		return
@@ -226,9 +230,7 @@ func (router *WebRouter) Run() error {
 	return server.ListenAndServe()
 }
 
-//
-// Requester
-//
+// Object to make requests on the router
 type WebRequester struct {
 	hostname string
 	port     int

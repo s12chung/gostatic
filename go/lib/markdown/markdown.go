@@ -1,3 +1,6 @@
+/*
+	Basic html.Plugin for markdown processing.
+*/
 package markdown
 
 import (
