@@ -22,7 +22,7 @@ type WebHandler func(w http.ResponseWriter, r *http.Request) error
 // Context
 //
 type WebContext struct {
-	log logrus.FieldLogger
+	log         logrus.FieldLogger
 	contentType string
 
 	url      string

@@ -1,13 +1,13 @@
 package content
 
 import (
-	"github.com/s12chung/gostatic/go/lib/webpack"
 	"github.com/s12chung/gostatic/go/lib/html"
+	"github.com/s12chung/gostatic/go/lib/webpack"
 )
 
 type Settings struct {
-	Html      *html.Settings      `json:"html,omitempty"`
-	Webpack   *webpack.Settings   `json:"webpack,omitempty"`
+	Html    *html.Settings    `json:"html,omitempty"`
+	Webpack *webpack.Settings `json:"webpack,omitempty"`
 }
 
 func DefaultSettings() *Settings {

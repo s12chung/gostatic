@@ -2,11 +2,11 @@ package router
 
 import (
 	"fmt"
-	"sort"
 	"mime"
-	"testing"
-	"path/filepath"
 	"os"
+	"path/filepath"
+	"sort"
+	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/sirupsen/logrus"
@@ -52,7 +52,6 @@ func setExtraMimeTypes() error {
 	}
 	return nil
 }
-
 
 type RouterSetup interface {
 	DefaultRouter() (Router, logrus.FieldLogger, *logTest.Hook)
@@ -262,10 +261,10 @@ func (tester *RouterTester) NewGetTester(requestUrl, contentType string, testFun
 }
 
 type GetTester struct {
-	setup      RouterSetup
-	requestUrl string
+	setup       RouterSetup
+	requestUrl  string
 	contentType string
-	testFunc   func(router Router, handler ContextHandler)
+	testFunc    func(router Router, handler ContextHandler)
 }
 
 func (getTester *GetTester) Test_Get(t *testing.T) {

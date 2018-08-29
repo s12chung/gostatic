@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"mime"
 	"path"
-	"fmt"
 )
 
 func RunFileServer(targetDir string, port int, log logrus.FieldLogger) error {
@@ -20,7 +20,7 @@ func RunFileServer(targetDir string, port int, log logrus.FieldLogger) error {
 // Context
 //
 type GenerateContext struct {
-	log logrus.FieldLogger
+	log         logrus.FieldLogger
 	contentType string
 
 	url      string

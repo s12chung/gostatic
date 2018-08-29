@@ -55,13 +55,13 @@ func TestRenderer_RenderWithLayout(t *testing.T) {
 			"data":         tc.data,
 		})
 
-		renderered, err := renderer.RenderWithLayout(tc.layoutName, tc.name, tc.defaultTitle, tc.data)
+		rendered, err := renderer.RenderWithLayout(tc.layoutName, tc.name, tc.defaultTitle, tc.data)
 		if err != nil {
 			test.PrintLogEntries(t, hook)
 			t.Error(context.String(err))
 		}
 
-		got := strings.TrimSpace(string(renderered))
+		got := strings.TrimSpace(string(rendered))
 
 		fixtureName := tc.name + ".html"
 		if tc.name == "title" {
@@ -100,13 +100,13 @@ func TestRenderer_Render_Settings(t *testing.T) {
 		renderer, hook := defaultRenderer()
 		renderer.settings.LayoutName = tc.layoutName
 		renderer.settings.TemplateExt = tc.templateExt
-		renderered, err := renderer.Render("settings", "", nil)
+		rendered, err := renderer.Render("settings", "", nil)
 		if err != nil {
 			test.PrintLogEntries(t, hook)
 			t.Error(context.String(err))
 		}
 
-		got := strings.TrimSpace(string(renderered))
+		got := strings.TrimSpace(string(rendered))
 
 		fixtureName := fmt.Sprintf("settings%v.html", testCaseIndex)
 		if *updateFixturesPtr {
@@ -157,7 +157,7 @@ func TestRenderer_Render_Plugins(t *testing.T) {
 
 		renderer, hook := defaultRenderer()
 		renderer.plugins = tc.plugins
-		renderered, err := renderer.Render("plugins", "", nil)
+		rendered, err := renderer.Render("plugins", "", nil)
 		if err != nil {
 			if len(tc.plugins) != 0 {
 				test.PrintLogEntries(t, hook)
@@ -166,7 +166,7 @@ func TestRenderer_Render_Plugins(t *testing.T) {
 			continue
 		}
 
-		got := strings.TrimSpace(string(renderered))
+		got := strings.TrimSpace(string(rendered))
 		fixtureName := "plugins.html"
 		if *updateFixturesPtr {
 			test.WriteFixture(t, fixtureName, []byte(got))
