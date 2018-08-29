@@ -13,7 +13,7 @@
     "go/lib/utils",
     "go/lib/webpack"
   ]
-  revision = "b059f4fc296016347fc22ae47a5b67c0a92818ff"
+  revision = "5b86591b1e35d7e3da667eb97868bb7dc867ac7e"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -39,6 +39,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "56d4f2926a0829dd1af1591283cfde5c4ecfd85e04286d9a484d074334787033"
+  inputs-digest = "fcd5472d6512ccff279a0c639f8b0aa0b0184b356783332ea525b2123a4e975f"
   solver-name = "gps-cdcl"
   solver-version = 1
