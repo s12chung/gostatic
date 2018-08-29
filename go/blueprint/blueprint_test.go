@@ -70,8 +70,26 @@ func TestBlueprint_Init(t *testing.T) {
 	}
 
 	expDir := path.Join(test.FixturePath, "exp")
-	err = fastwalk.Walk(blueprint.ProjectDir(), func(p string, typ os.FileMode) error {
-		destPath := path.Join(expDir, strings.TrimPrefix(p, blueprint.ProjectDir()))
+	err = fastwalk.Walk(blueprint.ProjectDir(), walkAndCompareF(t, func(p string) string {
+		return path.Join(expDir, strings.TrimPrefix(p, blueprint.ProjectDir()))
+	}))
+	if err != nil {
+		t.Error(err)
+	}
+
+	msg, err = blueprint.Init()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if msg != "" {
+		t.Error("Expect blueprint.Init() msg to be empty because .example real files already exist")
+	}
+}
+
+func walkAndCompareF(t *testing.T, destPathF func(p string) string) func(p string, typ os.FileMode) error {
+	return func(p string, typ os.FileMode) error {
+		destPath := destPathF(p)
 		if *updateFixturesPtr {
 			if typ.IsDir() {
 				return utils.MkdirAll(destPath)
@@ -106,17 +124,5 @@ func TestBlueprint_Init(t *testing.T) {
 			t.Errorf("%v and %v are diff", p, destPath)
 		}
 		return nil
-	})
-	if err != nil {
-		t.Error(err)
-	}
-
-	msg, err = blueprint.Init()
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	if msg != "" {
-		t.Error("Expect blueprint.Init() msg to be empty because .example real files already exist")
 	}
 }
