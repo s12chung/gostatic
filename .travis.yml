@@ -1,0 +1,22 @@
+sudo: required
+
+language: go
+go:
+  - "1.10.x"
+
+services:
+  - docker
+
+env:
+  - DOCKER_WORKDIR=/go/src/github.com/s12chung/gostatic DEP_VERSION="0.4.1"
+
+before_install:
+  - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
+  - chmod +x $GOPATH/bin/dep
+
+install:
+  - dep ensure
+
+script:
+  - make docker-test
+  - make test-init
