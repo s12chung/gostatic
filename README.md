@@ -11,16 +11,15 @@ Meant to be simple, so defaults are given (SASS, image optimization, S3 deployme
 - Optional [direnv](https://github.com/direnv/direnv) to automatically export/unexport ENV variables or export them yourself via (`source ./.envrc`)
 
 ## New Project
-First, install the gostatic binary via:
+You can install the `gostatic` binary via `go get`:
 
 ```bash
 go get github.com/s12chung/gostatic
-go install github.com/s12chung/gostatic
 ```
 
 Then run:
 ```bash
-${GOPATH}/bin/gostatic init some_project_name
+gostatic init some_project_name
 ```
 
 This is will create a new project in the current directory. After:
@@ -77,8 +76,8 @@ The following packages are used in the bare bones Hello World app provided for y
 It's best to start at [go/content/content.go](blueprint/go/content/content.go) and add more routes:
 
 ```go
-func (content *Content) RenderHtml(ctx router.Context, name, defaultTitle string, data interface{}) error {
-	bytes, err := content.HtmlRenderer.Render(name, defaultTitle, data)
+func (content *Content) RenderHtml(ctx router.Context, name string, layoutD interface{}) error {
+	bytes, err := content.HtmlRenderer.Render(name, layoutD)
 	if err != nil {
 		return err
 	}
@@ -92,15 +91,11 @@ func (content *Content) SetRoutes(r router.Router, tracker *app.Tracker) {
 }
 
 func (content *Content) getRoot(ctx router.Context) error {
-	return content.RenderHtml(ctx, "root", "", "Hello World!")
+	return content.RenderHtml(ctx, "root", layoutData{"", "Hello World!"})
 }
 
 func (content *Content) get404(ctx router.Context) error {
-	return content.RenderHtml(ctx, "404", "404", nil)
-}
-
-func (content *Content) getRobots(ctx router.Context) error {
-	return ctx.Respond([]byte{})
+	return content.RenderHtml(ctx, "404", layoutData{"404", nil})
 }
 ```
 
