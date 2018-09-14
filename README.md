@@ -4,11 +4,11 @@ Use Go and Webpack to generate static websites like a standard Go web applicatio
 
 ## Limitations
 
-Meant to be simple, so defaults are given (SASS, image optimization, S3 deployment, etc.). You can rip the defaults out and use your own Go HTML templates, CSS preprocessor, etc. Router is only 1 level deep (`page.com/`, `page.com/about`, and `page.com/dynamic_url` are ok, but you can't `page.com/projects/about`). Feel free to make a PR to add more to the [router](https://godoc.org/github.com/s12chung/gostatic/go/lib/router). I just never needed the feature yet.
+Meant to be simple, so defaults are given (SASS, image optimization, S3 deployment, etc.). You can rip out the defaults and use your own Go HTML templates, CSS preprocessor, etc. Router is only 1 level deep (`page.com/`, `page.com/about`, and `page.com/dynamic_url` are ok, but you can't `page.com/projects/about`). Feel free to make a PR to add more to the [router](https://godoc.org/github.com/s12chung/gostatic/go/lib/router). I just never needed the feature yet.
 
 ## Requirements
-- [Docker Desktop](https://www.docker.com) (if no Docker, see [`Dockerfile`](Dockerfile) for system requirements)
-- Optional [direnv](https://github.com/direnv/direnv) to automatically export/unexport ENV variables or export them yourself via (`source ./.envrc`)
+- [Docker Desktop](https://www.docker.com) (if no Docker, see [`Dockerfile`](blueprint/Dockerfile) for system requirements)
+- Optional [direnv](https://github.com/direnv/direnv) to automatically export/unexport ENV variables. You can export them yourself via `source ./.envrc`.
 
 ## New Project
 You can install the `gostatic` binary via `go get`:
@@ -19,30 +19,29 @@ go get github.com/s12chung/gostatic
 
 Then run:
 ```bash
-gostatic init some_project_name
+$(GOPATH)/bin/gostatic init some_project_name
 ```
 
 This is will create a new project in the current directory. After:
 
 ```bash
-# if you have direnv, allow setting ENV variables, otherwise call:
-# source ./.envrc
+# without direnv, call: source ./.envrc
 make docker-install
 ```
 
 This will build docker and do all the installation inside docker. After, it’ll copy all downloaded code libraries from the docker container to the host, so that when the container and host sync filesystems, the libraries will be there.
 
 You can run a developer instance through Docker via:
-```sh
+```bash
 make docker
 ```
 
 For production:
-```sh
+```bash
 make docker-prod
 ```
 
-By default, this will generate all the files of the static website in `generated` and host the directory in a file server via `http://localhost:3000`.
+By default, this will generate all static website files in the `generated` directory and host the directory in a file server at `http://localhost:3000`.
 
 ## Structure
 
@@ -53,11 +52,11 @@ The following is managed through a `Makefile`:
 - `watchman` - A file diff watcher by Facebook to auto compile everything conveniently for development
 - `aws-cli` - Handles Amazon S3 Deployment
 
-First, Webpack compiles/optimizes all the assets (JS, CSS, images) in the `assets` folder (`make build-assets`). It also generates a `Manifest.json` and a `images/responsive` folder of JSON files. These files give the Go executable file paths from the Webpack compilation.
+First, Webpack compiles/optimizes all the assets (JS, CSS, images) in the `generated/assets` directory (`make build-assets`). It also generates a `Manifest.json` and a `images/responsive` folder of JSON files. These JSON files give the Go executable file paths to assets from the Webpack compilation.
 
-With the Webpack JSON files, the Go executable generates all the web page files by defining routes (`make build-go`). See the [Go section](#go) below.
+After, the Go executable generates all the route files in the `generated` directory (`make build-go`) . See the [Go section](#go) below.
 
-By default, all the generated results from Webpack and Go are put in the `generated` folder. The Go executable can host these files with in file server (`make file-server`).
+The Go executable also hosts the `generated` directory in a file server (`make file-server`).
 
 You can also run your project as a web app (`make server`), which uses Go std lib `net/http` internally.
 
@@ -103,7 +102,7 @@ See [`router.Router` interface](https://godoc.org/github.com/s12chung/gostatic/g
 
 ## Webpack
 
-A [default webpack config](blueprint/webpack.config.js) is given to you. Below are defaults, via npm packages:
+A [default webpack config](blueprint/webpack.config.js) is given to you, which handles assets in the `assets` directory. Below are defaults, via npm packages:
 
 - [`gostatic-webpack`](https://github.com/s12chung/gostatic-webpack) - wraps the two libs below to configure Webpack for `gostatic` (manifest, entrypoints, Webpack optimizations, etc.)
 - [`gostatic-webpack-css`](https://github.com/s12chung/gostatic-webpack-css) - handles the `.css` and `.scss` (SASS) files in the `assets/css` directory 
@@ -112,7 +111,7 @@ A [default webpack config](blueprint/webpack.config.js) is given to you. Below a
 Packages that you can easily rip out are:
 - [`gostatic-webpack-babel`](https://github.com/s12chung/gostatic-webpack-babel) - handles javascript transpiling of the `js` directory
 
-The `js-extract` directory is intended for importing things you want Webpack to extract out (CSS, Images, etc.)
+The `assets/js-extract` directory is intended for importing things you want Webpack to extract out (CSS, Images, etc.).
 
 ## Deploy
 
@@ -120,13 +119,13 @@ The `js-extract` directory is intended for importing things you want Webpack to 
 
 Within your project, store the `Access Key ID` and `Secret Access Key` in `aws/credentials` of the project (see `aws/config` too), so `aws-cli` can use them. Set the `S3_BUCKET` in `.envrc`, so `Makefile` can see it. Then to upload everything to S3:
 
-```sh
+```bash
 make docker-deploy
 ```
 
 I usually use:
 
-```sh
+```bash
 make push-docker-deploy
 ```
 
