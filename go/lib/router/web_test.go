@@ -76,10 +76,6 @@ func TestWebRouter_GetInvalidRoute(t *testing.T) {
 	generateRouterTester().TestRouter_GetInvalidRoute(t)
 }
 
-func TestWebRouter_GetWildcardHTML(t *testing.T) {
-	webRouterTester().TestRouter_GetWildcardHTML(t)
-}
-
 func TestWebRouter_GetRootHTML(t *testing.T) {
 	webRouterTester().TestRouter_GetRootHTML(t)
 }
@@ -118,9 +114,6 @@ func TestWebRouter_FileServe(t *testing.T) {
 			})
 
 			reqUrl := allGetTypeWithResponse.pattern
-			if reqUrl == WildcardUrlPattern {
-				reqUrl = "/does_not_exist"
-			}
 			_, err := requester.Get(reqUrl)
 			if err != nil {
 				t.Error(context.String(err))

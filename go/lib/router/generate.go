@@ -23,8 +23,6 @@ type GenerateContext struct {
 	contentType string
 
 	url      string
-	urlParts []string
-
 	response []byte
 }
 
@@ -46,10 +44,6 @@ func (ctx *GenerateContext) ContentType() string {
 
 func (ctx *GenerateContext) SetContentType(contentType string) {
 	ctx.contentType = contentType
-}
-
-func (ctx *GenerateContext) UrlParts() []string {
-	return ctx.urlParts
 }
 
 func (ctx *GenerateContext) Url() string {
@@ -95,10 +89,6 @@ func (router *GenerateRouter) Around(handler AroundHandler) {
 	router.arounds = append(router.arounds, handler)
 }
 
-func (router *GenerateRouter) GetWildcardHTML(handler ContextHandler) {
-	router.checkAndSetHTMLRoutes(WildcardUrlPattern, handler)
-}
-
 func (router *GenerateRouter) GetRootHTML(handler ContextHandler) {
 	router.checkAndSetHTMLRoutes(RootUrlPattern, handler)
 }
@@ -126,34 +116,26 @@ func (router *GenerateRouter) checkAndSetRoutes(pattern, contentType string, han
 func (router *GenerateRouter) get(url string) (*Response, error) {
 	route := router.routes[url]
 	if route == nil {
-		route = router.routes[WildcardUrlPattern]
-	}
-	if route == nil {
 		return nil, fmt.Errorf("url not found: %v", url)
 	}
 
 	ctx := NewGenerateContext(router.log)
 	ctx.url = url
-	parts, err := urlParts(ctx.url)
-	if err != nil {
-		return nil, err
-	}
-	ctx.urlParts = parts
 	ctx.contentType = route.ContentType
 
-	err = callArounds(router.arounds, route.handler, ctx)
+	err := callArounds(router.arounds, route.handler, ctx)
 	if err != nil {
 		return nil, err
 	}
 	return NewResponse(ctx.response, ctx.contentType), nil
 }
 
-func (router *GenerateRouter) StaticUrls() []string {
-	staticRoutes := []string{}
+func (router *GenerateRouter) Urls() []string {
+	staticRoutes := make([]string, len(router.routes))
+	i := 0
 	for k := range router.routes {
-		if k != WildcardUrlPattern {
-			staticRoutes = append(staticRoutes, k)
-		}
+		staticRoutes[i] = k
+		i++
 	}
 	return staticRoutes
 }

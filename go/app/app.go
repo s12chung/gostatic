@@ -122,14 +122,7 @@ func (app *App) setRoutes(r router.Router) *Tracker {
 		return err
 	})
 
-	routeTracker := NewTracker(func() ([]string, error) {
-		staticUrls := r.StaticUrls()
-		wildcardUrls, err := app.routeSetter.WildcardUrls()
-		if err != nil {
-			return nil, err
-		}
-		return append(staticUrls, wildcardUrls...), nil
-	})
+	routeTracker := NewTracker(r.Urls)
 	app.routeSetter.SetRoutes(r, routeTracker)
 	return routeTracker
 }

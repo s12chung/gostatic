@@ -1,50 +1,40 @@
 package app
 
 import (
-	"fmt"
-	"github.com/google/go-cmp/cmp"
-	"github.com/s12chung/gostatic/go/test"
 	"sort"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/s12chung/gostatic/go/test"
 )
 
-func defaultTracker(allUrls func() ([]string, error)) *Tracker {
-	return NewTracker(allUrls)
+func defaultTracker(urls []string) *Tracker {
+	return NewTracker(func() []string {
+		return urls
+	})
 }
 
 func TestTracker_Urls(t *testing.T) {
 	testCases := []struct {
-		allUrls         []string
-		error           bool
+		urls            []string
 		dependentUrls   []string
 		independentUrls []string
 	}{
-		{[]string{}, false, []string{}, []string{}},
-		{[]string{}, true, []string{}, []string{}},
-		{[]string{}, true, []string{"a", "b"}, []string{}},
-		{[]string{"a", "b"}, false, []string{"a", "b"}, []string{}},
-		{[]string{"a", "b", "c", "d"}, false, []string{"a", "b"}, []string{"c", "d"}},
-		{[]string{"a", "b", "c", "d"}, false, []string{}, []string{"a", "b", "c", "d"}},
-		{[]string{"a", "b"}, false, []string{}, []string{"a", "b"}},
-		{[]string{"a", "b"}, true, []string{"c"}, []string{}},
-		{[]string{"a", "b"}, true, []string{"b", "c"}, []string{}},
-		{[]string{"a", "b"}, true, []string{"a", "b", "c"}, []string{}},
+		{[]string{}, []string{}, []string{}},
+		{[]string{"a", "b"}, []string{"a", "b"}, []string{}},
+		{[]string{"a", "b", "c", "d"}, []string{"a", "b"}, []string{"c", "d"}},
+		{[]string{"a", "b", "c", "d"}, []string{}, []string{"a", "b", "c", "d"}},
+		{[]string{"a", "b"}, []string{}, []string{"a", "b"}},
 	}
 
 	for testCaseIndex, tc := range testCases {
 		context := test.NewContext().SetFields(test.ContextFields{
 			"index":         testCaseIndex,
-			"allUrls":       tc.allUrls,
-			"error":         tc.error,
+			"urls":          tc.urls,
 			"dependentUrls": tc.dependentUrls,
 		})
 
-		tracker := defaultTracker(func() ([]string, error) {
-			if tc.error {
-				return nil, fmt.Errorf("error")
-			}
-			return tc.allUrls, nil
-		})
+		tracker := defaultTracker(tc.urls)
 		for _, dependentUrl := range tc.dependentUrls {
 			tracker.AddDependentUrl(dependentUrl)
 		}
@@ -59,10 +49,7 @@ func TestTracker_Urls(t *testing.T) {
 		}
 		got, err := tracker.IndependentUrls()
 		if err != nil {
-			if tc.error == false {
-				t.Error(context.String(err))
-			}
-			continue
+			t.Error(context.String(err))
 		}
 		exp = tc.independentUrls
 		sort.Strings(got)

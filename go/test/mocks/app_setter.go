@@ -67,16 +67,3 @@ func (m *MockSetter) SetRoutes(arg0 router.Router, arg1 *app.Tracker) {
 func (mr *MockSetterMockRecorder) SetRoutes(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRoutes", reflect.TypeOf((*MockSetter)(nil).SetRoutes), arg0, arg1)
 }
-
-// WildcardUrls mocks base method
-func (m *MockSetter) WildcardUrls() ([]string, error) {
-	ret := m.ctrl.Call(m, "WildcardUrls")
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// WildcardUrls indicates an expected call of WildcardUrls
-func (mr *MockSetterMockRecorder) WildcardUrls() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WildcardUrls", reflect.TypeOf((*MockSetter)(nil).WildcardUrls))
-}

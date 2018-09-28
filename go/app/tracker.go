@@ -5,35 +5,31 @@ import "fmt"
 // A struct to track all the routes/Urls of the static site,
 // so that App knows to generate them
 type Tracker struct {
-	allUrls       func() ([]string, error)
+	urls          func() []string
 	dependentUrls map[string]bool
 }
 
-func NewTracker(allUrls func() ([]string, error)) *Tracker {
-	return &Tracker{allUrls, map[string]bool{}}
+func NewTracker(urls func() []string) *Tracker {
+	return &Tracker{urls, map[string]bool{}}
 }
 
 // When generating the static website files, App works in 2 stages.
 // First, the IndependentUrls() routes are run, then the DependentUrls() are run.
-// This adds a dependent url to move this route into the second stage.
+// This adds a dependent url, so the url route runs in the second stage.
 func (tracker *Tracker) AddDependentUrl(url string) {
 	tracker.dependentUrls[url] = true
 }
 
 // IndependentUrls = AllUrls - DependentUrls (see AddDependentUrl)
 func (tracker *Tracker) IndependentUrls() ([]string, error) {
-	allUrls, err := tracker.allUrls()
-	if err != nil {
-		return nil, err
-	}
-
-	independentUrlsLen := len(allUrls) - len(tracker.dependentUrls)
+	urls := tracker.urls()
+	independentUrlsLen := len(urls) - len(tracker.dependentUrls)
 	independentUrls := make([]string, independentUrlsLen)
 	i := 0
-	for _, url := range allUrls {
+	for _, url := range urls {
 		if !tracker.dependentUrls[url] {
 			if i == independentUrlsLen {
-				return nil, fmt.Errorf("there are dependentUrls that are not in allUrls")
+				return nil, fmt.Errorf("there are dependentUrls that are not in urls")
 			}
 			independentUrls[i] = url
 			i++

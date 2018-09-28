@@ -23,8 +23,7 @@ type WebContext struct {
 	log         logrus.FieldLogger
 	contentType string
 
-	url      string
-	urlParts []string
+	url string
 
 	responseWriter http.ResponseWriter
 	request        *http.Request
@@ -48,10 +47,6 @@ func (ctx *WebContext) ContentType() string {
 
 func (ctx *WebContext) SetContentType(contentType string) {
 	ctx.contentType = contentType
-}
-
-func (ctx *WebContext) UrlParts() []string {
-	return ctx.urlParts
 }
 
 func (ctx *WebContext) Url() string {
@@ -108,11 +103,6 @@ func (router *WebRouter) Around(handler AroundHandler) {
 	router.arounds = append(router.arounds, handler)
 }
 
-func (router *WebRouter) GetWildcardHTML(handler ContextHandler) {
-	router.checkAndSetRoutes(WildcardUrlPattern)
-	router.wildcardHandler = router.getRequestHandler(router.htmlHandler(handler))
-}
-
 func (router *WebRouter) GetRootHTML(handler ContextHandler) {
 	router.checkAndSetRoutes(RootUrlPattern)
 	router.rootHandler = router.getRequestHandler(router.htmlHandler(handler))
@@ -137,12 +127,12 @@ func (router *WebRouter) checkAndSetRoutes(pattern string) error {
 	return nil
 }
 
-func (router *WebRouter) StaticUrls() []string {
-	staticRoutes := []string{}
+func (router *WebRouter) Urls() []string {
+	staticRoutes := make([]string, len(router.routes))
+	i := 0
 	for k := range router.routes {
-		if k != WildcardUrlPattern {
-			staticRoutes = append(staticRoutes, k)
-		}
+		staticRoutes[i] = k
+		i++
 	}
 	return staticRoutes
 }
@@ -160,16 +150,10 @@ func (router *WebRouter) handler(contentType string, handler ContextHandler) web
 		ctx := NewWebContext(router.log)
 		ctx.contentType = contentType
 		ctx.url = r.URL.String()
-		parts, err := urlParts(ctx.url)
-		if err != nil {
-			return err
-		}
-		ctx.urlParts = parts
-
 		ctx.responseWriter = w
 		ctx.request = r
 
-		err = callArounds(router.arounds, handler, ctx)
+		err := callArounds(router.arounds, handler, ctx)
 		w.Header().Set("Content-Type", ctx.contentType)
 
 		return err

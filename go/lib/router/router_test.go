@@ -145,7 +145,6 @@ var AllGetTypesWithResponse = []struct {
 	mimeType string
 	response string
 }{
-	{WildcardUrlPattern, "text/html; charset=utf-8", `<div>Being wild</div>`},
 	{RootUrlPattern, "text/html; charset=utf-8", `<p>the root of it all</p>`},
 	{"/page", "text/html; charset=utf-8", `<html>some page</html>`},
 	{"/another_page", "text/html; charset=utf-8", `<html>another_page</html>`},
@@ -161,8 +160,6 @@ func SetupAllGetTypesWithResponse(router Router) {
 		}
 
 		switch allGetTypeWithResponse.pattern {
-		case WildcardUrlPattern:
-			router.GetWildcardHTML(handler)
 		case RootUrlPattern:
 			router.GetRootHTML(handler)
 		default:
@@ -198,7 +195,6 @@ func SetupAllGetTypeVaried(router Router, allGetType AllGetType) {
 		return nil
 	}
 
-	router.GetWildcardHTML(handler)
 	router.GetRootHTML(handler)
 
 	for _, htmlRoute := range allGetType.htmlRoutes {
@@ -223,12 +219,7 @@ func (tester *RouterTester) TestRequester_Get(t *testing.T) {
 				"response": allGetTypeWithResponse.response,
 			})
 
-			url := allGetTypeWithResponse.pattern
-			if url == WildcardUrlPattern {
-				url = "/does_not_exist"
-			}
-
-			response, err := requeseter.Get(url)
+			response, err := requeseter.Get(allGetTypeWithResponse.pattern)
 			if err != nil {
 				t.Errorf(context.String(err))
 			}
@@ -281,11 +272,6 @@ func (getTester *GetTester) testRouterContext(t *testing.T) {
 		test.AssertLabel(t, "ctx.Log()", ctx.Log(), log)
 		test.AssertLabel(t, "ctx.Url()", ctx.Url(), getTester.requestUrl)
 		test.AssertLabel(t, "ctx.ContentType()", ctx.ContentType(), getTester.contentType)
-		urlParts, _ := urlParts(getTester.requestUrl)
-		if !cmp.Equal(ctx.UrlParts(), urlParts) {
-			t.Error(test.AssertLabelString("ctx.UrlParts()", ctx.UrlParts(), urlParts))
-		}
-
 		return ctx.Respond([]byte(expResponse))
 	})
 	getTester.setup.RunServer(router, func() {
@@ -299,11 +285,9 @@ func (getTester *GetTester) testRouterContext(t *testing.T) {
 }
 
 func (getTester *GetTester) testRouterErrors(t *testing.T) {
-	called := false
 	expError := "test error"
 	router, _, _ := getTester.setup.DefaultRouter()
 	getTester.testFunc(router, func(ctx Context) error {
-		called = true
 		return fmt.Errorf(expError)
 	})
 
@@ -339,12 +323,6 @@ func (tester *RouterTester) TestRouter_GetInvalidRoute(t *testing.T) {
 			t.Error("expecting no response")
 		}
 	})
-}
-
-func (tester *RouterTester) TestRouter_GetWildcardHTML(t *testing.T) {
-	tester.NewGetTester("/anything", "text/html; charset=utf-8", func(router Router, handler ContextHandler) {
-		router.GetWildcardHTML(handler)
-	}).Test_Get(t)
 }
 
 func (tester *RouterTester) TestRouter_GetRootHTML(t *testing.T) {
@@ -385,7 +363,7 @@ func (tester *RouterTester) TestRouter_StaticUrls(t *testing.T) {
 		router, _, _ := tester.setup.DefaultRouter()
 		SetupAllGetTypeVaried(router, allGetType)
 
-		got := router.StaticUrls()
+		got := router.Urls()
 		exp := append(allGetType.htmlRoutes, allGetType.otherRoutes...)
 		exp = append(exp, RootUrlPattern)
 		if allGetType.htmlRoutes == nil {

@@ -39,10 +39,6 @@ func TestGenerateRouter_GetInvalidRoute(t *testing.T) {
 	generateRouterTester().TestRouter_GetInvalidRoute(t)
 }
 
-func TestGenerateRouter_GetWildcardHTML(t *testing.T) {
-	generateRouterTester().TestRouter_GetWildcardHTML(t)
-}
-
 func TestGenerateRouter_GetRootHTML(t *testing.T) {
 	generateRouterTester().TestRouter_GetRootHTML(t)
 }

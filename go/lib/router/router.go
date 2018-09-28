@@ -9,15 +9,11 @@ package router
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 )
 
-const WildcardUrlPattern = "*"
 const RootUrlPattern = "/"
-
-var IsRootUrlPart = func(urlParts []string) bool { return len(urlParts) == 0 }
 
 type ContextHandler func(ctx Context) error
 type AroundHandler func(ctx Context, handler ContextHandler) error
@@ -36,8 +32,6 @@ type Context interface {
 	ContentType() string
 	SetContentType(contentType string)
 
-	// Url split cleanly by `/`
-	UrlParts() []string
 	// The url of request
 	Url() string
 }
@@ -47,9 +41,6 @@ type Router interface {
 	// A callback/handler that is called around all routes
 	Around(handler AroundHandler)
 
-	// Define a HTML handler for any undefined route
-	GetWildcardHTML(handler ContextHandler)
-
 	// Define a HTML handler for the root
 	GetRootHTML(handler ContextHandler)
 	// Define a HTML handler given a pattern
@@ -58,7 +49,7 @@ type Router interface {
 	Get(pattern string, handler ContextHandler)
 
 	// A list the urls defined set on the router
-	StaticUrls() []string
+	Urls() []string
 	// Returns a requester, an abstraction for making router requests
 	Requester() Requester
 }
@@ -81,19 +72,6 @@ type Requester interface {
 
 func panicDuplicateRoute(route string) {
 	panic(fmt.Sprintf("%v is a duplicate route", route))
-}
-
-func urlParts(url string) ([]string, error) {
-	var parts []string
-	for _, part := range strings.Split(url, "/") {
-		if part != "" {
-			parts = append(parts, part)
-		}
-	}
-	if len(parts) > 1 {
-		return nil, fmt.Errorf("currently can't handle more than 1 UrlPart - %v", url)
-	}
-	return parts, nil
 }
 
 func callArounds(arounds []AroundHandler, handler ContextHandler, ctx Context) error {

@@ -36,12 +36,10 @@ func TestApp_Generate(t *testing.T) {
 			return ctx.Respond([]byte(ctx.Url()))
 		}
 		r.GetRootHTML(handler)
-		r.GetWildcardHTML(handler)
 		r.GetHTML("/dep", handler)
 		r.GetHTML("/non_dep", handler)
 		tracker.AddDependentUrl("/dep")
 	})
-	setter.EXPECT().WildcardUrls().Return([]string{"/wild", "/card"}, nil)
 
 	generatedPath, clean := test.SandboxDir(t, "generated")
 	defer clean()
@@ -49,7 +47,7 @@ func TestApp_Generate(t *testing.T) {
 	a, _, _ := defaultApp(setter, generatedPath)
 	a.Generate()
 
-	filenames := []string{"index.html", "dep", "non_dep", "wild", "card"}
+	filenames := []string{"index.html", "dep", "non_dep"}
 	generatedFiles, err := utils.FilePaths("", generatedPath)
 	if err != nil {
 		t.Error(err)
