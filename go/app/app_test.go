@@ -32,8 +32,9 @@ func TestApp_Generate(t *testing.T) {
 
 	setter := mocks.NewMockSetter(controller)
 	setter.EXPECT().SetRoutes(gomock.Any(), gomock.Any()).Do(func(r router.Router, tracker *app.Tracker) {
-		handler := func(ctx router.Context) error {
-			return ctx.Respond([]byte(ctx.URL()))
+		handler := func(ctx *router.Context) error {
+			ctx.Respond([]byte(ctx.URL()))
+			return nil
 		}
 		r.GetRootHTML(handler)
 		r.GetHTML("/dep", handler)

@@ -69,9 +69,9 @@ func NewRouterTester(setup RouterSetup) *RouterTester {
 
 func (tester *RouterTester) TestRouter_Around(t *testing.T) {
 	var got []string
-	var previousContext Context
+	var previousContext *Context
 
-	testPreviousContext := func(ctx Context) {
+	testPreviousContext := func(ctx *Context) {
 		if previousContext == nil {
 			previousContext = ctx
 		} else {
@@ -80,7 +80,7 @@ func (tester *RouterTester) TestRouter_Around(t *testing.T) {
 	}
 
 	h := func(before, after string) AroundHandler {
-		return func(ctx Context, handler ContextHandler) error {
+		return func(ctx *Context, handler ContextHandler) error {
 			testPreviousContext(ctx)
 
 			if before != "" {
@@ -117,7 +117,7 @@ func (tester *RouterTester) TestRouter_Around(t *testing.T) {
 		})
 
 		router, _, _ := tester.setup.DefaultRouter()
-		router.GetRootHTML(func(ctx Context) error {
+		router.GetRootHTML(func(ctx *Context) error {
 			testPreviousContext(ctx)
 
 			got = append(got, "call")
@@ -155,8 +155,9 @@ var AllGetTypesWithResponse = []struct {
 func SetupAllGetTypesWithResponse(router Router) {
 	for _, allGetTypeWithResponse := range AllGetTypesWithResponse {
 		response := allGetTypeWithResponse.response
-		handler := func(ctx Context) error {
-			return ctx.Respond([]byte(response))
+		handler := func(ctx *Context) error {
+			ctx.Respond([]byte(response))
+			return nil
 		}
 
 		pattern := allGetTypeWithResponse.pattern
@@ -192,7 +193,7 @@ func SetupAllGetTypeVaried(router Router, allGetType AllGetType) {
 		return
 	}
 
-	handler := func(ctx Context) error {
+	handler := func(ctx *Context) error {
 		return nil
 	}
 
@@ -268,12 +269,13 @@ func (getTester *GetTester) testRouterContext(t *testing.T) {
 	called := false
 	expResponse := "The Response"
 	router, log, _ := getTester.setup.DefaultRouter()
-	getTester.testFunc(router, func(ctx Context) error {
+	getTester.testFunc(router, func(ctx *Context) error {
 		called = true
 		test.AssertLabel(t, "ctx.Log()", ctx.Log(), log)
 		test.AssertLabel(t, "ctx.URL()", ctx.URL(), getTester.requestURL)
 		test.AssertLabel(t, "ctx.ContentType()", ctx.ContentType(), getTester.contentType)
-		return ctx.Respond([]byte(expResponse))
+		ctx.Respond([]byte(expResponse))
+		return nil
 	})
 	getTester.setup.RunServer(router, func() {
 		response, err := getTester.setup.Requester(router).Get(getTester.requestURL)
@@ -288,7 +290,7 @@ func (getTester *GetTester) testRouterContext(t *testing.T) {
 func (getTester *GetTester) testRouterErrors(t *testing.T) {
 	expError := "test error"
 	router, _, _ := getTester.setup.DefaultRouter()
-	getTester.testFunc(router, func(ctx Context) error {
+	getTester.testFunc(router, func(ctx *Context) error {
 		return fmt.Errorf(expError)
 	})
 
@@ -307,7 +309,7 @@ func (getTester *GetTester) testRouterErrors(t *testing.T) {
 				t.Errorf("Did not panic for duplicate route setup.")
 			}
 		}()
-		getTester.testFunc(router, func(ctx Context) error {
+		getTester.testFunc(router, func(ctx *Context) error {
 			return nil
 		})
 	}()
@@ -346,7 +348,7 @@ func (tester *RouterTester) TestRouter_Get(t *testing.T) {
 
 func (tester *RouterTester) TestRouter_GetWithContentTypeSet(t *testing.T) {
 	tester.NewGetTester("/something.fakeext", "text/plain; charset=utf-8", func(router Router, handler ContextHandler) {
-		router.Get("/something.fakeext", func(ctx Context) error {
+		router.Get("/something.fakeext", func(ctx *Context) error {
 			ctx.SetContentType("text/plain; charset=utf-8")
 			return handler(ctx)
 		})

@@ -97,7 +97,7 @@ func (app *App) Generate() error {
 }
 
 func (app *App) setRoutes(r router.Router) *Tracker {
-	r.Around(func(ctx router.Context, handler router.ContextHandler) error {
+	r.Around(func(ctx *router.Context, handler router.ContextHandler) error {
 		ctx.SetLog(ctx.Log().WithFields(logrus.Fields{
 			"type": "routes",
 			"URL":  ctx.URL(),

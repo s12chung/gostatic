@@ -15,25 +15,44 @@ import (
 
 const RootURLPattern = "/"
 
-type ContextHandler func(ctx Context) error
-type AroundHandler func(ctx Context, handler ContextHandler) error
+type ContextHandler func(ctx *Context) error
+type AroundHandler func(ctx *Context, handler ContextHandler) error
 
-// The Context object provided for every route
-type Context interface {
-	// Sets the response of the route
-	Respond(bytes []byte) error
+// Context provided for every route
+type Context struct {
+	log         logrus.FieldLogger
+	contentType string
 
-	// Returns the log of the route
-	Log() logrus.FieldLogger
-	// Sets the log of the route, can be used with Router.Around to track state
-	SetLog(log logrus.FieldLogger)
+	url      string
+	response []byte
+}
 
-	// The content type of the response, only respected WebRouter (ContentType is an HTTP thing, which will be set when uploading to S3)
-	ContentType() string
-	SetContentType(contentType string)
+func NewContext(log logrus.FieldLogger) *Context {
+	return &Context{log: log}
+}
 
-	// The url of request
-	URL() string
+func (ctx *Context) Log() logrus.FieldLogger {
+	return ctx.log
+}
+
+func (ctx *Context) SetLog(log logrus.FieldLogger) {
+	ctx.log = log
+}
+
+func (ctx *Context) ContentType() string {
+	return ctx.contentType
+}
+
+func (ctx *Context) SetContentType(contentType string) {
+	ctx.contentType = contentType
+}
+
+func (ctx *Context) URL() string {
+	return ctx.url
+}
+
+func (ctx *Context) Respond(bytes []byte) {
+	ctx.response = bytes
 }
 
 // Router is the interface for all routers.
@@ -74,7 +93,7 @@ func panicDuplicateRoute(route string) {
 	panic(fmt.Sprintf("%v is a duplicate route", route))
 }
 
-func callArounds(arounds []AroundHandler, handler ContextHandler, ctx Context) error {
+func callArounds(arounds []AroundHandler, handler ContextHandler, ctx *Context) error {
 	if len(arounds) == 0 {
 		return handler(ctx)
 	}
@@ -84,11 +103,11 @@ func callArounds(arounds []AroundHandler, handler ContextHandler, ctx Context) e
 		reverseIndex := len(arounds) - 1 - index
 		around := arounds[reverseIndex]
 		if index == 0 {
-			aroundToNext[reverseIndex] = func(ctx Context) error {
+			aroundToNext[reverseIndex] = func(ctx *Context) error {
 				return around(ctx, handler)
 			}
 		} else {
-			aroundToNext[reverseIndex] = func(ctx Context) error {
+			aroundToNext[reverseIndex] = func(ctx *Context) error {
 				return around(ctx, aroundToNext[reverseIndex+1])
 			}
 		}

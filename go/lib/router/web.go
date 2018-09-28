@@ -18,46 +18,6 @@ import (
 
 type webHandler func(w http.ResponseWriter, r *http.Request) error
 
-// WebContext is the Context given to routes for the WebRouter.
-type WebContext struct {
-	log         logrus.FieldLogger
-	contentType string
-
-	url string
-
-	responseWriter http.ResponseWriter
-	request        *http.Request
-}
-
-func NewWebContext(log logrus.FieldLogger) *WebContext {
-	return &WebContext{log: log}
-}
-
-func (ctx *WebContext) Log() logrus.FieldLogger {
-	return ctx.log
-}
-
-func (ctx *WebContext) SetLog(log logrus.FieldLogger) {
-	ctx.log = log
-}
-
-func (ctx *WebContext) ContentType() string {
-	return ctx.contentType
-}
-
-func (ctx *WebContext) SetContentType(contentType string) {
-	ctx.contentType = contentType
-}
-
-func (ctx *WebContext) URL() string {
-	return ctx.url
-}
-
-func (ctx *WebContext) Respond(bytes []byte) error {
-	_, err := ctx.responseWriter.Write(bytes)
-	return err
-}
-
 // WebRouter is the router to host a web application server. It's simplified such that all errors
 // are give http.StatusBadRequest and print out the error.
 //
@@ -145,15 +105,17 @@ func (router *WebRouter) htmlHandler(handler ContextHandler) webHandler {
 
 func (router *WebRouter) handler(contentType string, handler ContextHandler) webHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		ctx := NewWebContext(router.log)
+		ctx := NewContext(router.log)
 		ctx.contentType = contentType
 		ctx.url = r.URL.String()
-		ctx.responseWriter = w
-		ctx.request = r
 
 		err := callArounds(router.arounds, handler, ctx)
-		w.Header().Set("Content-Type", ctx.contentType)
+		if err != nil {
+			return err
+		}
 
+		w.Header().Set("Content-Type", ctx.contentType)
+		_, err = w.Write(ctx.response)
 		return err
 	}
 }

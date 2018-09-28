@@ -17,44 +17,6 @@ func RunFileServer(targetDir string, port int, log logrus.FieldLogger) error {
 	return http.ListenAndServe(":"+strconv.Itoa(port), handler)
 }
 
-// GenerateContext is the Context given to routes for the GenerateRouter.
-type GenerateContext struct {
-	log         logrus.FieldLogger
-	contentType string
-
-	url      string
-	response []byte
-}
-
-func NewGenerateContext(log logrus.FieldLogger) *GenerateContext {
-	return &GenerateContext{log: log}
-}
-
-func (ctx *GenerateContext) Log() logrus.FieldLogger {
-	return ctx.log
-}
-
-func (ctx *GenerateContext) SetLog(log logrus.FieldLogger) {
-	ctx.log = log
-}
-
-func (ctx *GenerateContext) ContentType() string {
-	return ctx.contentType
-}
-
-func (ctx *GenerateContext) SetContentType(contentType string) {
-	ctx.contentType = contentType
-}
-
-func (ctx *GenerateContext) URL() string {
-	return ctx.url
-}
-
-func (ctx *GenerateContext) Respond(bytes []byte) error {
-	ctx.response = bytes
-	return nil
-}
-
 type generateRoute struct {
 	ContentType string
 	handler     ContextHandler
@@ -119,7 +81,7 @@ func (router *GenerateRouter) get(url string) (*Response, error) {
 		return nil, fmt.Errorf("url not found: %v", url)
 	}
 
-	ctx := NewGenerateContext(router.log)
+	ctx := NewContext(router.log)
 	ctx.url = url
 	ctx.contentType = route.ContentType
 
