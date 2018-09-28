@@ -31,12 +31,13 @@ func (content *Content) GeneratedAssetsPath() string {
 	return content.Webpack.GeneratedAssetsPath()
 }
 
-func (content *Content) RenderHtml(ctx router.Context, name string, layoutD interface{}) error {
+func (content *Content) RenderHtml(ctx *router.Context, name string, layoutD interface{}) error {
 	bytes, err := content.HtmlRenderer.Render(name, layoutD)
 	if err != nil {
 		return err
 	}
-	return ctx.Respond(bytes)
+	ctx.Respond(bytes)
+	return nil
 }
 
 func (content *Content) SetRoutes(r router.Router, tracker *app.Tracker) {
@@ -45,19 +46,20 @@ func (content *Content) SetRoutes(r router.Router, tracker *app.Tracker) {
 	r.GetHTML("/robots.txt", content.getRobots)
 }
 
-func (content *Content) getRoot(ctx router.Context) error {
+func (content *Content) getRoot(ctx *router.Context) error {
 	return content.RenderHtml(ctx, "root", layoutData{"", "Hello World!"})
 }
 
-func (content *Content) get404(ctx router.Context) error {
+func (content *Content) get404(ctx *router.Context) error {
 	return content.RenderHtml(ctx, "404", layoutData{"404", nil})
 }
 
-func (content *Content) getRobots(ctx router.Context) error {
+func (content *Content) getRobots(ctx *router.Context) error {
 	// "github.com/s12chung/gostatic/go/lib/robots"
 	//userAgents := []*robots.UserAgent {
 	//	robots.NewUserAgent(robots.EverythingUserAgent, []string { "/" }),
 	//}
 	//return ctx.Respond([]byte(robots.ToFileString(userAgents)))
-	return ctx.Respond([]byte{})
+	ctx.Respond([]byte{})
+	return nil
 }
