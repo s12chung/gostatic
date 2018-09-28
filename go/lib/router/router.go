@@ -1,9 +1,9 @@
 /*
-	A router for static websites. Provides a GenerateRouter to generate files and a WebRouter,
-	a simplified web router, which provide have the same interface.
+Package router is a router for static websites. Provides a GenerateRouter to generate files and a WebRouter,
+a simplified web router, which have the same interface.
 
-	Please note that only 1 level of routes are supported: home.com/, home.com/about, home.com/*
-	all work, but home.com/projects/about and home.com/projects/* will not work.
+Please note that only 1 level of routes are supported: home.com/, home.com/about, home.com/*
+all work, but home.com/projects/about and home.com/projects/* will not work.
 */
 package router
 
@@ -13,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const RootUrlPattern = "/"
+const RootURLPattern = "/"
 
 type ContextHandler func(ctx Context) error
 type AroundHandler func(ctx Context, handler ContextHandler) error
@@ -33,10 +33,10 @@ type Context interface {
 	SetContentType(contentType string)
 
 	// The url of request
-	Url() string
+	URL() string
 }
 
-// Interface for all routers.
+// Router is the interface for all routers.
 type Router interface {
 	// A callback/handler that is called around all routes
 	Around(handler AroundHandler)
@@ -54,7 +54,7 @@ type Router interface {
 	Requester() Requester
 }
 
-// Responsive give by all routers
+// Response given by all routers
 type Response struct {
 	Body     []byte
 	MimeType string
@@ -64,7 +64,7 @@ func NewResponse(body []byte, mimeType string) *Response {
 	return &Response{body, mimeType}
 }
 
-// An abstraction for making router requests
+// Requester is an abstraction for making router requests
 type Requester interface {
 	// Calls the route and returns the response given the url
 	Get(url string) (*Response, error)

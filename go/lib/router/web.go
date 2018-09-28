@@ -18,7 +18,7 @@ import (
 
 type webHandler func(w http.ResponseWriter, r *http.Request) error
 
-// See the Context interface.
+// WebContext is the Context given to routes for the WebRouter.
 type WebContext struct {
 	log         logrus.FieldLogger
 	contentType string
@@ -49,7 +49,7 @@ func (ctx *WebContext) SetContentType(contentType string) {
 	ctx.contentType = contentType
 }
 
-func (ctx *WebContext) Url() string {
+func (ctx *WebContext) URL() string {
 	return ctx.url
 }
 
@@ -58,7 +58,7 @@ func (ctx *WebContext) Respond(bytes []byte) error {
 	return err
 }
 
-// The router to host a web application server. It's simplified such that all errors
+// WebRouter is the router to host a web application server. It's simplified such that all errors
 // are give http.StatusBadRequest and print out the error.
 //
 // Content-Type is respected by default via calling mime.TypeByExtension (Go std lib) on the route pattern
@@ -72,10 +72,8 @@ type WebRouter struct {
 	arounds []AroundHandler
 	routes  map[string]bool
 
-	rootHandler     http.HandlerFunc
-	wildcardHandler http.HandlerFunc
-
-	port int
+	rootHandler http.HandlerFunc
+	port        int
 }
 
 func NewWebRouter(port int, log logrus.FieldLogger) *WebRouter {
@@ -92,10 +90,11 @@ func NewWebRouter(port int, log logrus.FieldLogger) *WebRouter {
 		nil,
 		make(map[string]bool),
 		defaultHandler,
-		defaultHandler,
 		port,
 	}
-	router.handleWildcard()
+	router.serveMux.HandleFunc(RootURLPattern, func(w http.ResponseWriter, r *http.Request) {
+		router.rootHandler(w, r)
+	})
 	return router
 }
 
@@ -104,7 +103,7 @@ func (router *WebRouter) Around(handler AroundHandler) {
 }
 
 func (router *WebRouter) GetRootHTML(handler ContextHandler) {
-	router.checkAndSetRoutes(RootUrlPattern)
+	router.checkAndSetRoutes(RootURLPattern)
 	router.rootHandler = router.getRequestHandler(router.htmlHandler(handler))
 }
 
@@ -118,13 +117,12 @@ func (router *WebRouter) Get(pattern string, handler ContextHandler) {
 	router.get(pattern, router.handler(mime.TypeByExtension(path.Ext(pattern)), handler))
 }
 
-func (router *WebRouter) checkAndSetRoutes(pattern string) error {
+func (router *WebRouter) checkAndSetRoutes(pattern string) {
 	_, has := router.routes[pattern]
 	if has {
 		panicDuplicateRoute(pattern)
 	}
 	router.routes[pattern] = true
-	return nil
 }
 
 func (router *WebRouter) Urls() []string {
@@ -171,16 +169,6 @@ func (router *WebRouter) getRequestHandler(handler webHandler) http.HandlerFunc 
 	}
 }
 
-func (router *WebRouter) handleWildcard() {
-	router.serveMux.HandleFunc(RootUrlPattern, func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.String() == "/" {
-			router.rootHandler(w, r)
-		} else {
-			router.wildcardHandler(w, r)
-		}
-	})
-}
-
 // FileServe sets the router to redirect requests with a pattern to a file directory.
 // Content-Type is respected via calling mime.TypeByExtension (Go std lib).
 func (router *WebRouter) FileServe(pattern, dirPath string) {
@@ -200,8 +188,8 @@ func (router *WebRouter) FileServe(pattern, dirPath string) {
 }
 
 func (router *WebRouter) get(pattern string, handler webHandler) {
-	if pattern == RootUrlPattern {
-		router.log.Errorf("Can not use pattern that touches root, use GetRootHTML or GetWildcardHTML instead")
+	if pattern == RootURLPattern {
+		router.log.Errorf("Can not use pattern that touches root, use GetRootHTML instead")
 		return
 	}
 
@@ -214,7 +202,7 @@ func (router *WebRouter) Run() error {
 	return server.ListenAndServe()
 }
 
-// Object to make requests on the router
+// WebRequester makes requests on the WebRouter
 type WebRequester struct {
 	hostname string
 	port     int
@@ -233,11 +221,12 @@ func (requester *WebRequester) Get(url string) (*Response, error) {
 		return nil, err
 	}
 
-	defer response.Body.Close()
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}
+	defer response.Body.Close()
+
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
 		return nil, fmt.Errorf(strings.TrimSpace(string(body)))
 	}

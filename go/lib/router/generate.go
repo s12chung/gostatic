@@ -17,7 +17,7 @@ func RunFileServer(targetDir string, port int, log logrus.FieldLogger) error {
 	return http.ListenAndServe(":"+strconv.Itoa(port), handler)
 }
 
-// See the Context interface.
+// GenerateContext is the Context given to routes for the GenerateRouter.
 type GenerateContext struct {
 	log         logrus.FieldLogger
 	contentType string
@@ -46,7 +46,7 @@ func (ctx *GenerateContext) SetContentType(contentType string) {
 	ctx.contentType = contentType
 }
 
-func (ctx *GenerateContext) Url() string {
+func (ctx *GenerateContext) URL() string {
 	return ctx.url
 }
 
@@ -60,11 +60,11 @@ type generateRoute struct {
 	handler     ContextHandler
 }
 
-func NewGenerateRoute(contentType string, handler ContextHandler) *generateRoute {
+func newGenerateRoute(contentType string, handler ContextHandler) *generateRoute {
 	return &generateRoute{contentType, handler}
 }
 
-// The router to generate static files, note that ContentType is respected by the router's Response struct,
+// GenerateRouter generates static files, note that ContentType is respected by the router's Response struct,
 // by default via calling mime.TypeByExtension (Go std lib) on the route pattern
 // or setting it via Context. However, generated files DO NOT have a ContentType,
 // as ContentType is a http thing and will be set when files are uploaded to S3.
@@ -90,7 +90,7 @@ func (router *GenerateRouter) Around(handler AroundHandler) {
 }
 
 func (router *GenerateRouter) GetRootHTML(handler ContextHandler) {
-	router.checkAndSetHTMLRoutes(RootUrlPattern, handler)
+	router.checkAndSetHTMLRoutes(RootURLPattern, handler)
 }
 
 func (router *GenerateRouter) GetHTML(pattern string, handler ContextHandler) {
@@ -110,7 +110,7 @@ func (router *GenerateRouter) checkAndSetRoutes(pattern, contentType string, han
 	if has {
 		panicDuplicateRoute(pattern)
 	}
-	router.routes[pattern] = NewGenerateRoute(contentType, handler)
+	router.routes[pattern] = newGenerateRoute(contentType, handler)
 }
 
 func (router *GenerateRouter) get(url string) (*Response, error) {
@@ -146,7 +146,7 @@ func (router *GenerateRouter) Requester() Requester {
 	}
 }
 
-// Object to make requests on the router
+// GenerateRequester makes requests on the GenerateRouter
 type GenerateRequester struct {
 	router *GenerateRouter
 }

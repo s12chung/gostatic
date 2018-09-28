@@ -1,5 +1,5 @@
 /*
-	Glues your routes together to generate files concurrently or host them in a server.
+Package app glues your routes together to generate files concurrently or host them in a server.
 */
 package app
 
@@ -27,11 +27,11 @@ func DefaultLog() logrus.FieldLogger {
 	}
 }
 
-//	A wrapper around the router, to provide the functionality of the cli.App interface.
-//	Provides defaults to give the app structure and connects things together to generate
-//	route responses concurrently.
+// App is a wrapper around the router, to provide the functionality of the cli.App interface.
+// Provides defaults to give the app structure and connects things together to generate
+// route responses concurrently.
 //
-//	See cli.App interface for core functions.
+// See cli.App interface for core functions.
 type App struct {
 	routeSetter Setter
 	settings    *Settings
@@ -100,7 +100,7 @@ func (app *App) setRoutes(r router.Router) *Tracker {
 	r.Around(func(ctx router.Context, handler router.ContextHandler) error {
 		ctx.SetLog(ctx.Log().WithFields(logrus.Fields{
 			"type": "routes",
-			"url":  ctx.Url(),
+			"URL":  ctx.URL(),
 		}))
 
 		var err error
@@ -165,7 +165,7 @@ func (app *App) getUrlTask(requester router.Requester, url string) *pool.Task {
 		}
 
 		filename := url
-		if url == router.RootUrlPattern {
+		if url == router.RootURLPattern {
 			filename = "index.html"
 		}
 

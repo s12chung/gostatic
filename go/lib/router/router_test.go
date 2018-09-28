@@ -129,7 +129,7 @@ func (tester *RouterTester) TestRouter_Around(t *testing.T) {
 		}
 
 		tester.setup.RunServer(router, func() {
-			_, err := tester.setup.Requester(router).Get(RootUrlPattern)
+			_, err := tester.setup.Requester(router).Get(RootURLPattern)
 			if err != nil {
 				t.Error(context.String(err))
 			}
@@ -145,7 +145,7 @@ var AllGetTypesWithResponse = []struct {
 	mimeType string
 	response string
 }{
-	{RootUrlPattern, "text/html; charset=utf-8", `<p>the root of it all</p>`},
+	{RootURLPattern, "text/html; charset=utf-8", `<p>the root of it all</p>`},
 	{"/page", "text/html; charset=utf-8", `<html>some page</html>`},
 	{"/another_page", "text/html; charset=utf-8", `<html>another_page</html>`},
 	{"/something.atom", "application/xml; charset=utf-8", `<?xml version="1.0" encoding="UTF-8"?>`},
@@ -159,14 +159,15 @@ func SetupAllGetTypesWithResponse(router Router) {
 			return ctx.Respond([]byte(response))
 		}
 
-		switch allGetTypeWithResponse.pattern {
-		case RootUrlPattern:
+		pattern := allGetTypeWithResponse.pattern
+		switch pattern {
+		case RootURLPattern:
 			router.GetRootHTML(handler)
 		default:
-			if filepath.Ext(allGetTypeWithResponse.pattern) == "" {
-				router.GetHTML(allGetTypeWithResponse.pattern, handler)
+			if filepath.Ext(pattern) == "" {
+				router.GetHTML(pattern, handler)
 			} else {
-				router.Get(allGetTypeWithResponse.pattern, handler)
+				router.Get(pattern, handler)
 			}
 		}
 
@@ -239,13 +240,13 @@ func (tester *RouterTester) TestRequester_Get(t *testing.T) {
 	})
 }
 
-func (tester *RouterTester) NewGetTester(requestUrl, contentType string, testFunc func(router Router, handler ContextHandler)) *GetTester {
+func (tester *RouterTester) NewGetTester(requestURL, contentType string, testFunc func(router Router, handler ContextHandler)) *GetTester {
 	if testFunc == nil {
 		testFunc = func(router Router, handler ContextHandler) {}
 	}
 	return &GetTester{
 		tester.setup,
-		requestUrl,
+		requestURL,
 		contentType,
 		testFunc,
 	}
@@ -253,7 +254,7 @@ func (tester *RouterTester) NewGetTester(requestUrl, contentType string, testFun
 
 type GetTester struct {
 	setup       RouterSetup
-	requestUrl  string
+	requestURL  string
 	contentType string
 	testFunc    func(router Router, handler ContextHandler)
 }
@@ -270,12 +271,12 @@ func (getTester *GetTester) testRouterContext(t *testing.T) {
 	getTester.testFunc(router, func(ctx Context) error {
 		called = true
 		test.AssertLabel(t, "ctx.Log()", ctx.Log(), log)
-		test.AssertLabel(t, "ctx.Url()", ctx.Url(), getTester.requestUrl)
+		test.AssertLabel(t, "ctx.URL()", ctx.URL(), getTester.requestURL)
 		test.AssertLabel(t, "ctx.ContentType()", ctx.ContentType(), getTester.contentType)
 		return ctx.Respond([]byte(expResponse))
 	})
 	getTester.setup.RunServer(router, func() {
-		response, err := getTester.setup.Requester(router).Get(getTester.requestUrl)
+		response, err := getTester.setup.Requester(router).Get(getTester.requestURL)
 		if err != nil {
 			t.Error(err)
 		}
@@ -292,7 +293,7 @@ func (getTester *GetTester) testRouterErrors(t *testing.T) {
 	})
 
 	getTester.setup.RunServer(router, func() {
-		_, err := getTester.setup.Requester(router).Get(getTester.requestUrl)
+		_, err := getTester.setup.Requester(router).Get(getTester.requestURL)
 		test.AssertLabel(t, "Handler error", err.Error(), expError)
 
 		_, err = getTester.setup.Requester(router).Get("/multipart/url")
@@ -326,7 +327,7 @@ func (tester *RouterTester) TestRouter_GetInvalidRoute(t *testing.T) {
 }
 
 func (tester *RouterTester) TestRouter_GetRootHTML(t *testing.T) {
-	tester.NewGetTester(RootUrlPattern, "text/html; charset=utf-8", func(router Router, handler ContextHandler) {
+	tester.NewGetTester(RootURLPattern, "text/html; charset=utf-8", func(router Router, handler ContextHandler) {
 		router.GetRootHTML(handler)
 	}).Test_Get(t)
 }
@@ -365,7 +366,7 @@ func (tester *RouterTester) TestRouter_Urls(t *testing.T) {
 
 		got := router.Urls()
 		exp := append(allGetType.htmlRoutes, allGetType.otherRoutes...)
-		exp = append(exp, RootUrlPattern)
+		exp = append(exp, RootURLPattern)
 		if allGetType.htmlRoutes == nil {
 			exp = []string{}
 		}

@@ -98,28 +98,10 @@ func TestWebRouter_Urls(t *testing.T) {
 
 func TestWebRouter_FileServe(t *testing.T) {
 	router, _, _ := defaultWebRouter()
-	SetupAllGetTypesWithResponse(router)
 	router.FileServe(fmt.Sprintf("/%v/", utils.CleanFilePath(test.FixturePath)), test.FixturePath)
 
 	setup := NewWebRouterSetup()
 	setup.RunServer(router, func() {
-		requester := setup.Requester(router)
-
-		for getIndex, allGetTypeWithResponse := range AllGetTypesWithResponse {
-			context := test.NewContext().SetFields(test.ContextFields{
-				"index":    getIndex,
-				"pattern":  allGetTypeWithResponse.pattern,
-				"mimeType": allGetTypeWithResponse.mimeType,
-				"response": allGetTypeWithResponse.response,
-			})
-
-			reqUrl := allGetTypeWithResponse.pattern
-			_, err := requester.Get(reqUrl)
-			if err != nil {
-				t.Error(context.String(err))
-			}
-		}
-
 		filePaths, err := utils.FilePaths("", test.FixturePath)
 		if err != nil {
 			t.Fatal(err)
@@ -128,39 +110,33 @@ func TestWebRouter_FileServe(t *testing.T) {
 			t.Error("Mime types does not match number of test files")
 		}
 
-		failedMimeExts := testAllFiles(t, filePaths, requester)
-		for ext, got := range failedMimeExts {
+		requester := setup.Requester(router)
+		for index, filePath := range filePaths {
 			context := test.NewContext().SetFields(test.ContextFields{
-				"ext": ext,
+				"index":    index,
+				"filePath": filePath,
 			})
-			t.Error(context.GotExpString("mimeType", got, contentTypes[ext]))
+			response, err := requester.Get("/" + strings.Join([]string{utils.CleanFilePath(test.FixturePath), path.Base(filePath)}, "/"))
+			if err != nil {
+				t.Error(context.String(err))
+			}
+
+			ext := path.Ext(filePath)
+			if response.MimeType != contentTypes[ext] {
+				t.Error(context.GotExpString("mimeType", response.MimeType, contentTypes[ext]))
+			}
+
+			expBody, err := ioutil.ReadFile(path.Join(test.FixturePath, path.Base(filePath)))
+			if err != nil {
+				t.Error(context.String(err))
+			}
+			if !cmp.Equal(response.Body, expBody) {
+				t.Error(context.GotExpString("Response.Body", response.Body, expBody))
+			}
 		}
 	})
 }
 
-func testAllFiles(t *testing.T, filePaths []string, requester Requester) map[string]string {
-	failedMimeTypes := make(map[string]string)
-	for _, filePath := range filePaths {
-		context := test.NewContext().SetFields(test.ContextFields{
-			"filePath": filePath,
-		})
-		response, err := requester.Get("/" + strings.Join([]string{utils.CleanFilePath(test.FixturePath), path.Base(filePath)}, "/"))
-		if err != nil {
-			t.Error(context.String(err))
-		}
-
-		ext := path.Ext(filePath)
-		if response.MimeType != contentTypes[ext] {
-			failedMimeTypes[ext] = response.MimeType
-		}
-
-		expBody, err := ioutil.ReadFile(path.Join(test.FixturePath, path.Base(filePath)))
-		if err != nil {
-			t.Error(context.String(err))
-		}
-		if !cmp.Equal(response.Body, expBody) {
-			t.Error(context.GotExpString("Response.Body", response.Body, expBody))
-		}
-	}
-	return failedMimeTypes
+func TestWebRequester_Get(t *testing.T) {
+	webRouterTester().TestRequester_Get(t)
 }
