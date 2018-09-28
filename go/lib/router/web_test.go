@@ -92,8 +92,8 @@ func TestWebRouterRouter_GetWithContentTypeSet(t *testing.T) {
 	generateRouterTester().TestRouter_GetWithContentTypeSet(t)
 }
 
-func TestWebRouter_StaticUrls(t *testing.T) {
-	webRouterTester().TestRouter_StaticUrls(t)
+func TestWebRouter_Urls(t *testing.T) {
+	webRouterTester().TestRouter_Urls(t)
 }
 
 func TestWebRouter_FileServe(t *testing.T) {

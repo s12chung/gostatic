@@ -352,7 +352,7 @@ func (tester *RouterTester) TestRouter_GetWithContentTypeSet(t *testing.T) {
 	}).Test_Get(t)
 }
 
-func (tester *RouterTester) TestRouter_StaticUrls(t *testing.T) {
+func (tester *RouterTester) TestRouter_Urls(t *testing.T) {
 	for testCaseIndex, allGetType := range AllGetTypesVaried {
 		context := test.NewContext().SetFields(test.ContextFields{
 			"index":       testCaseIndex,

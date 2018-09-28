@@ -55,8 +55,8 @@ func TestGenerateRouterRouter_GetWithContentTypeSet(t *testing.T) {
 	generateRouterTester().TestRouter_GetWithContentTypeSet(t)
 }
 
-func TestGenerateRouter_StaticUrls(t *testing.T) {
-	generateRouterTester().TestRouter_StaticUrls(t)
+func TestGenerateRouter_Urls(t *testing.T) {
+	generateRouterTester().TestRouter_Urls(t)
 }
 
 func TestGenerateRequester_Get(t *testing.T) {
