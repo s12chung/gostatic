@@ -23,10 +23,6 @@ func NewContent(generatedPath string, settings *Settings, log logrus.FieldLogger
 	return &Content{settings, log, htmlRenderer, w}
 }
 
-func (content *Content) WildcardUrls() ([]string, error) {
-	return []string{}, nil
-}
-
 func (content *Content) AssetsUrl() string {
 	return content.Webpack.AssetsUrl()
 }

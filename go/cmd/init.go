@@ -11,11 +11,14 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/s12chung/gostatic/go/blueprint"
+	"github.com/s12chung/gostatic/go/lib/utils"
 	"io/ioutil"
 )
 
 const goStaticDownloadUrl = "https://codeload.github.com/s12chung/gostatic/zip/master"
 const goStaticZipFilename = "gostatic-master"
+
+var testOnlyFilePaths = []string{"Gopkg.lock"}
 
 func init() {
 	rootCmd.AddCommand(initCmd)
@@ -93,6 +96,11 @@ func initProject(projectName string, test bool) error {
 	bpMessage, err := bp.Init()
 	if err != nil {
 		return err
+	}
+	if test {
+		for _, filePath := range testOnlyFilePaths {
+			utils.CopyFile(path.Join(srcDir, filePath), path.Join(bp.ProjectDir(), filePath))
+		}
 	}
 
 	err = exec.Command("direnv", "version").Run()
