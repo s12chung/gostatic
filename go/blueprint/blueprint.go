@@ -65,6 +65,7 @@ var filenameToFuncs = map[string][]ReplaceFunc{
 	"Makefile":       {replaceProjectName},
 	"package.json":   {replaceProjectName},
 	"Gopkg.toml":     {removeTestOnlyBelow},
+	".gitignore":     {removeTestOnlyBelow},
 }
 
 var replaceFuncsMappings = []struct {

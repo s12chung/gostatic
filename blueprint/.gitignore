@@ -10,3 +10,6 @@ node_modules/*
 .envrc
 settings.json
 aws/credentials
+
+# test_only_below
+Gopkg.lock
