@@ -20,10 +20,10 @@ import (
 	"github.com/s12chung/gostatic/go/test"
 )
 
-func defaultClient(t *testing.T, apiUrl string) (*Client, *logTest.Hook, func()) {
+func defaultClient(t *testing.T, apiURL string) (*Client, *logTest.Hook, func()) {
 	log, hook := logTest.NewNullLogger()
 	newCachePath, clean := test.SandboxDir(t, DefaultSettings().CachePath)
-	settings := TestSettings(newCachePath, apiUrl)
+	settings := TestSettings(newCachePath, apiURL)
 	return NewClient(settings, log), hook, clean
 }
 
@@ -99,7 +99,7 @@ func newServer(t *testing.T, paramChecks map[string]string) *serverSettings {
 			t.Error(ss.context.String(err))
 		}
 		ss.tracker.perPages = append(ss.tracker.perPages, int(perPage))
-		ss.tracker.numberOfRequests += 1
+		ss.tracker.numberOfRequests++
 
 		if ss.failRequest {
 			return
@@ -140,19 +140,21 @@ func TestRatingMap(t *testing.T) {
 	}
 }
 
+type getBooksTestCase struct {
+	invalidSettings   bool
+	failRequest       bool
+	perPage           int
+	numberOfRequests  int
+	emptyBooks        bool
+	unsafeLogEntries  bool
+	fromPreviousCache bool
+}
+
 func TestClient_GetBooks(t *testing.T) {
 	ss := newServer(t, nil)
 	defer ss.server.Close()
 
-	testCases := []struct {
-		invalidSettings   bool
-		failRequest       bool
-		perPage           int
-		numberOfRequests  int
-		emptyBooks        bool
-		unsafeLogEntries  bool
-		fromPreviousCache bool
-	}{
+	testCases := []getBooksTestCase{
 		{invalidSettings: true, emptyBooks: true, unsafeLogEntries: true},
 		{failRequest: true, perPage: DefaultSettings().MaxPerPage, numberOfRequests: 1, emptyBooks: true, unsafeLogEntries: true},
 		{perPage: DefaultSettings().MaxPerPage, numberOfRequests: 3},
@@ -191,50 +193,54 @@ func TestClient_GetBooks(t *testing.T) {
 			invalidateSettings(client)
 		}
 
-		books, err := client.GetBooks()
+		runGetBooksTestCase(t, tc, client, ss, hook)
+	}
+}
 
-		tracker := ss.tracker
-		expPerPages := make([]int, tracker.numberOfRequests)
-		for i := range expPerPages {
-			expPerPages[i] = tc.perPage
-		}
-		if !cmp.Equal(tracker.perPages, expPerPages) {
-			t.Error(ss.context.GotExpString("tracker.perPages", tracker.perPages, expPerPages))
-		}
+func runGetBooksTestCase(t *testing.T, tc getBooksTestCase, client *Client, ss *serverSettings, hook *logTest.Hook) {
+	books, err := client.GetBooks()
 
-		if tracker.numberOfRequests != tc.numberOfRequests {
-			t.Error(ss.context.GotExpString("tracker.numberOfRequests", tracker.numberOfRequests, tc.numberOfRequests))
-		}
+	tracker := ss.tracker
+	expPerPages := make([]int, tracker.numberOfRequests)
+	for i := range expPerPages {
+		expPerPages[i] = tc.perPage
+	}
+	if !cmp.Equal(tracker.perPages, expPerPages) {
+		t.Error(ss.context.GotExpString("tracker.perPages", tracker.perPages, expPerPages))
+	}
 
-		if test.SafeLogEntries(hook) != !tc.unsafeLogEntries {
-			t.Error(ss.context.GotExpString("test.SafeLogEntries(hook)", test.SafeLogEntries(hook), !tc.unsafeLogEntries))
-			test.PrintLogEntries(t, hook)
-		}
-		if !tc.unsafeLogEntries {
-			cachePath := client.Settings.CachePath
-			_, err := os.Stat(cachePath)
-			if err != nil {
-				t.Error(ss.context.String(err))
-			}
-			_, err = os.Stat(filepath.Join(cachePath, booksCacheFilename))
-			if err != nil {
-				t.Error(ss.context.String(err))
-			}
-		}
+	if tracker.numberOfRequests != tc.numberOfRequests {
+		t.Error(ss.context.GotExpString("tracker.numberOfRequests", tracker.numberOfRequests, tc.numberOfRequests))
+	}
 
-		if len(books) > 0 != !tc.emptyBooks {
-			t.Error(ss.context.GotExpString("len(books) > 0", len(books) > 0, !tc.emptyBooks))
-		}
-
+	if test.SafeLogEntries(hook) != !tc.unsafeLogEntries {
+		t.Error(ss.context.GotExpString("test.SafeLogEntries(hook)", test.SafeLogEntries(hook), !tc.unsafeLogEntries))
+		test.PrintLogEntries(t, hook)
+	}
+	if !tc.unsafeLogEntries {
+		cachePath := client.Settings.CachePath
+		_, err = os.Stat(cachePath)
 		if err != nil {
-			t.Error(ss.context.GotExpString("err", err, nil))
+			t.Error(ss.context.String(err))
 		}
+		_, err = os.Stat(filepath.Join(cachePath, booksCacheFilename))
+		if err != nil {
+			t.Error(ss.context.String(err))
+		}
+	}
+
+	if len(books) > 0 != !tc.emptyBooks {
+		t.Error(ss.context.GotExpString("len(books) > 0", len(books) > 0, !tc.emptyBooks))
+	}
+
+	if err != nil {
+		t.Error(ss.context.GotExpString("err", err, nil))
 	}
 }
 
 func TestClient_GetBooksRequest(t *testing.T) {
 	testCases := []struct {
-		userId               int
+		userID               int
 		numberOfInitialBooks int
 		numberOfRequests     int
 		unsafeLogEntries     bool
@@ -246,7 +252,7 @@ func TestClient_GetBooksRequest(t *testing.T) {
 	}
 
 	for testCaseIndex, tc := range testCases {
-		ss := newServer(t, map[string]string{"id": strconv.Itoa(tc.userId)})
+		ss := newServer(t, map[string]string{"id": strconv.Itoa(tc.userID)})
 		ss.failRequest = tc.failRequest
 		ss.context.SetFields(test.ContextFields{
 			"index":       testCaseIndex,
@@ -258,9 +264,9 @@ func TestClient_GetBooksRequest(t *testing.T) {
 		test.RandSeed()
 		for i := 0; i < tc.numberOfInitialBooks; i++ {
 			id := grand.GenerateRandomString(10)
-			bookMap[id] = &Book{Id: id}
+			bookMap[id] = &Book{ID: id}
 		}
-		client.GetBooksRequest(tc.userId, bookMap)
+		client.GetBooksRequest(tc.userID, bookMap)
 
 		tracker := ss.tracker
 		if tracker.numberOfRequests != tc.numberOfRequests {
@@ -272,31 +278,31 @@ func TestClient_GetBooksRequest(t *testing.T) {
 		}
 
 		pdt := time.FixedZone("PDT", int((-7 * time.Hour).Seconds()))
-		bookId := "2474898895"
+		bookID := "2474898895"
 		dateAdded := time.Date(2018, 7, 29, 15, 39, 52, 0, pdt)
 		dateUpdated := time.Date(2018, 7, 29, 15, 39, 54, 0, pdt)
 		expBook := &Book{
 			xml.Name{},
-			bookId,
+			bookID,
 			"The Organization Man: The Book That Defined a Generation",
 			[]string{"William H. Whyte", "Carlota Pérez"},
 			"0812218191",
 			"9780812218190",
 			2,
-			GoodreadsDate(dateAdded),
-			GoodreadsDate(dateUpdated),
+			Date(dateAdded),
+			Date(dateUpdated),
 			dateAdded,
 			dateUpdated,
 		}
 
-		gotBook, contains := bookMap[bookId]
+		gotBook, contains := bookMap[bookID]
 		if !contains {
 			if !tc.failRequest {
-				t.Error(ss.context.Stringf("bookMap[bookId] does not contain %v in %v", bookId, bookMap))
+				t.Error(ss.context.Stringf("bookMap[bookID] does not contain %v in %v", bookID, bookMap))
 			}
 		} else {
 			if !cmp.Equal(gotBook, expBook, cmpopts.IgnoreFields(Book{}, "XMLName")) {
-				t.Error(ss.context.GotExpString("bookMap[bookId]", gotBook, expBook))
+				t.Error(ss.context.GotExpString("bookMap[bookID]", gotBook, expBook))
 			}
 		}
 
@@ -355,8 +361,8 @@ func TestBook_ReviewString(t *testing.T) {
 		"zzzzz",
 		"yyyyy",
 		4,
-		GoodreadsDate(date),
-		GoodreadsDate(date),
+		Date(date),
+		Date(date),
 		date,
 		date,
 	}

@@ -1,5 +1,5 @@
 /*
-	Get Goodreads books and ratings through the Goodsreads API.
+Package goodreads gets Goodreads books and ratings through the Goodsreads API.
 */
 package goodreads
 
@@ -22,13 +22,13 @@ import (
 
 const booksCacheFilename = "books.json"
 
-// Counts the ratings and makes a map of ratingNumber=>count
+// RatingMap Counts the ratings and makes a map of ratingNumber=>count
 func RatingMap(books []*Book) map[int]int {
 	ratingMap := map[int]int{1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
 	i := 0
 	for _, book := range books {
-		ratingMap[book.Rating] += 1
-		i += 1
+		ratingMap[book.Rating]++
+		i++
 	}
 	return ratingMap
 }
@@ -54,7 +54,7 @@ func (client *Client) GetBooks() ([]*Book, error) {
 		return nil, err
 	}
 
-	bookMap, err := client.getBooks(client.Settings.UserId)
+	bookMap, err := client.getBooks(client.Settings.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -66,18 +66,18 @@ func toBooks(bookMap map[string]*Book) []*Book {
 	i := 0
 	for _, book := range bookMap {
 		books[i] = book
-		i += 1
+		i++
 	}
 	return books
 }
 
-func (client *Client) getBooks(userId int) (map[string]*Book, error) {
+func (client *Client) getBooks(userID int) (map[string]*Book, error) {
 	bookMap := client.readBooksCache()
 	if client.Settings.invalid() {
 		client.log.Warn("Invalid Goodreads Settings, skipping Goodreads API calls")
 		return bookMap, nil
 	}
-	bookMap = client.GetBooksRequest(userId, bookMap)
+	bookMap = client.GetBooksRequest(userID, bookMap)
 	return bookMap, client.saveBooksCache(bookMap)
 }
 
@@ -95,7 +95,7 @@ func (client *Client) readBooksCache() map[string]*Book {
 		return nil
 	}
 
-	bytes, err := ioutil.ReadFile(booksCachePath)
+	bytes, err := ioutil.ReadFile(booksCachePath) // #nosec G304
 	if err != nil {
 		client.log.Warnf("error reading %v - %v", booksCachePath, err)
 		return nil
@@ -141,8 +141,8 @@ type xmlReviews struct {
 	TotalBooks int `xml:"total,attr"`
 }
 
-// Requests for the books and goes through pagination for the given userId
-func (client *Client) GetBooksRequest(userId int, bookMap map[string]*Book) map[string]*Book {
+// GetBooksRequest requests for the books and goes through pagination for the given userID
+func (client *Client) GetBooksRequest(userID int, bookMap map[string]*Book) map[string]*Book {
 	if bookMap == nil {
 		bookMap = map[string]*Book{}
 	}
@@ -152,20 +152,20 @@ func (client *Client) GetBooksRequest(userId int, bookMap map[string]*Book) map[
 		client.log.Info("Loading all data from goodreads API")
 	}
 
-	totalApiBooks := 0
+	totalAPIBooks := 0
 	booksAdded := 0
 
 	defer func() {
-		if len(bookMap) < totalApiBooks {
-			client.log.Warnf("bookMap has %v elements, while there are %v books in the API", len(bookMap), totalApiBooks)
+		if len(bookMap) < totalAPIBooks {
+			client.log.Warnf("bookMap has %v elements, while there are %v books in the API", len(bookMap), totalAPIBooks)
 		} else {
-			client.log.Infof("bookMap has all %v books", totalApiBooks)
+			client.log.Infof("bookMap has all %v books", totalAPIBooks)
 		}
 	}()
 
 	err := client.paginateGet(
 		func(page int) (resp *http.Response, err error) {
-			return client.requestGetBooks(userId, initialLoad, page)
+			return client.requestGetBooks(userID, initialLoad, page)
 		},
 		func(bytes []byte) (bool, error) {
 			bookResponse := xmlBookResponse{}
@@ -174,20 +174,20 @@ func (client *Client) GetBooksRequest(userId int, bookMap map[string]*Book) map[
 				return false, err
 			}
 
-			totalApiBooks = bookResponse.PageData.TotalBooks
+			totalAPIBooks = bookResponse.PageData.TotalBooks
 
 			for _, book := range bookResponse.PageData.Books {
-				if len(bookMap) >= totalApiBooks {
+				if len(bookMap) >= totalAPIBooks {
 					return false, nil
 				}
-				if _, contains := bookMap[book.Id]; !contains {
-					booksAdded += 1
+				if _, contains := bookMap[book.ID]; !contains {
+					booksAdded++
 					client.log.Infof("%v. %v", booksAdded, book.ReviewString())
 					book.convertDates()
-					bookMap[book.Id] = book
+					bookMap[book.ID] = book
 				}
 			}
-			return bookResponse.HasMore() && len(bookMap) < totalApiBooks, nil
+			return bookResponse.HasMore() && len(bookMap) < totalAPIBooks, nil
 		},
 	)
 	if err != nil {
@@ -196,7 +196,7 @@ func (client *Client) GetBooksRequest(userId int, bookMap map[string]*Book) map[
 	return bookMap
 }
 
-func (client *Client) requestGetBooks(userId int, initialLoad bool, page int) (resp *http.Response, err error) {
+func (client *Client) requestGetBooks(userID int, initialLoad bool, page int) (resp *http.Response, err error) {
 	perPage := client.Settings.PerPage
 	if initialLoad {
 		perPage = client.Settings.MaxPerPage
@@ -204,9 +204,9 @@ func (client *Client) requestGetBooks(userId int, initialLoad bool, page int) (r
 
 	queryParams := map[string]string{
 		"v":  "2",
-		"id": strconv.Itoa(userId),
+		"id": strconv.Itoa(userID),
 
-		"key": client.Settings.ApiKey,
+		"key": client.Settings.APIKey,
 
 		"shelf": "read",
 
@@ -216,9 +216,9 @@ func (client *Client) requestGetBooks(userId int, initialLoad bool, page int) (r
 		"order":    "d",
 	}
 
-	url := fmt.Sprintf("%v/review/list?%v", client.Settings.ApiURL, utils.ToSimpleQuery(queryParams))
+	url := fmt.Sprintf("%v/review/list?%v", client.Settings.APIURL, utils.ToSimpleQuery(queryParams))
 	client.log.Infof("GET %v", url)
-	return http.Get(url)
+	return http.Get(url) // #nosec G107
 }
 
 func (client *Client) paginateGet(request func(page int) (resp *http.Response, err error), callback func(bytes []byte) (bool, error)) error {
@@ -234,7 +234,10 @@ func (client *Client) paginateGet(request func(page int) (resp *http.Response, e
 			return err
 		}
 		bytes, err := ioutil.ReadAll(response.Body)
-		response.Body.Close()
+		if err != nil {
+			return err
+		}
+		err = response.Body.Close()
 		if err != nil {
 			return err
 		}
@@ -244,7 +247,7 @@ func (client *Client) paginateGet(request func(page int) (resp *http.Response, e
 			return err
 		}
 		if hasMore {
-			page += 1
+			page++
 			client.log.Infof("Sleeping for %v...", rateLimit)
 			<-ticker.C
 		}
@@ -252,13 +255,13 @@ func (client *Client) paginateGet(request func(page int) (resp *http.Response, e
 	return nil
 }
 
-type GoodreadsDate time.Time
+type Date time.Time
 
-func (date GoodreadsDate) Equal(u GoodreadsDate) bool {
+func (date Date) Equal(u Date) bool {
 	return time.Time(date).Equal(time.Time(u))
 }
 
-func (date *GoodreadsDate) UnmarshalXML(decoder *xml.Decoder, startElement xml.StartElement) error {
+func (date *Date) UnmarshalXML(decoder *xml.Decoder, startElement xml.StartElement) error {
 	var stringValue string
 
 	err := decoder.DecodeElement(&stringValue, &startElement)
@@ -271,23 +274,23 @@ func (date *GoodreadsDate) UnmarshalXML(decoder *xml.Decoder, startElement xml.S
 		return err
 	}
 
-	*date = GoodreadsDate(t)
+	*date = Date(t)
 	return nil
 }
 
 type Book struct {
 	XMLName xml.Name `xml:"review" json:"-"`
-	Id      string   `xml:"id" json:"id"`
+	ID      string   `xml:"id" json:"id"`
 	Title   string   `xml:"book>title" json:"title"`
 	Authors []string `xml:"book>authors>author>name" json:"authors"`
 	Isbn    string   `xml:"book>isbn" json:"isbn"`
 	Isbn13  string   `xml:"book>isbn13" json:"isbn13"`
 	Rating  int      `xml:"rating" json:"rating"`
 
-	XMLDateAdded    GoodreadsDate `xml:"date_added" json:"-"`
-	XXMLDateUpdated GoodreadsDate `xml:"date_updated" json:"-"`
-	DateAdded       time.Time     `xml:"-" json:"date_added"`
-	DateUpdated     time.Time     `xml:"-" json:"date_updated"`
+	XMLDateAdded    Date      `xml:"date_added" json:"-"`
+	XXMLDateUpdated Date      `xml:"date_updated" json:"-"`
+	DateAdded       time.Time `xml:"-" json:"date_added"`
+	DateUpdated     time.Time `xml:"-" json:"date_updated"`
 }
 
 func (book *Book) convertDates() {
@@ -295,12 +298,12 @@ func (book *Book) convertDates() {
 	book.DateUpdated = time.Time(book.XXMLDateUpdated)
 }
 
-// Returns the String representation of a Book: "The Book Title" by Berry, Jerry & Daisy ****
+// ReviewString returns the String representation of a Book: "The Book Title" by Berry, Jerry & Daisy ****
 func (book *Book) ReviewString() string {
 	return fmt.Sprintf("\"%v\" by %v %v", book.Title, utils.SliceList(book.Authors), strings.Repeat("*", book.Rating))
 }
 
-// returns the recommended date to Sort on
+// SortedDate returns the recommended date to Sort on
 func (book *Book) SortedDate() time.Time {
 	return book.DateAdded
 }
