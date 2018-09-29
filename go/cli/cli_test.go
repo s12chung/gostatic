@@ -9,11 +9,7 @@ import (
 
 //go:generate mockgen -destination=../test/mocks/cli_app.go -package=mocks github.com/s12chung/gostatic/go/cli App
 
-func defaultCli(app App) *Cli {
-	return NewCli("random name", app)
-}
-
-func TestCli_Run(t *testing.T) {
+func TestRunDefault(t *testing.T) {
 	testCases := []struct {
 		args         []string
 		functionName string
@@ -48,7 +44,7 @@ func TestCli_Run(t *testing.T) {
 			"Host":          expect.Host,
 		}[tc.functionName]()
 
-		defaultCli(app).Run(tc.args)
+		Run("random name", app, tc.args)
 
 		t.Log(context.FieldsString())
 		controller.Finish()

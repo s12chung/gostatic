@@ -1,5 +1,5 @@
 /*
-	Basic CLI interface for gostatic apps. Parses the flags and calls the appropriate functions of the given app.
+Package cli has a basic CLI interface for gostatic apps. Parses the flags and calls the appropriate functions of the given app.
 */
 package cli
 
@@ -25,49 +25,37 @@ type App interface {
 	ServerPort() int
 }
 
-// Returns the name of the executable from the Args
+// DefaultName returns the name of the executable from the Args
 func DefaultName() string {
 	return os.Args[0]
 }
 
-// Returns the default Args for flag.FlagSet
+// DefaultArgs returns the default Args for flag.FlagSet
 func DefaultArgs() []string {
 	return os.Args[1:]
 }
 
-// Runs the App with the default settings
-func Run(application App) error {
-	return NewCli(DefaultName(), application).Run(DefaultArgs())
+// RunDefault runs the App with the default settings
+func RunDefault(application App) error {
+	return Run(DefaultName(), application, DefaultArgs())
 }
 
-type Cli struct {
-	app  App
-	flag *flag.FlagSet
-}
-
-func NewCli(name string, app App) *Cli {
+// Run takes the args and parses the flag to run the correct App function
+func Run(name string, application App, args []string) error {
 	f := flag.NewFlagSet(name, flag.ContinueOnError)
-	return &Cli{app, f}
-}
 
-// Takes the args and parses the flag to run the correct App function
-func (cli *Cli) Run(args []string) error {
-	app := cli.app
-
-	fileServerPtr := cli.flag.Bool("file-server", false, fmt.Sprintf("Serves, but not generates, files in %v on localhost:%v", app.GeneratedPath(), app.FileServerPort()))
-	serverPtr := cli.flag.Bool("server", false, fmt.Sprintf("Hosts server on localhost:%v", app.ServerPort()))
-	err := cli.flag.Parse(args)
+	fileServerPtr := f.Bool("file-server", false, fmt.Sprintf("Serves, but not generates, files in %v on localhost:%v", application.GeneratedPath(), application.FileServerPort()))
+	serverPtr := f.Bool("server", false, fmt.Sprintf("Hosts server on localhost:%v", application.ServerPort()))
+	err := f.Parse(args)
 	if err != nil {
 		return nil
 	}
 
 	if *fileServerPtr {
-		return app.RunFileServer()
-	} else {
-		if *serverPtr {
-			return app.Host()
-		} else {
-			return app.Generate()
-		}
+		return application.RunFileServer()
 	}
+	if *serverPtr {
+		return application.Host()
+	}
+	return application.Generate()
 }
