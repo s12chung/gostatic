@@ -18,7 +18,7 @@ import (
 const goStaticDownloadURL = "https://codeload.github.com/s12chung/gostatic/zip/master"
 const goStaticZipFilename = "gostatic-master"
 
-var testOnlyFilePaths = []string{"Gopkg.lock"}
+var testOnlyFilePaths = []string{"Gopkg.toml"}
 
 func init() {
 	rootCmd.AddCommand(initCmd)
@@ -79,7 +79,7 @@ func initProject(projectName string, test bool) error {
 	}
 
 	if test {
-		err = copyTestOnlyFiles(srcDir, bp.ProjectDir())
+		err = copyOrOverrideTestOnlyFiles(srcDir, bp.ProjectDir())
 		if err != nil {
 			return err
 		}
@@ -132,7 +132,7 @@ func confirmSafeOverride(projectDir string) error {
 	return nil
 }
 
-func copyTestOnlyFiles(srcDir, projectDir string) error {
+func copyOrOverrideTestOnlyFiles(srcDir, projectDir string) error {
 	for _, filePath := range testOnlyFilePaths {
 		return utils.CopyFile(path.Join(srcDir, filePath), path.Join(projectDir, filePath))
 	}

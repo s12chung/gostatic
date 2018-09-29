@@ -1,6 +1,7 @@
 package blueprint
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -40,6 +41,21 @@ func replaceProjectName(blueprint *Blueprint, s string) (string, error) {
 	return result, nil
 }
 
+const testOnlyString = "\n# test_only_below\n"
+
+func removeTestOnlyBelow(blueprint *Blueprint, s string) (string, error) {
+	split := strings.Split(s, testOnlyString)
+
+	switch len(split) {
+	case 1:
+		return s, nil
+	case 2:
+		return split[0], nil
+	default:
+		return "", fmt.Errorf("testOnlyString found more than once")
+	}
+}
+
 var extToFuncs = map[string][]ReplaceFunc{
 	".go": {replaceNamespace},
 }
@@ -48,6 +64,7 @@ var filenameToFuncs = map[string][]ReplaceFunc{
 	".example.envrc": {replaceNamespace},
 	"Makefile":       {replaceProjectName},
 	"package.json":   {replaceProjectName},
+	"Gopkg.toml":     {removeTestOnlyBelow},
 }
 
 var replaceFuncsMappings = []struct {
