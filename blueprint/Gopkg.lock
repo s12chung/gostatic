@@ -13,7 +13,7 @@
     "go/lib/utils",
     "go/lib/webpack"
   ]
-  revision = "b8d9c6e55612b33ff04b4d21dbe0cbb142611d52"
+  revision = "c5cfe07dd659fd48fe9ae69445538c2649e9a857"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
