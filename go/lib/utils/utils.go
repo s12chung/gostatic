@@ -1,5 +1,5 @@
 /*
-	Set of utility functions
+Package utils contains a set of utility functions
 */
 package utils
 
@@ -13,16 +13,16 @@ import (
 )
 
 func MkdirAll(path string) error {
-	return os.MkdirAll(path, 0755)
+	return os.MkdirAll(path, 0750)
 }
 
 func WriteFile(path string, bytes []byte) error {
 	return ioutil.WriteFile(path, bytes, 0644)
 }
 
-// from: https://stackoverflow.com/a/21067803/1090482
+// CopyFile copies a file, from: https://stackoverflow.com/a/21067803/1090482
 func CopyFile(src, dst string) (err error) {
-	in, err := os.Open(src)
+	in, err := os.Open(src) // #nosec G304
 	if err != nil {
 		return
 	}
@@ -54,7 +54,7 @@ func ToSimpleQuery(queryMap map[string]string) string {
 	index := 0
 	for key, value := range queryMap {
 		queryArray[index] = key + "=" + value
-		index += 1
+		index++
 	}
 	sort.Strings(queryArray)
 	return strings.Join(queryArray, "&")
