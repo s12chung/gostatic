@@ -16,7 +16,7 @@ var responsiveExtensions = map[string]bool{
 	".jpg": true,
 }
 
-// Handles the overview logic of responsive images.
+// Responsive handles the overview logic of responsive images.
 type Responsive struct {
 	generatedPath string
 	assetsFolder  string
@@ -54,7 +54,7 @@ func (r *Responsive) readResponsiveImageJSON(originalSrc string) (*ResponsiveIma
 	filename := fmt.Sprintf("%v.json", path.Base(originalSrc))
 	filePath := path.Join(r.generatedPath, r.assetsFolder, path.Dir(originalSrc), responsiveFolder, filename)
 
-	bytes, err := ioutil.ReadFile(filePath)
+	bytes, err := ioutil.ReadFile(filePath) // #nosec G304
 	if err != nil {
 		return nil, err
 	}

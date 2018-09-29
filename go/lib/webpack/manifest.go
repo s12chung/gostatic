@@ -10,7 +10,7 @@ import (
 
 const manifestPath = "manifest.json"
 
-// Representation of a Manifest file
+// Manifest represents a Manifest file
 type Manifest struct {
 	generatedPath   string
 	assetsFolder    string
@@ -29,7 +29,7 @@ func NewManifest(generatedPath, assetsFolder string, log logrus.FieldLogger) *Ma
 	}
 }
 
-func (w *Manifest) ManifestUrl(key string) string {
+func (w *Manifest) ManifestURL(key string) string {
 	return w.assetsFolder + "/" + w.manifestValue(key)
 }
 

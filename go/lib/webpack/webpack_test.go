@@ -43,7 +43,7 @@ func TestWebpack_GeneratedAssetsPath(t *testing.T) {
 
 func TestWebpack_ManifestUrl(t *testing.T) {
 	webpack, hook := defaultWebpack()
-	got := webpack.ManifestUrl("vendor.css")
+	got := webpack.ManifestURL("vendor.css")
 
 	test.PrintLogEntries(t, hook)
 	test.AssertLabel(t, "Result", got, path.Join(webpack.settings.AssetsPath, "vendor-32267303b2484ed8b3aa.css"))
@@ -92,10 +92,10 @@ func TestWebpack_ReplaceResponsiveAttrs(t *testing.T) {
 		skipEmptyNamespace bool
 		expected           string
 	}{
-		{"test.jpg", "content/images", `<img src="SRC"/>`, false, fmt.Sprintf(`<img %v/>`, jpgResponsiveImage.HtmlAttrs())},
-		{"test.jpg", "content/images", `<img src="SRC" class="haha"/>`, false, fmt.Sprintf(`<img %v class="haha"/>`, jpgResponsiveImage.HtmlAttrs())},
-		{"test.jpg", "content/images", `<img alt="blah" src="SRC"/>`, false, fmt.Sprintf(`<img alt="blah" %v/>`, jpgResponsiveImage.HtmlAttrs())},
-		{"test.jpg", "content/images", `<img alt="blah" src="SRC" class="haha"/>`, false, fmt.Sprintf(`<img alt="blah" %v class="haha"/>`, jpgResponsiveImage.HtmlAttrs())},
+		{"test.jpg", "content/images", `<img src="SRC"/>`, false, fmt.Sprintf(`<img %v/>`, jpgResponsiveImage.HTMLAttrs())},
+		{"test.jpg", "content/images", `<img src="SRC" class="haha"/>`, false, fmt.Sprintf(`<img %v class="haha"/>`, jpgResponsiveImage.HTMLAttrs())},
+		{"test.jpg", "content/images", `<img alt="blah" src="SRC"/>`, false, fmt.Sprintf(`<img alt="blah" %v/>`, jpgResponsiveImage.HTMLAttrs())},
+		{"test.jpg", "content/images", `<img alt="blah" src="SRC" class="haha"/>`, false, fmt.Sprintf(`<img alt="blah" %v class="haha"/>`, jpgResponsiveImage.HTMLAttrs())},
 		{"test_again.png", "content/images", `<img src="SRC"/>`, false, `<img src="assets/content/images/test_again-1440.png"/>`},
 		{"test.gif", "", `<img src="SRC"/>`, false, `<img src="assets/test.gif"/>`},
 		{"test.jpg", "doesnt_exist", `<img src="SRC"/>`, false, `<img src="assets/doesnt_exist/test.jpg"/>`},
@@ -136,8 +136,8 @@ func TestWebpack_ReplaceResponsiveAttrs(t *testing.T) {
 
 func TestWebpack_ResponsiveHtmlAttrs(t *testing.T) {
 	webpack, _ := defaultWebpack()
-	got := string(webpack.ResponsiveHtmlAttrs("content/images/test.jpg"))
-	exp := jpgResponsiveImage.HtmlAttrs()
+	got := string(webpack.ResponsiveHTMLAttrs("content/images/test.jpg"))
+	exp := jpgResponsiveImage.HTMLAttrs()
 	if got != exp {
 		t.Error(test.AssertLabelString("result", got, exp))
 	}

@@ -36,7 +36,7 @@ func TestManifest_ManifestUrl(t *testing.T) {
 
 		manifest, hook := defaultManifest()
 		manifest.assetsFolder = tc.assetsFolder
-		got := manifest.ManifestUrl(tc.key)
+		got := manifest.ManifestURL(tc.key)
 
 		if got != tc.exp {
 			t.Error(context.GotExpString("Result", got, tc.exp))

@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// Representation of a ResponsiveImage
+// ResponsiveImage represents a ResponsiveImage
 type ResponsiveImage struct {
 	Src    string `json:"src"`
 	SrcSet string `json:"srcSet"`
@@ -36,7 +36,7 @@ func (r *ResponsiveImage) PrependSrcPath(prefix string, log logrus.FieldLogger) 
 	r.SrcSet = strings.Join(newSrcSet, ", ")
 }
 
-func (r *ResponsiveImage) HtmlAttrs() string {
+func (r *ResponsiveImage) HTMLAttrs() string {
 	var htmlAttrs []string
 	if r.Src != "" {
 		htmlAttrs = append(htmlAttrs, fmt.Sprintf(`src="%v"`, r.Src))

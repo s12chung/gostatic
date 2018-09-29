@@ -157,7 +157,7 @@ func TestResponsiveImage_HtmlAttrs(t *testing.T) {
 			"img":   tc.img,
 		})
 
-		got := tc.img.HtmlAttrs()
+		got := tc.img.HTMLAttrs()
 		if got != tc.exp {
 			t.Error(context.GotExpString("Result", got, tc.exp))
 		}

@@ -1,7 +1,7 @@
 /*
-	Lets Go see into the generated asset paths, `Manifest.json`, and `images/responsive` folder of JSON files from Webpack.
+Package webpack lets Go see into the generated asset paths, `Manifest.json`, and `images/responsive` folder of JSON files from Webpack.
 
-	Implements html.Plugin.
+Webpack struct implements github.com/s12chung/gostatic/go/lib/router/html.Plugin
 */
 package webpack
 
@@ -19,7 +19,7 @@ import (
 
 var imgRegex = regexp.MustCompile(`<img[^>]+(src="([^"]*)")`)
 
-// Representation of a webpack generated setup
+// Webpack represents of a webpack generated setup
 type Webpack struct {
 	generatedPath string
 	settings      *Settings
@@ -38,31 +38,31 @@ func NewWebpack(generatedPath string, settings *Settings, log logrus.FieldLogger
 	}
 }
 
-// The URL path prefix of all your assets
+// AssetsURL returns the URL path prefix of all your assets
 func (w *Webpack) AssetsURL() string {
 	return fmt.Sprintf("/%v/", w.settings.AssetsPath)
 }
 
-// The file path of the generated assets
+// GeneratedAssetsPath returns the file path of the generated assets
 func (w *Webpack) GeneratedAssetsPath() string {
 	return filepath.Join(w.generatedPath, w.settings.AssetsPath)
 }
 
-// Given a file path key, return the manifest url of the file (so it returns hashed file paths that exist).
-func (w *Webpack) ManifestUrl(key string) string {
-	return w.manifest.ManifestUrl(key)
+// ManifestURL returns the manifest url of the file (so it returns hashed file paths that exist), given a file path key.
+func (w *Webpack) ManifestURL(key string) string {
+	return w.manifest.ManifestURL(key)
 }
 
 func (w *Webpack) manifestImage(originalSrc string) *ResponsiveImage {
-	return &ResponsiveImage{Src: w.ManifestUrl(originalSrc)}
+	return &ResponsiveImage{Src: w.ManifestURL(originalSrc)}
 }
 
-// Returns the struct representation of a *ResponsiveImage given a originalSrc.
+// GetResponsiveImage returns the struct representation of a *ResponsiveImage given a originalSrc.
 // originalSrc should give Webpack a filepath to the generated images folder.
 //
 // If the src points to a non-responsive image, will return a *ResponsiveImage
 // with src set as:
-// - the result of using originalSrc as a key for webpack.ManifestUrl
+// - the result of using originalSrc as a key for webpack.ManifestURL
 // - the given originalSrc
 func (w *Webpack) GetResponsiveImage(originalSrc string) *ResponsiveImage {
 	u, err := url.Parse(originalSrc)
@@ -80,7 +80,7 @@ func (w *Webpack) GetResponsiveImage(originalSrc string) *ResponsiveImage {
 	return responsiveImage
 }
 
-// Replaces the img.src HTML attrs, to responsive img.src and img.srcset attrs
+// ReplaceResponsiveAttrs replaces the img.src HTML attrs, to responsive img.src and img.srcset attrs
 // within the HTML string. It takes the existing img.src values as the originalSrc to
 // call webpack.GetResponsiveImage.
 //
@@ -96,21 +96,21 @@ func (w *Webpack) ReplaceResponsiveAttrs(srcPrefix, html string) string {
 		}
 
 		responsiveImage := w.GetResponsiveImage(path.Join(srcPrefix, originalSrc))
-		return strings.Replace(imgTag, matches[1], responsiveImage.HtmlAttrs(), 1)
+		return strings.Replace(imgTag, matches[1], responsiveImage.HTMLAttrs(), 1)
 	})
 }
 
-// Calls GetResponsiveImage and returns the html attr (img.src and img.srcset) representation of the *ResponsiveImage
-func (w *Webpack) ResponsiveHtmlAttrs(originalSrc string) template.HTMLAttr {
+// ResponsiveHTMLAttrs calls GetResponsiveImage and returns the html attr (img.src and img.srcset) representation of the *ResponsiveImage
+func (w *Webpack) ResponsiveHTMLAttrs(originalSrc string) template.HTMLAttr {
 	responsiveImage := w.GetResponsiveImage(originalSrc)
-	return template.HTMLAttr(responsiveImage.HtmlAttrs())
+	return template.HTMLAttr(responsiveImage.HTMLAttrs()) // #nosec G203
 }
 
-// 	Implements html.Plugin
+// TemplateFuncs implements github.com/s12chung/gostatic/go/lib/router/html.Plugin
 func (w *Webpack) TemplateFuncs() template.FuncMap {
 	return template.FuncMap{
-		"webpackUrl":             w.ManifestUrl,
-		"responsiveAttrs":        w.ResponsiveHtmlAttrs,
+		"webpackURL":             w.ManifestURL,
+		"responsiveAttrs":        w.ResponsiveHTMLAttrs,
 		"replaceResponsiveAttrs": w.ReplaceResponsiveAttrs,
 	}
 }
