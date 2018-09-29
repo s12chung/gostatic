@@ -1,5 +1,5 @@
 /*
-	Struct representations of robots.txt
+Package robots contains struct representations of robots.txt
 */
 package robots
 
@@ -16,7 +16,7 @@ func ToFileString(userAgents []*UserAgent) string {
 	return strings.Join(parts, "\n\n")
 }
 
-// Representation of a user agent and the paths to ignore
+// UserAgent represents a user agent and the paths to ignore
 type UserAgent struct {
 	name  string
 	paths []string
