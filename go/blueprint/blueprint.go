@@ -59,7 +59,7 @@ var replaceFuncsMappings = []struct {
 }
 
 func runReplaceFuncs(blueprint *Blueprint, srcPath string, funcs []ReplaceFunc) (string, error) {
-	bytes, err := ioutil.ReadFile(filepath.Clean(srcPath))
+	bytes, err := ioutil.ReadFile(srcPath) // #nosec G304
 	if err != nil {
 		return "", err
 	}

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -12,10 +13,9 @@ import (
 
 	"github.com/s12chung/gostatic/go/blueprint"
 	"github.com/s12chung/gostatic/go/lib/utils"
-	"io/ioutil"
 )
 
-const goStaticDownloadUrl = "https://codeload.github.com/s12chung/gostatic/zip/master"
+const goStaticDownloadURL = "https://codeload.github.com/s12chung/gostatic/zip/master"
 const goStaticZipFilename = "gostatic-master"
 
 var testOnlyFilePaths = []string{"Gopkg.lock"}
@@ -58,59 +58,96 @@ func initProject(projectName string, test bool) error {
 
 	srcDir := "./blueprint"
 	if !test {
-		tempDir, err := ioutil.TempDir("", "gostatic")
+		var clean func() error
+		srcDir, clean, err = downloadSrc()
+		defer clean()
 		if err != nil {
 			return err
 		}
-		defer func() { os.RemoveAll(tempDir) }()
-		zipPath := path.Join(tempDir, goStaticZipFilename+".zip")
-		fmt.Printf("Downloading gostatic@master from %v.\n", goStaticDownloadUrl)
-		err = downloadfile(goStaticDownloadUrl, zipPath)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("Downloaded and unzipping in temp dir.\n")
-		err = unzip(zipPath, tempDir)
-		if err != nil {
-			return err
-		}
-		fmt.Print("\n")
-		srcDir = path.Join(tempDir, goStaticZipFilename, "blueprint")
 	}
+
 	bp := blueprint.NewBlueprint(srcDir, pwd, namespace)
 
-	_, err = os.Stat(bp.ProjectDir())
-	if !os.IsNotExist(err) {
-		fmt.Printf("%v already exists, do you want to replace it's files with init?\n", bp.ProjectDir())
-		yn, err := promptStdIn("Replace? (y/n)")
-		if err != nil {
-			return err
-		}
-		yn = strings.ToLower(yn[:1])
-		if yn != "y" {
-			fmt.Println("Response did not start with `y`, aborting.")
-			return nil
-		}
+	err = confirmSafeOverride(bp.ProjectDir())
+	if err != nil {
+		return err
 	}
 
 	bpMessage, err := bp.Init()
 	if err != nil {
 		return err
 	}
+
 	if test {
-		for _, filePath := range testOnlyFilePaths {
-			utils.CopyFile(path.Join(srcDir, filePath), path.Join(bp.ProjectDir(), filePath))
+		err = copyTestOnlyFiles(srcDir, bp.ProjectDir())
+		if err != nil {
+			return err
 		}
 	}
 
-	err = exec.Command("direnv", "version").Run()
+	endingMessages(bpMessage)
+	return nil
+}
+
+func downloadSrc() (srcDir string, clean func() error, err error) {
+	clean = func() error { return nil }
+
+	tempDir, err := ioutil.TempDir("", "gostatic")
+	if err != nil {
+		return
+	}
+	clean = func() error { return os.RemoveAll(tempDir) }
+
+	zipPath := path.Join(tempDir, goStaticZipFilename+".zip")
+	fmt.Printf("Downloading gostatic@master from %v.\n", goStaticDownloadURL)
+	err = downloadfile(goStaticDownloadURL, zipPath)
+	if err != nil {
+		return
+	}
+	fmt.Printf("Downloaded and unzipping in temp dir.\n")
+	err = unzip(zipPath, tempDir)
+	if err != nil {
+		return
+	}
+	fmt.Print("\n")
+	srcDir = path.Join(tempDir, goStaticZipFilename, "blueprint")
+	return
+}
+
+func confirmSafeOverride(projectDir string) error {
+	_, err := os.Stat(projectDir)
+	if !os.IsNotExist(err) {
+		fmt.Printf("%v already exists, do you want to replace it's files with init?\n", projectDir)
+
+		var yn string
+		yn, err = promptStdIn("Replace? (y/n)")
+		if err != nil {
+			return err
+		}
+		yn = strings.ToLower(yn[:1])
+		if yn != "y" {
+			return fmt.Errorf("response did not start with `y`, aborting")
+		}
+	}
+	return nil
+}
+
+func copyTestOnlyFiles(srcDir, projectDir string) error {
+	for _, filePath := range testOnlyFilePaths {
+		return utils.CopyFile(path.Join(srcDir, filePath), path.Join(projectDir, filePath))
+	}
+	return nil
+}
+
+func endingMessages(bpMessage string) {
+	err := exec.Command("direnv", "version").Run() // #nosec G204
 	dirEnvMessage := ""
 	if err != nil {
 		dirEnvMessage = " (without direnv, you require DOCKER_WORKDIR ENV variable from .envrc file)"
 		fmt.Print("direnv not installed, please note that Makefile and Docker use the environment variables set in .envrc file.\n\n")
 	}
 
-	err = exec.Command("docker", "-v").Run()
+	err = exec.Command("docker", "-v").Run() // # #nosec G204
 	if err != nil {
 		fmt.Print("docker not installed. To install locally, you can see the Dockerfile to view system dependencies.\n\n")
 	}
@@ -120,7 +157,6 @@ func initProject(projectName string, test bool) error {
 	}
 	fmt.Print("\n")
 	fmt.Printf("Project creation success! Install the project in docker via: `make docker-install`%v\n", dirEnvMessage)
-	return nil
 }
 
 func getNamepace(pwd, projectName string) (string, error) {

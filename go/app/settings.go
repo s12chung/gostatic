@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
-	"path/filepath"
 )
 
 type Settings struct {
@@ -39,7 +38,7 @@ func SettingsFromFile(path string, settings interface{}, log logrus.FieldLogger)
 		return
 	}
 
-	file, err := ioutil.ReadFile(filepath.Clean(path))
+	file, err := ioutil.ReadFile(path) // #nosec G304
 	if err != nil {
 		log.Warnf("error reading %v, using defaults...", path)
 		return

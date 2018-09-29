@@ -27,7 +27,7 @@ func downloadfile(url, dest string) error {
 	defer out.Close()
 
 	// Get the data
-	resp, err := http.Get(url)
+	resp, err := http.Get(url) // #nosec G107
 	if err != nil {
 		return err
 	}
@@ -47,62 +47,73 @@ func downloadfile(url, dest string) error {
 	return nil
 }
 
-// from: https://stackoverflow.com/a/24792688/1090482
+// from: https://stackoverflow.com/a/24792688/1090482 and refactored
 func unzip(src, dest string) error {
 	r, err := zip.OpenReader(src)
 	if err != nil {
 		return err
 	}
 	defer func() {
-		if err := r.Close(); err != nil {
+		err = r.Close()
+		if err != nil {
 			panic(err)
 		}
 	}()
 
-	os.MkdirAll(dest, 0755)
+	err = os.MkdirAll(dest, 0750)
+	if err != nil {
+		return err
+	}
 
-	// Closure to address file descriptors issue with all the deferred .Close() methods
-	extractAndWriteFile := func(f *zip.File) error {
-		rc, err := f.Open()
+	for _, f := range r.File {
+		err := extractAndWriteFile(f, dest)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func extractAndWriteFile(f *zip.File, dest string) error {
+	rc, err := f.Open()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = rc.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	path := filepath.Join(dest, f.Name) // #nosec G305
+
+	if f.FileInfo().IsDir() {
+		err = os.MkdirAll(path, f.Mode())
+		if err != nil {
+			return err
+		}
+	} else {
+		err = os.MkdirAll(filepath.Dir(path), f.Mode())
+		if err != nil {
+			return err
+		}
+		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 		if err != nil {
 			return err
 		}
 		defer func() {
-			if err := rc.Close(); err != nil {
+			err = f.Close()
+			if err != nil {
 				panic(err)
 			}
 		}()
 
-		path := filepath.Join(dest, f.Name)
-
-		if f.FileInfo().IsDir() {
-			os.MkdirAll(path, f.Mode())
-		} else {
-			os.MkdirAll(filepath.Dir(path), f.Mode())
-			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-			if err != nil {
-				return err
-			}
-			defer func() {
-				if err := f.Close(); err != nil {
-					panic(err)
-				}
-			}()
-
-			_, err = io.Copy(f, rc)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-
-	for _, f := range r.File {
-		err := extractAndWriteFile(f)
+		_, err = io.Copy(f, rc)
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
