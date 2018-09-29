@@ -12,24 +12,24 @@ import (
 
 var updateFixturesPtr = test.UpdateFixtureFlag()
 
-func defaultHtmlRenderer() *HtmlRenderer {
-	return NewHtmlRenderer(DefaultSettings())
+func defaultHTMLRenderer() *HTMLRenderer {
+	return NewHTMLRenderer(DefaultSettings())
 }
 
 func TestHtmlRenderer_Render(t *testing.T) {
-	htmlEntries := []*HtmlEntry{
+	htmlEntries := []*HTMLEntry{
 		{"first", "num #1", test.Time(1), "<p>The story starts here</p>", "The sum", test.Time(2)},
 		{"second", "num #2", test.Time(3), "<p>The story is in the middle here</p>", "The sum of it all", test.Time(4)},
 		{"third", "num #3", test.Time(5), "<p>The story ends here</p>", "The sum of the conclusion", test.Time(6)},
 	}
 
 	testCases := []struct {
-		htmlEntries []*HtmlEntry
+		htmlEntries []*HTMLEntry
 	}{
 		{htmlEntries},
 		{htmlEntries[0:2]},
 		{htmlEntries[0:1]},
-		{[]*HtmlEntry{}},
+		{[]*HTMLEntry{}},
 	}
 
 	for testCaseIndex, tc := range testCases {
@@ -37,7 +37,7 @@ func TestHtmlRenderer_Render(t *testing.T) {
 			"index": testCaseIndex,
 		})
 
-		bytes, err := defaultHtmlRenderer().Render("the test feed for posts", "posts", "logo.png", tc.htmlEntries)
+		bytes, err := defaultHTMLRenderer().Render("the test feed for posts", "posts", "logo.png", tc.htmlEntries)
 		if err != nil {
 			t.Error(context.String(err))
 		}

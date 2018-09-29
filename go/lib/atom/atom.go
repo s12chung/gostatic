@@ -1,5 +1,5 @@
 /*
-	Represent your Atom xml data into structs and Marshall them.
+Package atom represents your Atom xml data into structs and Marshalls them.
 */
 package atom
 
@@ -54,7 +54,7 @@ type Author struct {
 	XMLName xml.Name `xml:"author"`
 
 	Name string `xml:"name,omitempty"`
-	Uri  string `xml:"uri,omitempty"`
+	URI  string `xml:"uri,omitempty"`
 }
 
 type EntryContent struct {
@@ -81,27 +81,27 @@ func NewRenderer(settings *Settings) *Renderer {
 }
 
 func (a *Renderer) Author() *Author {
-	return &Author{Name: a.Settings.AuthorName, Uri: a.Settings.AuthorURIDefaulted()}
+	return &Author{Name: a.Settings.AuthorName, URI: a.Settings.AuthorURIDefaulted()}
 }
 
 func (a *Renderer) AlternateLink(url string) *Link {
-	return &Link{Rel: "alternate", Type: "text/html", Href: a.Settings.FullUrlFor(url)}
+	return &Link{Rel: "alternate", Type: "text/html", Href: a.Settings.FullURLFor(url)}
 }
 
-func (a *Renderer) NewFeed(feedName string, lastUpdated time.Time, selfUrl, iconUrl string) *Feed {
+func (a *Renderer) NewFeed(feedName string, lastUpdated time.Time, selfURL, iconURL string) *Feed {
 	return &Feed{
 		XMLLang: "en-US",
 		XMLNS:   "http://www.w3.org/2005/Atom",
 
 		Title:   fmt.Sprintf("%v - %v", strings.Title(feedName), a.Settings.Host),
-		Icon:    a.Settings.FullUrlFor(iconUrl),
+		Icon:    a.Settings.FullURLFor(iconURL),
 		ID:      strings.Join([]string{a.Settings.Host, "2018", feedName}, ":"),
 		Updated: lastUpdated,
 
 		Author: a.Author(),
 
 		Links: []*Link{
-			{Rel: "self", Type: "application/atom+xml", Href: a.Settings.FullUrlFor(selfUrl)},
+			{Rel: "self", Type: "application/atom+xml", Href: a.Settings.FullURLFor(selfURL)},
 			a.AlternateLink(""),
 		},
 	}

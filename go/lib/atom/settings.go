@@ -24,12 +24,12 @@ type Settings struct {
 
 func (domainSettings *Settings) AuthorURIDefaulted() string {
 	if domainSettings.AuthorURI == "" {
-		return domainSettings.Url()
+		return domainSettings.URL()
 	}
 	return domainSettings.AuthorURI
 }
 
-func (domainSettings *Settings) Url() string {
+func (domainSettings *Settings) URL() string {
 	ssl := ""
 	if domainSettings.SSL {
 		ssl = "s"
@@ -37,10 +37,10 @@ func (domainSettings *Settings) Url() string {
 	return fmt.Sprintf("http%v://%v", ssl, domainSettings.Host)
 }
 
-func (domainSettings *Settings) FullUrlFor(url string) string {
+func (domainSettings *Settings) FullURLFor(url string) string {
 	url = strings.Trim(url, "/")
 	if url == "" {
-		return domainSettings.Url()
+		return domainSettings.URL()
 	}
-	return strings.Join([]string{domainSettings.Url(), url}, "/")
+	return strings.Join([]string{domainSettings.URL(), url}, "/")
 }
