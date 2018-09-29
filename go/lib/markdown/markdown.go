@@ -1,5 +1,5 @@
 /*
-	Basic html.Plugin for markdown processing.
+Package markdown is a basic github.com/s12chung/gostatic/go/lib/router/html.Plugin for markdown processing.
 */
 package markdown
 
@@ -23,7 +23,7 @@ func NewMarkdown(settings *Settings, log logrus.FieldLogger) *Markdown {
 
 func (markdown *Markdown) ProcessMarkdown(filename string) string {
 	filePath := path.Join(markdown.settings.MarkdownsPath, filename)
-	input, err := ioutil.ReadFile(filePath)
+	input, err := ioutil.ReadFile(filePath) // #nosec G304
 	if err != nil {
 		markdown.log.Error(err)
 		return ""
