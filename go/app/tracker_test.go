@@ -17,8 +17,8 @@ func defaultTracker(urls []string) *Tracker {
 func TestTracker_Urls(t *testing.T) {
 	testCases := []struct {
 		urls            []string
-		dependentUrls   []string
-		independentUrls []string
+		dependentURLs   []string
+		independentURLs []string
 	}{
 		{[]string{}, []string{}, []string{}},
 		{[]string{"a", "b"}, []string{"a", "b"}, []string{}},
@@ -31,31 +31,31 @@ func TestTracker_Urls(t *testing.T) {
 		context := test.NewContext().SetFields(test.ContextFields{
 			"index":         testCaseIndex,
 			"urls":          tc.urls,
-			"dependentUrls": tc.dependentUrls,
+			"dependentURLs": tc.dependentURLs,
 		})
 
 		tracker := defaultTracker(tc.urls)
-		for _, dependentUrl := range tc.dependentUrls {
-			tracker.AddDependentUrl(dependentUrl)
+		for _, dependentURL := range tc.dependentURLs {
+			tracker.AddDependentURL(dependentURL)
 		}
 
-		got := tracker.DependentUrls()
-		exp := tc.dependentUrls
+		got := tracker.DependentURLs()
+		exp := tc.dependentURLs
 		sort.Strings(got)
 		sort.Strings(exp)
 
 		if !cmp.Equal(got, exp) {
-			t.Error(context.DiffString("dependentUrls", got, exp, cmp.Diff(got, exp)))
+			t.Error(context.DiffString("dependentURLs", got, exp, cmp.Diff(got, exp)))
 		}
-		got, err := tracker.IndependentUrls()
+		got, err := tracker.IndependentURLs()
 		if err != nil {
 			t.Error(context.String(err))
 		}
-		exp = tc.independentUrls
+		exp = tc.independentURLs
 		sort.Strings(got)
 		sort.Strings(exp)
 		if !cmp.Equal(got, exp) {
-			t.Error(context.DiffString("independentUrls", got, exp, cmp.Diff(got, exp)))
+			t.Error(context.DiffString("independentURLs", got, exp, cmp.Diff(got, exp)))
 		}
 	}
 }

@@ -39,7 +39,7 @@ func TestApp_Generate(t *testing.T) {
 		r.GetRootHTML(handler)
 		r.GetHTML("/dep", handler)
 		r.GetHTML("/non_dep", handler)
-		tracker.AddDependentUrl("/dep")
+		tracker.AddDependentURL("/dep")
 	})
 
 	generatedPath, clean := test.SandboxDir(t, "generated")

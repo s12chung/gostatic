@@ -70,12 +70,12 @@ func (app *App) ServerPort() int {
 	return app.settings.ServerPort
 }
 
-// Generates the static web pages concurrently.
+// Generate generates the static web pages concurrently.
 //
 // For speed and concurrency reasons (like file/map read/writing), this is done in two stages:
-// First, the Tracker.IndependentUrls routes are generated. After, the Tracker.DependentUrls.
+// First, the Tracker.IndependentURLs routes are generated. After, the Tracker.DependentURLs.
 //
-// Use Tracker.AddDependentUrl to generate the route's file during the second stage.
+// Use Tracker.AddDependentURL to generate the route's file during the second stage.
 func (app *App) Generate() error {
 	start := time.Now()
 	defer func() {
@@ -130,13 +130,13 @@ func (app *App) setRoutes(r router.Router) *Tracker {
 func (app *App) requestRoutes(requester router.Requester, tracker *Tracker) error {
 	var urlBatches [][]string
 
-	independentUrls, err := tracker.IndependentUrls()
+	independentUrls, err := tracker.IndependentURLs()
 	if err != nil {
 		return err
 	}
 
 	urlBatches = append(urlBatches, independentUrls)
-	urlBatches = append(urlBatches, tracker.DependentUrls())
+	urlBatches = append(urlBatches, tracker.DependentURLs())
 
 	for _, urlBatch := range urlBatches {
 		app.runTasks(app.urlsToTasks(requester, urlBatch))
@@ -147,12 +147,12 @@ func (app *App) requestRoutes(requester router.Requester, tracker *Tracker) erro
 func (app *App) urlsToTasks(requester router.Requester, urls []string) []*pool.Task {
 	tasks := make([]*pool.Task, len(urls))
 	for i, url := range urls {
-		tasks[i] = app.getUrlTask(requester, url)
+		tasks[i] = app.getURLTask(requester, url)
 	}
 	return tasks
 }
 
-func (app *App) getUrlTask(requester router.Requester, url string) *pool.Task {
+func (app *App) getURLTask(requester router.Requester, url string) *pool.Task {
 	log := app.log.WithFields(logrus.Fields{
 		"type": "task",
 		"url":  url,

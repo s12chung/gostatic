@@ -2,7 +2,7 @@ package app
 
 import "github.com/s12chung/gostatic/go/lib/router"
 
-// An interface for App to talk to your code and set routes.
+// Setter is an interface for App to talk to your code and set routes.
 type Setter interface {
 	// SetRoutes is where you set the routes
 	SetRoutes(r router.Router, tracker *Tracker)
