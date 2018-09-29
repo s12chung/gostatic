@@ -24,7 +24,7 @@ func defaultRenderer() (*Renderer, *logTest.Hook) {
 	log, hook := logTest.NewNullLogger()
 
 	w := webpack.NewWebpack(path.Join(test.FixturePath, "generated"), webpack.DefaultSettings(), log)
-	md := markdown.NewMarkdown(&markdown.Settings{path.Join(test.FixturePath, "markdowns")}, log)
+	md := markdown.NewMarkdown(&markdown.Settings{MarkdownsPath: path.Join(test.FixturePath, "markdowns")}, log)
 	return NewRenderer(settings, []Plugin{w, md}, log), hook
 }
 

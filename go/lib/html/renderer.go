@@ -1,5 +1,5 @@
 /*
-	Maps your filesystem to `html/template` and handles templates.
+Package html maps your filesystem to `html/template` and handles templates.
 */
 package html
 
@@ -16,7 +16,7 @@ import (
 	"github.com/s12chung/gostatic/go/lib/utils"
 )
 
-// A struct of settings and config to Render with
+// Renderer holds settings and config to Render with
 type Renderer struct {
 	settings *Settings
 	plugins  []Plugin
@@ -31,7 +31,7 @@ func NewRenderer(settings *Settings, plugins []Plugin, log logrus.FieldLogger) *
 	}
 }
 
-// A plugin for Renderer to add template functions with
+// Plugin for Renderer to add template functions with
 type Plugin interface {
 	TemplateFuncs() template.FuncMap
 }

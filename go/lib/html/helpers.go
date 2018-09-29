@@ -35,7 +35,7 @@ func defaultTemplateFuncs() template.FuncMap {
 	}
 }
 
-// inspired by: https://gohugo.io/functions/scratch
+// Scratch is a struct holding temp data, inspired by: https://gohugo.io/functions/scratch
 type Scratch struct {
 	M map[string]interface{}
 }
@@ -75,7 +75,7 @@ func (s *Scratch) Delete(key string) string {
 }
 
 func htmlSafe(s string) template.HTML {
-	return template.HTML(s)
+	return template.HTML(s) // #nosec G203
 }
 
 func sliceMake(args ...interface{}) []interface{} {
