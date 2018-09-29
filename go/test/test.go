@@ -37,7 +37,7 @@ func DiffString(label string, got, exp, diff interface{}) string {
 	return fmt.Sprintf("%v, diff: %v", AssertLabelString(label, got, exp), diff)
 }
 
-func TestEnvSetting(t *testing.T, envKey, defaultValue string, gotF func() string) {
+func EnvSetting(t *testing.T, envKey, defaultValue string, gotF func() string) {
 	testCases := []struct {
 		env string
 		exp string
@@ -52,13 +52,19 @@ func TestEnvSetting(t *testing.T, envKey, defaultValue string, gotF func() strin
 			"env":   tc.env,
 		})
 
-		os.Setenv(envKey, tc.env)
+		err := os.Setenv(envKey, tc.env)
+		if err != nil {
+			t.Error(err)
+		}
 		got := gotF()
 		if got != tc.exp {
 			t.Error(context.GotExpString("Result", got, tc.exp))
 		}
 	}
-	os.Setenv(envKey, "")
+	err := os.Setenv(envKey, "")
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func RandSeed() {
@@ -85,7 +91,12 @@ func SandboxDir(t *testing.T, originalPath string) (string, func()) {
 	if err != nil {
 		t.Error(err)
 	}
-	return filepath.Join(dir, cleanFilePath(originalPath)), func() { os.RemoveAll(dir) }
+	return filepath.Join(dir, cleanFilePath(originalPath)), func() {
+		err := os.RemoveAll(dir)
+		if err != nil {
+			t.Error(err)
+		}
+	}
 }
 
 func UpdateFixtureFlag() *bool {
@@ -93,7 +104,7 @@ func UpdateFixtureFlag() *bool {
 }
 
 func ReadFixture(t *testing.T, filename string) []byte {
-	bytes, err := ioutil.ReadFile(filepath.Join(FixturePath, filename))
+	bytes, err := ioutil.ReadFile(filepath.Join(FixturePath, filename)) // #nosec G304
 	if err != nil {
 		t.Error(err)
 	}

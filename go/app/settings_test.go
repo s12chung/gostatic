@@ -10,7 +10,7 @@ import (
 )
 
 func TestDefaultSettings(t *testing.T) {
-	test.TestEnvSetting(t, "GENERATED_PATH", "./generated", func() string {
+	test.EnvSetting(t, "GENERATED_PATH", "./generated", func() string {
 		return DefaultSettings().GeneratedPath
 	})
 }

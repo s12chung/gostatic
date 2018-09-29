@@ -28,7 +28,7 @@ func (context *Context) makeFieldsString() string {
 	i := 0
 	for k, v := range context.fields {
 		fieldStrings[i] = fmt.Sprintf("%v=%v", k, v)
-		i += 1
+		i++
 	}
 	sort.Strings(fieldStrings)
 	return strings.Join(fieldStrings, " ")
