@@ -58,6 +58,37 @@ var replaceFuncsMappings = []struct {
 	{filenameToFuncs, path.Base},
 }
 
+func runReplaceFuncs(blueprint *Blueprint, srcPath string, funcs []ReplaceFunc) (string, error) {
+	bytes, err := ioutil.ReadFile(filepath.Clean(srcPath))
+	if err != nil {
+		return "", err
+	}
+
+	s := string(bytes)
+	for _, f := range funcs {
+		s, err = f(blueprint, s)
+		if err != nil {
+			return "", err
+		}
+	}
+	return s, nil
+}
+
+func replaceFuncBytes(blueprint *Blueprint, srcPath string) ([]byte, error) {
+	for _, m := range replaceFuncsMappings {
+		replaceFuncs, got := m.typeToFunc[m.pathFunc(srcPath)]
+		if got {
+			s, err := runReplaceFuncs(blueprint, srcPath, replaceFuncs)
+			if err != nil {
+				return nil, err
+			}
+
+			return []byte(s), nil
+		}
+	}
+	return nil, nil
+}
+
 type Blueprint struct {
 	srcDir    string
 	destDir   string
@@ -74,14 +105,8 @@ func (blueprint *Blueprint) Init() (string, error) {
 		return "", err
 	}
 
-	utils.MkdirAll(blueprint.destPath(""))
-
 	var exampleFiles []string
 	err = blueprint.IgnoreWalk(ignoreMap, func(srcPath string, typ os.FileMode) error {
-		if srcPath == blueprint.srcDir {
-			return nil
-		}
-
 		destPath := blueprint.destPath(srcPath)
 		if typ.IsDir() {
 			return utils.MkdirAll(destPath)
@@ -92,38 +117,44 @@ func (blueprint *Blueprint) Init() (string, error) {
 
 		destPaths := []string{destPath}
 
-		if exampleRegex.MatchString(destPath) {
-			realFileDestPath := exampleRegex.ReplaceAllString(destPath, "$1")
-			_, err = os.Stat(realFileDestPath)
-			if os.IsNotExist(err) {
-				exampleFiles = append(exampleFiles, blueprint.destRelativePath(realFileDestPath))
-				destPaths = append(destPaths, realFileDestPath)
-			}
+		exampleRealDestPath := exampleRealDestPath(destPath)
+		if exampleRealDestPath != "" {
+			exampleFiles = append(exampleFiles, blueprint.destRelativePath(exampleRealDestPath))
+			destPaths = append(destPaths, exampleRealDestPath)
 		}
 
-		for _, m := range replaceFuncsMappings {
-			replaceFuncs, got := m.typeToFunc[m.pathFunc(srcPath)]
-			if got {
-				s, err := blueprint.runReplaceFuncs(srcPath, replaceFuncs)
-				if err != nil {
-					return err
-				}
-
-				bytes := []byte(s)
-				return forEachDestPath(destPaths, func(destPath string) error {
-					return utils.WriteFile(destPath, bytes)
-				})
-			}
+		var bytes []byte
+		bytes, err = replaceFuncBytes(blueprint, srcPath)
+		if err != nil {
+			return err
 		}
 		return forEachDestPath(destPaths, func(destPath string) error {
+			if bytes != nil {
+				return utils.WriteFile(destPath, bytes)
+			}
 			return utils.CopyFile(srcPath, destPath)
 		})
 	})
 	if err != nil {
 		return "", err
 	}
+	return initMessage(exampleFiles), nil
+}
+
+func exampleRealDestPath(destPath string) string {
+	if exampleRegex.MatchString(destPath) {
+		realFileDestPath := exampleRegex.ReplaceAllString(destPath, "$1")
+		_, err := os.Stat(realFileDestPath)
+		if os.IsNotExist(err) {
+			return realFileDestPath
+		}
+	}
+	return ""
+}
+
+func initMessage(exampleFiles []string) string {
 	if len(exampleFiles) == 0 {
-		return "", nil
+		return ""
 	}
 
 	messageArray := []string{"Note these files, which are in .gitignore and have .example version:"}
@@ -131,7 +162,7 @@ func (blueprint *Blueprint) Init() (string, error) {
 		messageArray = append(messageArray, "- "+exampleFile)
 	}
 	messageArray = append(messageArray, "You may need to fill in personal data in them, such as AWS credentials.\n")
-	return strings.Join(messageArray, "\n"), nil
+	return strings.Join(messageArray, "\n")
 }
 
 func (blueprint *Blueprint) ProjectName() string {
@@ -143,6 +174,9 @@ func (blueprint *Blueprint) ProjectDir() string {
 }
 
 func (blueprint *Blueprint) srcRelativePath(srcPath string) string {
+	if srcPath == blueprint.srcDir {
+		return ""
+	}
 	return strings.TrimPrefix(srcPath, blueprint.srcDir+"/")
 }
 
@@ -152,22 +186,6 @@ func (blueprint *Blueprint) destRelativePath(srcPath string) string {
 
 func (blueprint *Blueprint) destPath(srcPath string) string {
 	return path.Join(blueprint.destDir, blueprint.ProjectName(), blueprint.srcRelativePath(srcPath))
-}
-
-func (blueprint *Blueprint) runReplaceFuncs(srcPath string, funcs []ReplaceFunc) (string, error) {
-	bytes, err := ioutil.ReadFile(srcPath)
-	if err != nil {
-		return "", err
-	}
-
-	s := string(bytes)
-	for _, f := range funcs {
-		s, err = f(blueprint, s)
-		if err != nil {
-			return "", err
-		}
-	}
-	return s, nil
 }
 
 func (blueprint *Blueprint) IgnoreWalk(ignoreMap map[string]bool, f func(p string, typ os.FileMode) error) error {
