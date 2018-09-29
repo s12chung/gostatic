@@ -1,5 +1,5 @@
 /*
-	Run your tasks concurrently.
+Package pool runs your tasks concurrently.
 */
 package pool
 

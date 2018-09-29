@@ -31,27 +31,19 @@ func TestPool(t *testing.T) {
 			"tasksWithSuccess": tc.tasksWithSuccess,
 		})
 
-		runCount := 0
 		var errorTasks []*Task
-		tasks := make([]*Task, len(tc.tasksWithSuccess))
-		if tc.tasksWithSuccess == nil {
-			tasks = nil
-		} else {
-			for i, success := range tc.tasksWithSuccess {
-				ret := fmt.Errorf("error")
-				if success {
-					ret = nil
-				}
-				tasks[i] = NewTask(log, func() error {
-					runCount++
-					return ret
-				})
+		runCount := 0
+		tasks := tasksWithSuccessToTasks(tc.tasksWithSuccess, func(err error) *Task {
+			task := NewTask(log, func() error {
+				runCount++
+				return err
+			})
 
-				if !success {
-					errorTasks = append(errorTasks, tasks[i])
-				}
+			if err != nil {
+				errorTasks = append(errorTasks, task)
 			}
-		}
+			return task
+		})
 		p := NewPool(tasks, 10)
 		p.Run()
 
@@ -65,14 +57,7 @@ func TestPool(t *testing.T) {
 			if task.Error == nil {
 				t.Error("EachError found task without error")
 			}
-			found := false
-			for _, errorTask := range errorTasks {
-				if errorTask == task {
-					found = true
-					break
-				}
-			}
-			if !found {
+			if !isErrorTask(errorTasks, task) {
 				t.Error("EachError Error not found in errorTasks")
 			}
 		})
@@ -80,4 +65,29 @@ func TestPool(t *testing.T) {
 			t.Error("errorCount does not match number of errorTasks")
 		}
 	}
+}
+
+func tasksWithSuccessToTasks(tasksWithSuccess []bool, makeTask func(err error) *Task) []*Task {
+	tasks := make([]*Task, len(tasksWithSuccess))
+	if tasksWithSuccess == nil {
+		tasks = nil
+	} else {
+		for i, success := range tasksWithSuccess {
+			ret := fmt.Errorf("error")
+			if success {
+				ret = nil
+			}
+			tasks[i] = makeTask(ret)
+		}
+	}
+	return tasks
+}
+
+func isErrorTask(errorTasks []*Task, task *Task) bool {
+	for _, errorTask := range errorTasks {
+		if errorTask == task {
+			return true
+		}
+	}
+	return false
 }
