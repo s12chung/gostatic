@@ -114,5 +114,8 @@ type GenerateRequester struct {
 }
 
 func (requester *GenerateRequester) Get(url string) (*Response, error) {
+	if url[:1] != "/" {
+		url = "/" + url
+	}
 	return requester.router.get(url)
 }

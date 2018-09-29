@@ -214,14 +214,15 @@ func (tester *RouterTester) TestRequester_Get(t *testing.T) {
 	tester.setup.RunServer(router, func() {
 		requeseter := tester.setup.Requester(router)
 		for getIndex, allGetTypeWithResponse := range AllGetTypesWithResponse {
+			pattern := allGetTypeWithResponse.pattern
 			context := test.NewContext().SetFields(test.ContextFields{
 				"index":    getIndex,
-				"pattern":  allGetTypeWithResponse.pattern,
+				"pattern":  pattern,
 				"mimeType": allGetTypeWithResponse.mimeType,
 				"response": allGetTypeWithResponse.response,
 			})
 
-			response, err := requeseter.Get(allGetTypeWithResponse.pattern)
+			response, err := requeseter.Get(pattern)
 			if err != nil {
 				t.Errorf(context.String(err))
 			}
@@ -236,6 +237,13 @@ func (tester *RouterTester) TestRequester_Get(t *testing.T) {
 			exp = allGetTypeWithResponse.mimeType
 			if got != exp {
 				t.Error(context.GotExpString("Response.ContentType", got, exp))
+			}
+
+			if pattern != RootURLPattern {
+				_, err := requeseter.Get(pattern[1:])
+				if err != nil {
+					t.Error(context.String("Can't handle requeseter.Get without / prefix"))
+				}
 			}
 		}
 	})

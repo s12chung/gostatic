@@ -131,14 +131,21 @@ func (router *WebRouter) getRequestHandler(handler webHandler) http.HandlerFunc 
 	}
 }
 
+var dangerPathRegex = regexp.MustCompile(`\/\.\.\/`)
+
 // FileServe sets the router to redirect requests with a pattern to a file directory.
 // Content-Type is respected via calling mime.TypeByExtension (Go std lib).
 func (router *WebRouter) FileServe(pattern, dirPath string) {
 	router.get(pattern, func(w http.ResponseWriter, r *http.Request) error {
-		regex := regexp.MustCompile(strings.Replace(`^/`+pattern+`/`, "//", "/", -1))
-		assetFilePath := path.Join(dirPath, regex.ReplaceAllString(r.URL.String(), ""))
+		url := r.URL.String()
+		if dangerPathRegex.MatchString(url) {
+			return fmt.Errorf("url has dangerous characters for security reasons (%v)", url)
+		}
 
-		file, err := os.Open(assetFilePath)
+		regex := regexp.MustCompile(strings.Replace(`^/`+pattern+`/`, "//", "/", -1))
+		assetFilePath := path.Join(dirPath, regex.ReplaceAllString(url, ""))
+
+		file, err := os.Open(filepath.Clean(assetFilePath))
 		if err != nil {
 			return err
 		}
@@ -178,6 +185,10 @@ func newWebRequester(port int) *WebRequester {
 }
 
 func (requester *WebRequester) Get(url string) (*Response, error) {
+	if url[:1] != "/" {
+		url = "/" + url
+	}
+
 	response, err := http.Get(fmt.Sprintf("http://%v:%v%v", requester.hostname, requester.port, url))
 	if err != nil {
 		return nil, err

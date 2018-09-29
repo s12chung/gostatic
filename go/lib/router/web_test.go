@@ -137,6 +137,42 @@ func TestWebRouter_FileServe(t *testing.T) {
 	})
 }
 
+func TestWebRouter_FileServe_PathChecks(t *testing.T) {
+	router, _, _ := defaultWebRouter()
+	router.FileServe(fmt.Sprintf("/%v/", utils.CleanFilePath(test.FixturePath)), test.FixturePath)
+
+	setup := NewWebRouterSetup()
+	setup.RunServer(router, func() {
+		requester := setup.Requester(router)
+
+		testCases := []struct {
+			url      string
+			hasError bool
+		}{
+			{"/test.atom", false},
+			{"/dir/inner.atom", false},
+			{"/../test.atom", true},
+			{"/../dir/inner.atom", true},
+			{"/dir/../inner.atom", true},
+		}
+
+		for index, tc := range testCases {
+			context := test.NewContext().SetFields(test.ContextFields{
+				"index": index,
+				"url":   tc.url,
+			})
+
+			_, err := requester.Get("/" + strings.Join([]string{utils.CleanFilePath(test.FixturePath), tc.url}, "/"))
+			if err != nil {
+				if tc.hasError {
+					continue
+				}
+				t.Error(context.String(err))
+			}
+		}
+	})
+}
+
 func TestWebRequester_Get(t *testing.T) {
 	webRouterTester().TestRequester_Get(t)
 }
