@@ -60,7 +60,7 @@ func (app *App) GeneratedPath() string {
 
 func (app *App) Host() error {
 	r := router.NewWebRouter(app.settings.ServerPort, app.log)
-	r.FileServe(app.routeSetter.AssetsUrl(), app.routeSetter.GeneratedAssetsPath())
+	r.FileServe(app.routeSetter.AssetsURL(), app.routeSetter.GeneratedAssetsPath())
 	app.setRoutes(r)
 
 	return r.Run()

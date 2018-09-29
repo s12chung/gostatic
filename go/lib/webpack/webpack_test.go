@@ -31,7 +31,7 @@ func defaultWebpack() (*Webpack, *logTest.Hook) {
 
 func TestWebpack_AssetsUrl(t *testing.T) {
 	webpack, _ := defaultWebpack()
-	got := webpack.AssetsUrl()
+	got := webpack.AssetsURL()
 	test.AssertLabel(t, "Result", got, "/assets/")
 }
 

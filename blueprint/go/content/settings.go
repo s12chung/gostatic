@@ -5,11 +5,14 @@ import (
 	"github.com/s12chung/gostatic/go/lib/webpack"
 )
 
+// Settings contains the settings of your site, each field is for each package used, you can add additional fields for more features
+// The settings are read from a JSON file in main.go.
 type Settings struct {
-	Html    *html.Settings    `json:"html,omitempty"`
+	HTML    *html.Settings    `json:"html,omitempty"`
 	Webpack *webpack.Settings `json:"webpack,omitempty"`
 }
 
+// DefaultSettings is the default settings of your App, when JSON data is not given
 func DefaultSettings() *Settings {
 	return &Settings{
 		html.DefaultSettings(),

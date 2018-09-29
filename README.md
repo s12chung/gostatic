@@ -75,8 +75,8 @@ The following packages are used in the bare bones Hello World app provided for y
 It's best to start at [go/content/content.go](blueprint/go/content/content.go) and add more routes:
 
 ```go
-func (content *Content) RenderHtml(ctx *router.Context, name string, layoutD interface{}) error {
-	bytes, err := content.HtmlRenderer.Render(name, layoutD)
+func (content *Content) renderHTML(ctx *router.Context, name string, layoutD interface{}) error {
+	bytes, err := content.HTMLRenderer.Render(name, layoutD)
 	if err != nil {
 		return err
 	}
@@ -84,6 +84,7 @@ func (content *Content) RenderHtml(ctx *router.Context, name string, layoutD int
 	return nil
 }
 
+// SetRoutes is where you set the routes
 func (content *Content) SetRoutes(r router.Router, tracker *app.Tracker) {
 	r.GetRootHTML(content.getRoot)
 	r.GetHTML("/404.html", content.get404)
@@ -91,11 +92,11 @@ func (content *Content) SetRoutes(r router.Router, tracker *app.Tracker) {
 }
 
 func (content *Content) getRoot(ctx *router.Context) error {
-	return content.RenderHtml(ctx, "root", layoutData{"", "Hello World!"})
+	return content.renderHTML(ctx, "root", layoutData{"", "Hello World!"})
 }
 
 func (content *Content) get404(ctx *router.Context) error {
-	return content.RenderHtml(ctx, "404", layoutData{"404", nil})
+	return content.renderHTML(ctx, "404", layoutData{"404", nil})
 }
 
 func (content *Content) getRobots(ctx *router.Context) error {

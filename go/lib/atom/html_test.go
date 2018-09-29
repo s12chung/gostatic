@@ -56,7 +56,7 @@ func TestHtmlRenderer_Render(t *testing.T) {
 
 		exp := string(test.ReadFixture(t, fixtureFilename))
 		if got != exp {
-			t.Error(context.DiffString("RenderHtml", got, exp, cmp.Diff(got, exp)))
+			t.Error(context.DiffString("HTMLRenderer.Render", got, exp, cmp.Diff(got, exp)))
 		}
 	}
 }

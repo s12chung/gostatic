@@ -34,16 +34,16 @@ func (m *MockSetter) EXPECT() *MockSetterMockRecorder {
 	return m.recorder
 }
 
-// AssetsUrl mocks base method
-func (m *MockSetter) AssetsUrl() string {
-	ret := m.ctrl.Call(m, "AssetsUrl")
+// AssetsURL mocks base method
+func (m *MockSetter) AssetsURL() string {
+	ret := m.ctrl.Call(m, "AssetsURL")
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// AssetsUrl indicates an expected call of AssetsUrl
-func (mr *MockSetterMockRecorder) AssetsUrl() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssetsUrl", reflect.TypeOf((*MockSetter)(nil).AssetsUrl))
+// AssetsURL indicates an expected call of AssetsURL
+func (mr *MockSetterMockRecorder) AssetsURL() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssetsURL", reflect.TypeOf((*MockSetter)(nil).AssetsURL))
 }
 
 // GeneratedAssetsPath mocks base method

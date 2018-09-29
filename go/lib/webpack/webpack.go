@@ -39,7 +39,7 @@ func NewWebpack(generatedPath string, settings *Settings, log logrus.FieldLogger
 }
 
 // The URL path prefix of all your assets
-func (w *Webpack) AssetsUrl() string {
+func (w *Webpack) AssetsURL() string {
 	return fmt.Sprintf("/%v/", w.settings.AssetsPath)
 }
 

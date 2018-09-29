@@ -45,7 +45,7 @@ func TestRenderer_RenderWithLayout(t *testing.T) {
 		{"layout_with_title", "title", layoutData{"The Given", nil}},
 		{"layout_with_title", "title", layoutData{"something", nil}},
 		{"", "no_template_content", layoutData{}},
-		{"layout", "helpers", layoutData{"", map[string]interface{}{"Html": `<span>html_data</span>`, "Date": test.Time(1)}}},
+		{"layout", "helpers", layoutData{"", map[string]interface{}{"HTML": `<span>html_data</span>`, "Date": test.Time(1)}}},
 	}
 
 	for testCaseIndex, tc := range testCases {
