@@ -24,7 +24,7 @@ func WriteFile(path string, bytes []byte) error {
 
 // CopyFile copies a file, from: https://stackoverflow.com/a/21067803/1090482
 func CopyFile(src, dst string) (err error) {
-	in, err := os.Open(src) // #nosec G304
+	in, err := os.Open(src)
 	if err != nil {
 		return
 	}

@@ -27,7 +27,7 @@ func downloadfile(url, dest string) error {
 	defer out.Close()
 
 	// Get the data
-	resp, err := http.Get(url) // #nosec G107
+	resp, err := http.Get(url)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func extractAndWriteFile(f *zip.File, dest string) error {
 		}
 	}()
 
-	path := filepath.Join(dest, f.Name) // #nosec G305
+	path := filepath.Join(dest, f.Name)
 
 	if f.FileInfo().IsDir() {
 		err = os.MkdirAll(path, f.Mode())

@@ -57,7 +57,7 @@ func (r *Responsive) readResponsiveImageJSON(originalSrc string) (*ResponsiveIma
 	filename := fmt.Sprintf("%v.json", path.Base(originalSrc))
 	filePath := path.Join(r.generatedPath, r.assetsFolder, path.Dir(originalSrc), responsiveFolder, filename)
 
-	bytes, err := ioutil.ReadFile(filePath) // #nosec G304
+	bytes, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}

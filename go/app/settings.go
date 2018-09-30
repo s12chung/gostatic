@@ -40,7 +40,7 @@ func SettingsFromFile(path string, settings interface{}, log logrus.FieldLogger)
 		return
 	}
 
-	file, err := ioutil.ReadFile(path) // #nosec G304
+	file, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Warnf("error reading %v, using defaults...", path)
 		return

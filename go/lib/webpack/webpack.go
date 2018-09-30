@@ -104,7 +104,7 @@ func (w *Webpack) ReplaceResponsiveAttrs(srcPrefix, html string) string {
 // ResponsiveHTMLAttrs calls GetResponsiveImage and returns the html attr (img.src and img.srcset) representation of the *ResponsiveImage
 func (w *Webpack) ResponsiveHTMLAttrs(originalSrc string) template.HTMLAttr {
 	responsiveImage := w.GetResponsiveImage(originalSrc)
-	return template.HTMLAttr(responsiveImage.HTMLAttrs()) // #nosec G203
+	return template.HTMLAttr(responsiveImage.HTMLAttrs())
 }
 
 // TemplateFuncs implements github.com/s12chung/gostatic/go/lib/router/html.Plugin

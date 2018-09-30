@@ -81,7 +81,7 @@ func (s *Scratch) Delete(key string) string {
 }
 
 func htmlSafe(s string) template.HTML {
-	return template.HTML(s) // #nosec G203
+	return template.HTML(s)
 }
 
 func sliceMake(args ...interface{}) []interface{} {

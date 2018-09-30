@@ -119,7 +119,7 @@ func UpdateFixtureFlag() *bool {
 
 // ReadFixture reads the fixture given the filename
 func ReadFixture(t *testing.T, filename string) []byte {
-	bytes, err := ioutil.ReadFile(filepath.Join(FixturePath, filename)) // #nosec G304
+	bytes, err := ioutil.ReadFile(filepath.Join(FixturePath, filename))
 	if err != nil {
 		t.Error(err)
 	}

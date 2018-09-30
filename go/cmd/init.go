@@ -140,7 +140,7 @@ func copyOrOverrideTestOnlyFiles(srcDir, projectDir string) error {
 }
 
 func endingMessages(bpMessage string) {
-	err := exec.Command("direnv", "version").Run() // #nosec G204
+	err := exec.Command("direnv", "version").Run()
 	dirEnvMessage := ""
 	if err != nil {
 		dirEnvMessage = " (without direnv, you require DOCKER_WORKDIR ENV variable from .envrc file)"
