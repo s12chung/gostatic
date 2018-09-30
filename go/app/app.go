@@ -6,12 +6,10 @@ package app
 import (
 	"fmt"
 	"os"
-	"path"
 	"time"
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/s12chung/gostatic/go/lib/pool"
 	"github.com/s12chung/gostatic/go/lib/router"
 	"github.com/s12chung/gostatic/go/lib/utils"
 )
@@ -135,67 +133,27 @@ func (app *App) setRoutes(r router.Router) *Tracker {
 }
 
 func (app *App) requestRoutes(requester router.Requester, tracker *Tracker) error {
-	var urlBatches [][]string
-
-	independentUrls, err := tracker.IndependentURLs()
+	urlBatches, err := app.urlBatches(tracker)
 	if err != nil {
 		return err
 	}
 
-	urlBatches = append(urlBatches, independentUrls)
-	urlBatches = append(urlBatches, tracker.DependentURLs())
-
+	generator := newGenerator(app.settings.GeneratedPath, requester, app.settings.GeneratorSettings, app.log)
 	for _, urlBatch := range urlBatches {
-		app.runTasks(app.urlsToTasks(requester, urlBatch))
+		generator.generate(urlBatch)
 	}
 	return nil
 }
 
-func (app *App) urlsToTasks(requester router.Requester, urls []string) []*pool.Task {
-	tasks := make([]*pool.Task, len(urls))
-	for i, url := range urls {
-		tasks[i] = app.getURLTask(requester, url)
+func (app *App) urlBatches(tracker *Tracker) ([][]string, error) {
+	var urlBatches [][]string
+
+	independentUrls, err := tracker.IndependentURLs()
+	if err != nil {
+		return nil, err
 	}
-	return tasks
-}
 
-func (app *App) getURLTask(requester router.Requester, url string) *pool.Task {
-	log := app.log.WithFields(logrus.Fields{
-		"type": "task",
-		"url":  url,
-	})
-
-	return pool.NewTask(log, func() error {
-		response, err := requester.Get(url)
-		if err != nil {
-			return err
-		}
-
-		filename := url
-		if url == router.RootURL {
-			filename = "index.html"
-		}
-
-		generatedFilePath := path.Join(app.settings.GeneratedPath, filename)
-
-		generatedDir := path.Dir(generatedFilePath)
-		_, err = os.Stat(generatedDir)
-		if os.IsNotExist(err) {
-			err = utils.MkdirAll(generatedDir)
-			if err != nil {
-				return err
-			}
-		}
-
-		log.Infof("Writing response into %v", generatedFilePath)
-		return utils.WriteFile(generatedFilePath, response.Body)
-	})
-}
-
-func (app *App) runTasks(tasks []*pool.Task) {
-	p := pool.NewPool(tasks, app.settings.Concurrency)
-	p.Run()
-	p.EachError(func(task *pool.Task) {
-		task.Log.Errorf("Error for task - %v", task.Error)
-	})
+	urlBatches = append(urlBatches, independentUrls)
+	urlBatches = append(urlBatches, tracker.DependentURLs())
+	return urlBatches, nil
 }

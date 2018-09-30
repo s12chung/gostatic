@@ -14,9 +14,9 @@ func NewTracker(urls func() []string) *Tracker {
 	return &Tracker{urls, map[string]bool{}}
 }
 
-// AddDependentURL adds a dependent url, so the url route runs in the second stage.
+// AddDependentURL adds a dependent url, so the url route runs in the second batch.
 //
-// When generating the static website files (App.Generate), App works in 2 stages.
+// When generating the static website files (App.Generate), App works in 2 batches.
 // First, the IndependentURLs() routes are run, then the DependentURLs() are run.
 func (tracker *Tracker) AddDependentURL(url string) {
 	if url[:1] != "/" {

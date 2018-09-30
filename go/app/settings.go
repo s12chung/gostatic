@@ -10,11 +10,17 @@ import (
 
 // Settings represents the settings of App
 type Settings struct {
-	GeneratedPath  string      `json:"generated_path,omitempty"`
-	Concurrency    int         `json:"concurrency,omitempty"`
-	ServerPort     int         `json:"server_port,omitempty"`
-	FileServerPort int         `json:"file_server_port,omitempty"`
-	Content        interface{} `json:"content,omitempty"`
+	GeneratedPath     string             `json:"generated_path,omitempty"`
+	ServerPort        int                `json:"server_port,omitempty"`
+	FileServerPort    int                `json:"file_server_port,omitempty"`
+	GeneratorSettings *GeneratorSettings `json:"generator_settings,omitempty"`
+
+	Content interface{} `json:"content,omitempty"`
+}
+
+// GeneratorSettings represents the settings for Generating files
+type GeneratorSettings struct {
+	Concurrency int `json:"concurrency,omitempty"`
 }
 
 // DefaultSettings returns the default settings of the App
@@ -25,9 +31,11 @@ func DefaultSettings() *Settings {
 	}
 	return &Settings{
 		generatedPath,
-		10,
 		8080,
 		3000,
+		&GeneratorSettings{
+			10,
+		},
 		nil,
 	}
 }

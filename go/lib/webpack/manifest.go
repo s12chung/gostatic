@@ -12,11 +12,11 @@ const manifestPath = "manifest.json"
 
 // Manifest represents a Manifest file
 type Manifest struct {
-	generatedPath   string
-	assetsFolder    string
-	manifestMap     map[string]string
-	manifestMapLock *sync.RWMutex
-	log             logrus.FieldLogger
+	generatedPath    string
+	assetsFolder     string
+	manifestMap      map[string]string
+	manifestMapMutex *sync.RWMutex
+	log              logrus.FieldLogger
 }
 
 // NewManifest returns a new instance of Manifest
@@ -36,7 +36,7 @@ func (w *Manifest) ManifestURL(key string) string {
 }
 
 func (w *Manifest) manifestValue(key string) string {
-	w.manifestMapLock.Lock()
+	w.manifestMapMutex.Lock()
 	if len(w.manifestMap) == 0 {
 		err := w.readManifest()
 		if err != nil {
@@ -44,11 +44,11 @@ func (w *Manifest) manifestValue(key string) string {
 			return key
 		}
 	}
-	w.manifestMapLock.Unlock()
+	w.manifestMapMutex.Unlock()
 
-	w.manifestMapLock.RLock()
+	w.manifestMapMutex.RLock()
 	value := w.manifestMap[key]
-	w.manifestMapLock.RUnlock()
+	w.manifestMapMutex.RUnlock()
 
 	if value == "" {
 		w.log.Errorf("webpack manifestValue not found for key: %v", key)
