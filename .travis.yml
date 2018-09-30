@@ -18,5 +18,8 @@ install:
   - dep ensure
 
 script:
-  - make docker-test
+  - make docker-test-report
   - make test-init
+
+after_success:
+  - go get github.com/mattn/goveralls; $GOPATH/bin/goveralls -coverprofile=coverage.out -service=travis-ci

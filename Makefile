@@ -4,6 +4,9 @@ install:
 test:
 	go test ./go/...
 
+test-report:
+	go test -v -covermode=atomic -coverprofile=coverage.out ./go/...
+
 test-init:
 	bash -c './test-init.sh'
 
@@ -25,6 +28,15 @@ docker-copy:
 
 docker-test:
 	docker-compose up --exit-code-from web
+
+docker-test-report: docker-test-report-run docker-test-report-copy
+
+docker-test-report-run:
+	docker-compose -f docker-compose.yml -f docker-compose.report.yml up --exit-code-from web
+
+# $(shell docker-compose ps -q web) breaks if this target is combined with docker-rest-report-run
+docker-test-report-copy:
+	docker cp $(shell docker-compose ps -q web):$(DOCKER_WORKDIR)/coverage.out ./coverage.out
 
 docker-run-sh:
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml run web ash
