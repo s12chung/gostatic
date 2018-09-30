@@ -89,8 +89,8 @@ func SliceList(slice []string) string {
 	return strings.Join(newSlice, "")
 }
 
-// FilePaths returns all the file paths in dirPaths that have the given suffix
-func FilePaths(suffix string, dirPaths ...string) ([]string, error) {
+// FilePaths returns all the file paths in dirPaths that have the given ext
+func FilePaths(ext string, dirPaths ...string) ([]string, error) {
 	var filePaths []string
 
 	for _, dirPath := range dirPaths {
@@ -104,7 +104,8 @@ func FilePaths(suffix string, dirPaths ...string) ([]string, error) {
 		}
 
 		for _, fileInfo := range files {
-			if fileInfo.IsDir() || !strings.HasSuffix(fileInfo.Name(), suffix) {
+			currentExt := path.Ext(fileInfo.Name())
+			if fileInfo.IsDir() || (ext != "" && currentExt != ext) {
 				continue
 			}
 			filePaths = append(filePaths, path.Join(dirPath, fileInfo.Name()))

@@ -8,7 +8,7 @@ Use Go and Webpack to generate static websites like a standard Go web applicatio
 
 ## Limitations
 
-Meant to be simple, so defaults are given (SASS, image optimization, S3 deployment, etc.). You can rip out the defaults and use your own Go HTML templates, CSS preprocessor, etc. Router is only 1 level deep (`page.com/`, `page.com/about`, and `page.com/dynamic_url` are ok, but you can't `page.com/projects/about`). Feel free to make a PR to add more to the [router](https://godoc.org/github.com/s12chung/gostatic/go/lib/router). I just never needed the feature yet.
+Meant to be simple, so defaults are given (SASS, image optimization, S3 deployment, etc.). You can rip out the defaults and use your own Go HTML templates, CSS preprocessor, etc.
 
 ## Requirements
 - [Docker Desktop](https://www.docker.com) (if no Docker, see [`Dockerfile`](blueprint/Dockerfile) for system requirements)

@@ -33,8 +33,9 @@ func newGenerateRoute(contentType string, handler ContextHandler) *generateRoute
 //
 // See the Router interface.
 type GenerateRouter struct {
-	log    logrus.FieldLogger
-	routes map[string]*generateRoute
+	log     logrus.FieldLogger
+	routes  map[string]*generateRoute
+	folders map[string]bool
 
 	arounds []AroundHandler
 }
@@ -44,6 +45,7 @@ func NewGenerateRouter(log logrus.FieldLogger) *GenerateRouter {
 	return &GenerateRouter{
 		log,
 		make(map[string]*generateRoute),
+		make(map[string]bool),
 		nil,
 	}
 }
@@ -68,16 +70,21 @@ func (router *GenerateRouter) Get(url string, handler ContextHandler) {
 	router.checkAndSetRoutes(url, mime.TypeByExtension(path.Ext(url)), handler)
 }
 
-func (router *GenerateRouter) checkAndSetHTMLRoutes(pattern string, handler ContextHandler) {
-	router.checkAndSetRoutes(pattern, mime.TypeByExtension(".html"), handler)
+func (router *GenerateRouter) checkAndSetHTMLRoutes(url string, handler ContextHandler) {
+	router.checkAndSetRoutes(url, mime.TypeByExtension(".html"), handler)
 }
 
-func (router *GenerateRouter) checkAndSetRoutes(pattern, contentType string, handler ContextHandler) {
-	_, has := router.routes[pattern]
-	if has {
-		panicDuplicateRoute(pattern)
+func (router *GenerateRouter) hasRoute(url string) bool {
+	_, has := router.routes[url]
+	return has
+}
+
+func (router *GenerateRouter) checkAndSetRoutes(url, contentType string, handler ContextHandler) {
+	if router.hasRoute(url) {
+		panicDuplicateRoute(url)
 	}
-	router.routes[pattern] = newGenerateRoute(contentType, handler)
+	checkAndSetFolders(url, router.folders, router.hasRoute)
+	router.routes[url] = newGenerateRoute(contentType, handler)
 }
 
 func (router *GenerateRouter) get(url string) (*Response, error) {

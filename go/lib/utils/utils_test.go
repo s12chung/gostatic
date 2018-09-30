@@ -66,11 +66,12 @@ func TestSliceList(t *testing.T) {
 
 func TestFilePaths(t *testing.T) {
 	testCases := []struct {
-		suffix   string
+		ext      string
 		dirPaths []string
 		expected map[string][]string
 		error    bool
 	}{
+		{"", []string{""}, map[string][]string{"": {"a.md", "b.md"}}, false},
 		{".md", []string{""}, map[string][]string{"": {"a.md", "b.md"}}, false},
 		{".md", []string{"dir1"}, map[string][]string{"dir1": {"1.md"}}, false},
 		{".md", []string{"dir1", "dir2"}, map[string][]string{"dir1": {"1.md"}}, false},
@@ -88,7 +89,7 @@ func TestFilePaths(t *testing.T) {
 	for testCaseIndex, tc := range testCases {
 		context := test.NewContext().SetFields(test.ContextFields{
 			"index":    testCaseIndex,
-			"suffix":   tc.suffix,
+			"ext":      tc.ext,
 			"dirPaths": tc.dirPaths,
 		})
 
@@ -97,7 +98,7 @@ func TestFilePaths(t *testing.T) {
 			dirPaths[i] = path.Join(test.FixturePath, d)
 		}
 
-		got, err := FilePaths(tc.suffix, dirPaths...)
+		got, err := FilePaths(tc.ext, dirPaths...)
 		if tc.error && err != nil {
 			continue
 		}

@@ -178,6 +178,15 @@ func (app *App) getURLTask(requester router.Requester, url string) *pool.Task {
 
 		generatedFilePath := path.Join(app.settings.GeneratedPath, filename)
 
+		generatedDir := path.Dir(generatedFilePath)
+		_, err = os.Stat(generatedDir)
+		if os.IsNotExist(err) {
+			err = utils.MkdirAll(generatedDir)
+			if err != nil {
+				return err
+			}
+		}
+
 		log.Infof("Writing response into %v", generatedFilePath)
 		return utils.WriteFile(generatedFilePath, response.Body)
 	})

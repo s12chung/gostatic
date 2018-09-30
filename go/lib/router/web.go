@@ -19,7 +19,9 @@ import (
 type webHandler func(w http.ResponseWriter, r *http.Request) error
 
 // WebRouter is the router to host a web application server. It's simplified such that all errors
-// are give http.StatusBadRequest and print out the error.
+// give http.StatusBadRequest and print out the errors. It's also can't handle two routes like this:
+// `/folder` returning HTML and `/folder/something.png` because gostatic is made to generate static websites
+// so `/folder` would be a folder and can't return HTML.
 //
 // Content-Type is respected by default via calling mime.TypeByExtension (Go std lib) on the route pattern
 // or setting it via Context.
@@ -31,6 +33,7 @@ type WebRouter struct {
 
 	arounds []AroundHandler
 	routes  map[string]bool
+	folders map[string]bool
 
 	rootHandler http.HandlerFunc
 	port        int
@@ -48,6 +51,7 @@ func NewWebRouter(port int, log logrus.FieldLogger) *WebRouter {
 		http.NewServeMux(),
 		log,
 		nil,
+		make(map[string]bool),
 		make(map[string]bool),
 		defaultHandler,
 		port,
@@ -70,23 +74,28 @@ func (router *WebRouter) GetRootHTML(handler ContextHandler) {
 }
 
 // GetHTML defines a HTML handler given a URL (shorthand for Get with Content-Type set for .html files)
-func (router *WebRouter) GetHTML(pattern string, handler ContextHandler) {
-	router.checkAndSetRoutes(pattern)
-	router.get(pattern, router.htmlHandler(handler))
+func (router *WebRouter) GetHTML(url string, handler ContextHandler) {
+	router.checkAndSetRoutes(url)
+	router.get(url, router.htmlHandler(handler))
 }
 
 // Get define a handler for any file type given a URL
-func (router *WebRouter) Get(pattern string, handler ContextHandler) {
-	router.checkAndSetRoutes(pattern)
-	router.get(pattern, router.handler(mime.TypeByExtension(path.Ext(pattern)), handler))
+func (router *WebRouter) Get(url string, handler ContextHandler) {
+	router.checkAndSetRoutes(url)
+	router.get(url, router.handler(mime.TypeByExtension(path.Ext(url)), handler))
 }
 
-func (router *WebRouter) checkAndSetRoutes(pattern string) {
-	_, has := router.routes[pattern]
-	if has {
-		panicDuplicateRoute(pattern)
+func (router *WebRouter) hasRoute(url string) bool {
+	_, has := router.routes[url]
+	return has
+}
+
+func (router *WebRouter) checkAndSetRoutes(url string) {
+	if router.hasRoute(url) {
+		panicDuplicateRoute(url)
 	}
-	router.routes[pattern] = true
+	checkAndSetFolders(url, router.folders, router.hasRoute)
+	router.routes[url] = true
 }
 
 // Urls returns a list the URLs defined on the router

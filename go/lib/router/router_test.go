@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mime"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"testing"
@@ -150,6 +151,11 @@ var AllGetTypesWithResponse = []struct {
 	{"/another_page", "text/html; charset=utf-8", `<html>another_page</html>`},
 	{"/something.atom", "application/xml; charset=utf-8", `<?xml version="1.0" encoding="UTF-8"?>`},
 	{"/robots.txt", "text/plain; charset=utf-8", "User-agent: *\nDisallow: /"},
+	{"/files/haha.txt", "text/plain; charset=utf-8", "some test text"},
+	{"/files/waa", "text/html; charset=utf-8", `<html>waa</html>`},
+	{"/files/hmm.html", "text/html; charset=utf-8", `<html>hmm</html>`},
+	{"/files/more/morez", "text/html; charset=utf-8", `<html>morez</html>`},
+	{"/files/more/deep.txt", "text/plain; charset=utf-8", "deep"},
 }
 
 func SetupAllGetTypesWithResponse(router Router) {
@@ -210,11 +216,16 @@ func SetupAllGetTypeVaried(router Router, allGetType AllGetType) {
 }
 
 func (tester *RouterTester) TestRequester_Get(t *testing.T) {
+	tester.testRequesterGetWorking(t)
+	tester.testRequesterSetupBadFolder(t)
+}
+
+func (tester *RouterTester) testRequesterGetWorking(t *testing.T) {
 	router, _, _ := tester.setup.DefaultRouter()
 	SetupAllGetTypesWithResponse(router)
 
 	tester.setup.RunServer(router, func() {
-		requeseter := tester.setup.Requester(router)
+		requester := tester.setup.Requester(router)
 		for getIndex, allGetTypeWithResponse := range AllGetTypesWithResponse {
 			pattern := allGetTypeWithResponse.pattern
 			context := test.NewContext().SetFields(test.ContextFields{
@@ -224,7 +235,7 @@ func (tester *RouterTester) TestRequester_Get(t *testing.T) {
 				"response": allGetTypeWithResponse.response,
 			})
 
-			response, err := requeseter.Get(pattern)
+			response, err := requester.Get(pattern)
 			if err != nil {
 				t.Errorf(context.String(err))
 			}
@@ -242,13 +253,66 @@ func (tester *RouterTester) TestRequester_Get(t *testing.T) {
 			}
 
 			if pattern != RootURL {
-				_, err := requeseter.Get(pattern[1:])
+				_, err := requester.Get(pattern[1:])
 				if err != nil {
-					t.Error(context.String("Can't handle requeseter.Get without / prefix"))
+					t.Error(context.String("Can't handle requester.Get without / prefix"))
 				}
 			}
 		}
 	})
+}
+
+func (tester *RouterTester) testRequesterSetupBadFolder(t *testing.T) {
+	testCases := []struct {
+		urls  []string
+		panic bool
+	}{
+		{[]string{"/blah"}, false},
+		{[]string{"/blah", "/haha.atom"}, false},
+		{[]string{"/blah", "/blah/haha.atom"}, true},
+		{[]string{"/blah/haha.atom", "/blah"}, true},
+		{[]string{"/blah", "/blah/haha"}, true},
+		{[]string{"/blah/haha", "/blah"}, true},
+		{[]string{"/blah/he", "/blah/haha.atom"}, false},
+		{[]string{"/blah/he", "/blah/haha.atom", "/blah/wa.txt"}, false},
+		{[]string{"/blah/he", "/blah/he/ni.atom"}, true},
+		{[]string{"/blah/he/ni.atom", "/blah/he"}, true},
+		{[]string{"/blah/he", "/blah/he/ni"}, true},
+		{[]string{"/blah/he/ni", "/blah/he"}, true},
+	}
+
+	handler := func(ctx *Context) error {
+		ctx.Respond([]byte(ctx.URL()))
+		return nil
+	}
+
+	for testCaseIndex, tc := range testCases {
+		context := test.NewContext().SetFields(test.ContextFields{
+			"index": testCaseIndex,
+			"urls":  tc.urls,
+		})
+
+		router, _, _ := tester.setup.DefaultRouter()
+		router.GetRootHTML(handler)
+
+		func() {
+			if tc.panic {
+				defer func() {
+					if r := recover(); r == nil {
+						t.Error(context.String("did not panic"))
+					}
+				}()
+			}
+
+			for _, url := range tc.urls {
+				if path.Ext(url) == "" {
+					router.GetHTML(url, handler)
+				} else {
+					router.Get(url, handler)
+				}
+			}
+		}()
+	}
 }
 
 func (tester *RouterTester) NewGetTester(requestURL, contentType string, testFunc func(router Router, handler ContextHandler)) *GetTester {

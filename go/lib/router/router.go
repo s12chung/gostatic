@@ -1,14 +1,12 @@
 /*
 Package router is a router for static websites. Provides a GenerateRouter to generate files and a WebRouter,
 a simplified web router, which have the same interface.
-
-Please note that only 1 level of routes are supported: home.com/, home.com/about, home.com/*
-all work, but home.com/projects/about and home.com/projects/* will not work.
 */
 package router
 
 import (
 	"fmt"
+	"path"
 
 	"github.com/sirupsen/logrus"
 )
@@ -101,8 +99,25 @@ type Requester interface {
 	Get(url string) (*Response, error)
 }
 
-func panicDuplicateRoute(route string) {
-	panic(fmt.Sprintf("%v is a duplicate route", route))
+func panicDuplicateRoute(url string) {
+	panic(fmt.Sprintf("%v is a duplicate route", url))
+}
+
+func checkAndSetFolders(url string, folders map[string]bool, hasRoute func(url string) bool) {
+	_, has := folders[url]
+	if has {
+		panic(fmt.Sprintf("%v is a route, which is a folder of another route", url))
+	}
+
+	dir := path.Dir(url)
+	if dir == RootURL {
+		return
+	}
+
+	if hasRoute(dir) {
+		panic(fmt.Sprintf("%v the folder of this URL is another URL", url))
+	}
+	folders[dir] = true
 }
 
 func callArounds(arounds []AroundHandler, handler ContextHandler, ctx *Context) error {
