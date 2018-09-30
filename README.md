@@ -1,4 +1,8 @@
-# gostatic [![Build Status](https://travis-ci.com/s12chung/gostatic.svg?branch=master)](https://travis-ci.com/s12chung/gostatic)
+# gostatic
+
+[![GoDoc](https://godoc.org/github.com/s12chung/gostatic?status.svg)](https://godoc.org/github.com/s12chung/gostatic)
+[![Build Status](https://travis-ci.com/s12chung/gostatic.svg?branch=master)](https://travis-ci.com/s12chung/gostatic)
+[![Go Report Card](https://goreportcard.com/badge/github.com/s12chung/gostatic)](https://goreportcard.com/report/github.com/s12chung/gostatic)
 
 Use Go and Webpack to generate static websites like a standard Go web application. You can even run `gostatic` apps, as a web app.
 
