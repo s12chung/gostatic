@@ -13,9 +13,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const RootURLPattern = "/"
+// RootURL is the URL of the Root of the router
+const RootURL = "/"
 
+// ContextHandler is the handler for Router routes
 type ContextHandler func(ctx *Context) error
+
+// AroundHandler is the handler for Router callbacks
 type AroundHandler func(ctx *Context, handler ContextHandler) error
 
 // Context provided for every route
@@ -27,49 +31,56 @@ type Context struct {
 	response []byte
 }
 
+// NewContext returns a new instance of Context
 func NewContext(log logrus.FieldLogger) *Context {
 	return &Context{log: log}
 }
 
+// Log returns the log of the context
 func (ctx *Context) Log() logrus.FieldLogger {
 	return ctx.log
 }
 
+// SetLog sets the log of the Context, so that you can set the context of the log
 func (ctx *Context) SetLog(log logrus.FieldLogger) {
 	ctx.log = log
 }
 
+// ContentType returns the Content-Type to be sent to the response
 func (ctx *Context) ContentType() string {
 	return ctx.contentType
 }
 
+// SetContentType sets the Content-Type of the response
 func (ctx *Context) SetContentType(contentType string) {
 	ctx.contentType = contentType
 }
 
+// URL returns the URL of the request
 func (ctx *Context) URL() string {
 	return ctx.url
 }
 
+// Respond sets the response data of the request
 func (ctx *Context) Respond(bytes []byte) {
 	ctx.response = bytes
 }
 
 // Router is the interface for all routers.
 type Router interface {
-	// A callback/handler that is called around all routes
+	// Around is a callback/handler that is called around all routes
 	Around(handler AroundHandler)
 
-	// Define a HTML handler for the root
+	// GetRootHTML defines a HTML handler for the root URL `/`
 	GetRootHTML(handler ContextHandler)
-	// Define a HTML handler given a pattern
-	GetHTML(pattern string, handler ContextHandler)
-	// Define a handler for any file given a pattern
-	Get(pattern string, handler ContextHandler)
+	// GetHTML defines a HTML handler given a url (shorthand for Get with Content-Type set for .html files)
+	GetHTML(url string, handler ContextHandler)
+	// Get define a handler for any file type given a url
+	Get(url string, handler ContextHandler)
 
-	// A list the urls defined set on the router
+	// Urls returns a list the URLs defined on the router
 	Urls() []string
-	// Returns a requester, an abstraction for making router requests
+	// Requester returns a requester for the given router, to make requests and return the response
 	Requester() Requester
 }
 
@@ -79,6 +90,7 @@ type Response struct {
 	MimeType string
 }
 
+// NewResponse returns a new instance of Response
 func NewResponse(body []byte, mimeType string) *Response {
 	return &Response{body, mimeType}
 }

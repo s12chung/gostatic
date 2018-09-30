@@ -29,7 +29,7 @@ const projectNameString = "blueprint"
 const namespaceString = "github.com/s12chung/gostatic/blueprint"
 const lockFileExt = ".lock"
 
-type ReplaceFunc func(blueprint *Blueprint, srcPath string) (string, error)
+type replaceFunc func(blueprint *Blueprint, srcPath string) (string, error)
 
 func replaceNamespace(blueprint *Blueprint, s string) (string, error) {
 	result := strings.Replace(s, namespaceString, blueprint.namespace, -1)
@@ -43,7 +43,7 @@ func replaceProjectName(blueprint *Blueprint, s string) (string, error) {
 
 const testOnlyString = "\n# test_only_below\n"
 
-func removeTestOnlyBelow(blueprint *Blueprint, s string) (string, error) {
+func removeTestOnlyBelow(_ *Blueprint, s string) (string, error) {
 	split := strings.Split(s, testOnlyString)
 
 	switch len(split) {
@@ -56,11 +56,11 @@ func removeTestOnlyBelow(blueprint *Blueprint, s string) (string, error) {
 	}
 }
 
-var extToFuncs = map[string][]ReplaceFunc{
+var extToFuncs = map[string][]replaceFunc{
 	".go": {replaceNamespace},
 }
 
-var filenameToFuncs = map[string][]ReplaceFunc{
+var filenameToFuncs = map[string][]replaceFunc{
 	".example.envrc": {replaceNamespace},
 	"Makefile":       {replaceProjectName},
 	"package.json":   {replaceProjectName},
@@ -69,14 +69,14 @@ var filenameToFuncs = map[string][]ReplaceFunc{
 }
 
 var replaceFuncsMappings = []struct {
-	typeToFunc map[string][]ReplaceFunc
+	typeToFunc map[string][]replaceFunc
 	pathFunc   func(string) string
 }{
 	{extToFuncs, path.Ext},
 	{filenameToFuncs, path.Base},
 }
 
-func runReplaceFuncs(blueprint *Blueprint, srcPath string, funcs []ReplaceFunc) (string, error) {
+func runReplaceFuncs(blueprint *Blueprint, srcPath string, funcs []replaceFunc) (string, error) {
 	bytes, err := ioutil.ReadFile(srcPath) // #nosec G304
 	if err != nil {
 		return "", err
@@ -107,24 +107,27 @@ func replaceFuncBytes(blueprint *Blueprint, srcPath string) ([]byte, error) {
 	return nil, nil
 }
 
+// Blueprint is a struct that holds the data to copy the srcDir to destDir
 type Blueprint struct {
 	srcDir    string
 	destDir   string
 	namespace string
 }
 
+// NewBlueprint returns a new instance of Blueprint
 func NewBlueprint(srcDir, destDir, namespace string) *Blueprint {
 	return &Blueprint{srcDir, destDir, namespace}
 }
 
-func (blueprint *Blueprint) Init() (string, error) {
-	ignoreMap, err := blueprint.IgnoreMap()
+// InitProject initializes the project via copying files
+func (blueprint *Blueprint) InitProject() (string, error) {
+	ignoreMap, err := blueprint.ignoreMap()
 	if err != nil {
 		return "", err
 	}
 
 	var exampleFiles []string
-	err = blueprint.IgnoreWalk(ignoreMap, func(srcPath string, typ os.FileMode) error {
+	err = blueprint.ignoreWalk(ignoreMap, func(srcPath string, typ os.FileMode) error {
 		destPath := blueprint.destPath(srcPath)
 		if typ.IsDir() {
 			return utils.MkdirAll(destPath)
@@ -170,6 +173,16 @@ func exampleRealDestPath(destPath string) string {
 	return ""
 }
 
+func forEachDestPath(destPaths []string, f func(destPath string) error) error {
+	for _, destPath := range destPaths {
+		err := f(destPath)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func initMessage(exampleFiles []string) string {
 	if len(exampleFiles) == 0 {
 		return ""
@@ -183,10 +196,12 @@ func initMessage(exampleFiles []string) string {
 	return strings.Join(messageArray, "\n")
 }
 
+// ProjectName returns the project name
 func (blueprint *Blueprint) ProjectName() string {
 	return path.Base(blueprint.namespace)
 }
 
+// ProjectDir returns destination project dir
 func (blueprint *Blueprint) ProjectDir() string {
 	return path.Join(blueprint.destDir, blueprint.ProjectName())
 }
@@ -206,7 +221,7 @@ func (blueprint *Blueprint) destPath(srcPath string) string {
 	return path.Join(blueprint.destDir, blueprint.ProjectName(), blueprint.srcRelativePath(srcPath))
 }
 
-func (blueprint *Blueprint) IgnoreWalk(ignoreMap map[string]bool, f func(p string, typ os.FileMode) error) error {
+func (blueprint *Blueprint) ignoreWalk(ignoreMap map[string]bool, f func(p string, typ os.FileMode) error) error {
 	return fastwalk.Walk(blueprint.srcDir, func(p string, typ os.FileMode) error {
 		relativePath := blueprint.srcRelativePath(p)
 		if typ.IsDir() {
@@ -223,17 +238,7 @@ func (blueprint *Blueprint) IgnoreWalk(ignoreMap map[string]bool, f func(p strin
 	})
 }
 
-func forEachDestPath(destPaths []string, f func(destPath string) error) error {
-	for _, destPath := range destPaths {
-		err := f(destPath)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (blueprint *Blueprint) IgnoreMap() (map[string]bool, error) {
+func (blueprint *Blueprint) ignoreMap() (map[string]bool, error) {
 	ignoreMap, err := blueprint.gitIgnoreMap()
 	if err != nil {
 		return nil, err

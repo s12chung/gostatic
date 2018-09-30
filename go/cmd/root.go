@@ -24,6 +24,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&test, "test", "t", false, "Running in test mode")
 }
 
+// Execute starts the CLI cmd prompt program
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

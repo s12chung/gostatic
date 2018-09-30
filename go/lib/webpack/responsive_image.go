@@ -17,6 +17,7 @@ type ResponsiveImage struct {
 
 var spacesRegex = regexp.MustCompile(`\s+`)
 
+// PrependSrcPath prepends the given prefix to the Src and SrcSet of the ResponsiveImage
 func (r *ResponsiveImage) PrependSrcPath(prefix string, log logrus.FieldLogger) {
 	r.Src = prependSrcPath(prefix, r.Src)
 	if r.SrcSet == "" {
@@ -36,6 +37,7 @@ func (r *ResponsiveImage) PrependSrcPath(prefix string, log logrus.FieldLogger) 
 	r.SrcSet = strings.Join(newSrcSet, ", ")
 }
 
+// HTMLAttrs returns the HTML attributes of the ResponsiveImage for the <img> tag
 func (r *ResponsiveImage) HTMLAttrs() string {
 	var htmlAttrs []string
 	if r.Src != "" {

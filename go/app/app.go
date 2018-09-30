@@ -16,6 +16,7 @@ import (
 	"github.com/s12chung/gostatic/go/lib/utils"
 )
 
+// DefaultLog returns the default log used for the App
 func DefaultLog() logrus.FieldLogger {
 	return &logrus.Logger{
 		Out: os.Stderr,
@@ -38,6 +39,7 @@ type App struct {
 	log         logrus.FieldLogger
 }
 
+// NewApp returns a new instance of App
 func NewApp(routeSetter Setter, settings *Settings, log logrus.FieldLogger) *App {
 	return &App{
 		routeSetter,
@@ -46,18 +48,22 @@ func NewApp(routeSetter Setter, settings *Settings, log logrus.FieldLogger) *App
 	}
 }
 
+// RunFileServer runs the server to host the generated files of the static web page
 func (app *App) RunFileServer() error {
 	return router.RunFileServer(app.settings.GeneratedPath, app.settings.FileServerPort, app.log)
 }
 
+// FileServerPort returns the port of the file server
 func (app *App) FileServerPort() int {
 	return app.settings.FileServerPort
 }
 
+// GeneratedPath returns the path of the generates files of the static web page
 func (app *App) GeneratedPath() string {
 	return app.settings.GeneratedPath
 }
 
+// Host runs a web application server that computes the route responses in real time
 func (app *App) Host() error {
 	r := router.NewWebRouter(app.settings.ServerPort, app.log)
 	r.FileServe(app.routeSetter.AssetsURL(), app.routeSetter.GeneratedAssetsPath())
@@ -66,6 +72,7 @@ func (app *App) Host() error {
 	return r.Run()
 }
 
+// ServerPort returns the port of the web application server
 func (app *App) ServerPort() int {
 	return app.settings.ServerPort
 }
@@ -165,7 +172,7 @@ func (app *App) getURLTask(requester router.Requester, url string) *pool.Task {
 		}
 
 		filename := url
-		if url == router.RootURLPattern {
+		if url == router.RootURL {
 			filename = "index.html"
 		}
 

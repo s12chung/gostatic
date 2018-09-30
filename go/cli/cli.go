@@ -9,19 +9,20 @@ import (
 	"os"
 )
 
+// App has the high level commands that the CLI can work with
 type App interface {
-	// Runs the server to host the generated files of the static web page
+	// RunFileServer runs the server to host the generated files of the static web page
 	RunFileServer() error
-	// Runs a web application server that computes the route responses in real time
+	// Host runs a web application server that computes the route responses in real time
 	Host() error
-	// Generates the static web pages
+	// Generate generate the static web pages
 	Generate() error
 
-	// The path of the generates files of the static web page
+	// GeneratedPath returns the path of the generates files of the static web page
 	GeneratedPath() string
-	// The port of the file server
+	// FileServerPort returns the port of the file server
 	FileServerPort() int
-	// The port of the web application server
+	// ServerPort returns the port of the web application server
 	ServerPort() int
 }
 

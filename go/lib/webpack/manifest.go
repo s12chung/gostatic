@@ -19,6 +19,7 @@ type Manifest struct {
 	log             logrus.FieldLogger
 }
 
+// NewManifest returns a new instance of Manifest
 func NewManifest(generatedPath, assetsFolder string, log logrus.FieldLogger) *Manifest {
 	return &Manifest{
 		generatedPath,
@@ -29,6 +30,7 @@ func NewManifest(generatedPath, assetsFolder string, log logrus.FieldLogger) *Ma
 	}
 }
 
+// ManifestURL returns the manifest URL of the file (so it returns hashed file paths that exist), given a file path key.
 func (w *Manifest) ManifestURL(key string) string {
 	return w.assetsFolder + "/" + w.manifestValue(key)
 }

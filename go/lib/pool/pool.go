@@ -16,10 +16,12 @@ type Task struct {
 	Error error
 }
 
+// NewTask returns a new instance of Task
 func NewTask(log logrus.FieldLogger, run func() error) *Task {
 	return &Task{run, log, nil}
 }
 
+// Run runs function of the task
 func (task *Task) Run(waitGroup *sync.WaitGroup) {
 	task.Error = task.run()
 	waitGroup.Done()
@@ -34,6 +36,7 @@ type Pool struct {
 	waitGroup   sync.WaitGroup
 }
 
+// NewPool returns a new instance of pool
 func NewPool(tasks []*Task, concurrency int) *Pool {
 	return &Pool{
 		Tasks:       tasks,
@@ -42,6 +45,7 @@ func NewPool(tasks []*Task, concurrency int) *Pool {
 	}
 }
 
+// EachError loops through all the Pool's Tasks' errors (after they run)
 func (pool *Pool) EachError(callback func(*Task)) {
 	for _, task := range pool.Tasks {
 		if task.Error != nil {
@@ -50,6 +54,7 @@ func (pool *Pool) EachError(callback func(*Task)) {
 	}
 }
 
+// Run runs all the Tasks of the pool with the given concurrency
 func (pool *Pool) Run() {
 	for i := 0; i < pool.concurrency; i++ {
 		go pool.work()

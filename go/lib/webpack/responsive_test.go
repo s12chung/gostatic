@@ -12,7 +12,7 @@ func defaultResponsive() (*Responsive, *logTest.Hook) {
 	return NewResponsive(generatedPath, DefaultSettings().AssetsPath, log), hook
 }
 
-func TestHasResponsive(t *testing.T) {
+func TestHasResponsiveExt(t *testing.T) {
 	testCases := []struct {
 		originalSrc string
 		exp         bool
@@ -28,7 +28,7 @@ func TestHasResponsive(t *testing.T) {
 			"index":       testCaseIndex,
 			"originalSrc": tc.originalSrc,
 		})
-		got := HasResponsive(tc.originalSrc)
+		got := HasResponsiveExt(tc.originalSrc)
 		if got != tc.exp {
 			t.Error(context.GotExpString("result", got, tc.exp))
 		}

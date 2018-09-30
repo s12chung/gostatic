@@ -9,6 +9,7 @@ type Tracker struct {
 	dependentURLs map[string]bool
 }
 
+// NewTracker returns a new instance of Tracker
 func NewTracker(urls func() []string) *Tracker {
 	return &Tracker{urls, map[string]bool{}}
 }

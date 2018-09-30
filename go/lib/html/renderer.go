@@ -23,6 +23,7 @@ type Renderer struct {
 	log      logrus.FieldLogger
 }
 
+// NewRenderer returns a new instance of Renderer
 func NewRenderer(settings *Settings, plugins []Plugin, log logrus.FieldLogger) *Renderer {
 	return &Renderer{
 		settings,

@@ -36,6 +36,7 @@ type WebRouter struct {
 	port        int
 }
 
+// NewWebRouter returns a new instance of WebRouter
 func NewWebRouter(port int, log logrus.FieldLogger) *WebRouter {
 	defaultHandler := func(w http.ResponseWriter, r *http.Request) {
 		s := fmt.Sprintf("%v is not being handled", r.URL)
@@ -52,26 +53,30 @@ func NewWebRouter(port int, log logrus.FieldLogger) *WebRouter {
 		defaultHandler,
 		port,
 	}
-	router.serveMux.HandleFunc(RootURLPattern, func(w http.ResponseWriter, r *http.Request) {
+	router.serveMux.HandleFunc(RootURL, func(w http.ResponseWriter, r *http.Request) {
 		router.rootHandler(w, r)
 	})
 	return router
 }
 
+// Around is a callback/handler that is called around all routes
 func (router *WebRouter) Around(handler AroundHandler) {
 	router.arounds = append(router.arounds, handler)
 }
 
+// GetRootHTML defines a HTML handler for the root URL `/`
 func (router *WebRouter) GetRootHTML(handler ContextHandler) {
-	router.checkAndSetRoutes(RootURLPattern)
+	router.checkAndSetRoutes(RootURL)
 	router.rootHandler = router.getRequestHandler(router.htmlHandler(handler))
 }
 
+// GetHTML defines a HTML handler given a URL (shorthand for Get with Content-Type set for .html files)
 func (router *WebRouter) GetHTML(pattern string, handler ContextHandler) {
 	router.checkAndSetRoutes(pattern)
 	router.get(pattern, router.htmlHandler(handler))
 }
 
+// Get define a handler for any file type given a URL
 func (router *WebRouter) Get(pattern string, handler ContextHandler) {
 	router.checkAndSetRoutes(pattern)
 	router.get(pattern, router.handler(mime.TypeByExtension(path.Ext(pattern)), handler))
@@ -85,6 +90,7 @@ func (router *WebRouter) checkAndSetRoutes(pattern string) {
 	router.routes[pattern] = true
 }
 
+// Urls returns a list the URLs defined on the router
 func (router *WebRouter) Urls() []string {
 	staticRoutes := make([]string, len(router.routes))
 	i := 0
@@ -95,6 +101,7 @@ func (router *WebRouter) Urls() []string {
 	return staticRoutes
 }
 
+// Requester returns a requester for the given router, to make requests and return the response
 func (router *WebRouter) Requester() Requester {
 	return newWebRequester(router.port)
 }
@@ -131,7 +138,7 @@ func (router *WebRouter) getRequestHandler(handler webHandler) http.HandlerFunc 
 	}
 }
 
-var dangerPathRegex = regexp.MustCompile(`\/\.\.\/`)
+var dangerPathRegex = regexp.MustCompile(`/\.\./`)
 
 // FileServe sets the router to redirect requests with a pattern to a file directory.
 // Content-Type is respected via calling mime.TypeByExtension (Go std lib).
@@ -157,7 +164,7 @@ func (router *WebRouter) FileServe(pattern, dirPath string) {
 }
 
 func (router *WebRouter) get(pattern string, handler webHandler) {
-	if pattern == RootURLPattern {
+	if pattern == RootURL {
 		router.log.Errorf("Can not use pattern that touches root, use GetRootHTML instead")
 		return
 	}
@@ -165,6 +172,7 @@ func (router *WebRouter) get(pattern string, handler webHandler) {
 	router.serveMux.HandleFunc(pattern, router.getRequestHandler(handler))
 }
 
+// Run starts the web server for this router
 func (router *WebRouter) Run() error {
 	router.log.Infof("Running server at http://localhost:%v/", router.port)
 	server := &http.Server{Addr: ":" + strconv.Itoa(router.port), Handler: router.serveMux}
@@ -184,6 +192,7 @@ func newWebRequester(port int) *WebRequester {
 	}
 }
 
+// Get gets the response of the route's handler given the url
 func (requester *WebRequester) Get(url string) (*Response, error) {
 	if url[:1] != "/" {
 		url = "/" + url

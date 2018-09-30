@@ -73,7 +73,7 @@ func initProject(projectName string, test bool) error {
 		return err
 	}
 
-	bpMessage, err := bp.Init()
+	bpMessage, err := bp.InitProject()
 	if err != nil {
 		return err
 	}

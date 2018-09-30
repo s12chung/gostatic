@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Settings represents the settings of App
 type Settings struct {
 	GeneratedPath  string      `json:"generated_path,omitempty"`
 	Concurrency    int         `json:"concurrency,omitempty"`
@@ -16,6 +17,7 @@ type Settings struct {
 	Content        interface{} `json:"content,omitempty"`
 }
 
+// DefaultSettings returns the default settings of the App
 func DefaultSettings() *Settings {
 	generatedPath := os.Getenv("GENERATED_PATH")
 	if generatedPath == "" {

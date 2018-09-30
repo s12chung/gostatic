@@ -39,6 +39,7 @@ type GenerateRouter struct {
 	arounds []AroundHandler
 }
 
+// NewGenerateRouter returns a new instance of GenerateRouter
 func NewGenerateRouter(log logrus.FieldLogger) *GenerateRouter {
 	return &GenerateRouter{
 		log,
@@ -47,20 +48,24 @@ func NewGenerateRouter(log logrus.FieldLogger) *GenerateRouter {
 	}
 }
 
+// Around is a callback/handler that is called around all routes
 func (router *GenerateRouter) Around(handler AroundHandler) {
 	router.arounds = append(router.arounds, handler)
 }
 
+// GetRootHTML defines a HTML handler for the root URL `/`
 func (router *GenerateRouter) GetRootHTML(handler ContextHandler) {
-	router.checkAndSetHTMLRoutes(RootURLPattern, handler)
+	router.checkAndSetHTMLRoutes(RootURL, handler)
 }
 
-func (router *GenerateRouter) GetHTML(pattern string, handler ContextHandler) {
-	router.checkAndSetHTMLRoutes(pattern, handler)
+// GetHTML defines a HTML handler given a URL (shorthand for Get with Content-Type set for .html files)
+func (router *GenerateRouter) GetHTML(url string, handler ContextHandler) {
+	router.checkAndSetHTMLRoutes(url, handler)
 }
 
-func (router *GenerateRouter) Get(pattern string, handler ContextHandler) {
-	router.checkAndSetRoutes(pattern, mime.TypeByExtension(path.Ext(pattern)), handler)
+// Get define a handler for any file type given a URL
+func (router *GenerateRouter) Get(url string, handler ContextHandler) {
+	router.checkAndSetRoutes(url, mime.TypeByExtension(path.Ext(url)), handler)
 }
 
 func (router *GenerateRouter) checkAndSetHTMLRoutes(pattern string, handler ContextHandler) {
@@ -92,6 +97,7 @@ func (router *GenerateRouter) get(url string) (*Response, error) {
 	return NewResponse(ctx.response, ctx.contentType), nil
 }
 
+// Urls returns a list the URLs defined on the router
 func (router *GenerateRouter) Urls() []string {
 	staticRoutes := make([]string, len(router.routes))
 	i := 0
@@ -102,6 +108,7 @@ func (router *GenerateRouter) Urls() []string {
 	return staticRoutes
 }
 
+// Requester returns a requester for the given router, to make requests and return the response
 func (router *GenerateRouter) Requester() Requester {
 	return &GenerateRequester{
 		router,
@@ -113,6 +120,7 @@ type GenerateRequester struct {
 	router *GenerateRouter
 }
 
+// Get gets the response of the route's handler given the url
 func (requester *GenerateRequester) Get(url string) (*Response, error) {
 	if url[:1] != "/" {
 		url = "/" + url

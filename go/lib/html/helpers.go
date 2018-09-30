@@ -40,17 +40,20 @@ type Scratch struct {
 	M map[string]interface{}
 }
 
+// NewScratch returns a clean instance of Scratch
 func NewScratch() *Scratch {
 	return &Scratch{
 		map[string]interface{}{},
 	}
 }
 
+// Set sets the key/value of the Scratch
 func (s *Scratch) Set(key string, value interface{}) string {
 	s.M[key] = value
 	return ""
 }
 
+// Append appends the value to an []interface{} at key
 func (s *Scratch) Append(key string, value interface{}) string {
 	if !s.HasKey(key) {
 		s.M[key] = []interface{}{value}
@@ -60,15 +63,18 @@ func (s *Scratch) Append(key string, value interface{}) string {
 	return ""
 }
 
+// Get returns the value at key
 func (s *Scratch) Get(key string) interface{} {
 	return s.M[key]
 }
 
+// HasKey returns true if the key exists
 func (s *Scratch) HasKey(key string) bool {
 	_, hasKey := s.M[key]
 	return hasKey
 }
 
+// Delete deletes the value at key
 func (s *Scratch) Delete(key string) string {
 	delete(s.M, key)
 	return ""

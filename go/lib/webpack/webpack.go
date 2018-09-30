@@ -28,6 +28,7 @@ type Webpack struct {
 	log           logrus.FieldLogger
 }
 
+// NewWebpack returns a new instance of Webpack
 func NewWebpack(generatedPath string, settings *Settings, log logrus.FieldLogger) *Webpack {
 	return &Webpack{
 		generatedPath,
@@ -48,7 +49,7 @@ func (w *Webpack) GeneratedAssetsPath() string {
 	return filepath.Join(w.generatedPath, w.settings.AssetsPath)
 }
 
-// ManifestURL returns the manifest url of the file (so it returns hashed file paths that exist), given a file path key.
+// ManifestURL calls Manifest.ManifestURL
 func (w *Webpack) ManifestURL(key string) string {
 	return w.manifest.ManifestURL(key)
 }
@@ -70,7 +71,7 @@ func (w *Webpack) GetResponsiveImage(originalSrc string) *ResponsiveImage {
 		return &ResponsiveImage{Src: originalSrc}
 	}
 
-	if !HasResponsive(originalSrc) {
+	if !HasResponsiveExt(originalSrc) {
 		return w.manifestImage(originalSrc)
 	}
 	responsiveImage := w.responsive.GetResponsiveImage(originalSrc)

@@ -23,15 +23,18 @@ type Responsive struct {
 	log           logrus.FieldLogger
 }
 
+// NewResponsive returns a new instance of Responsive
 func NewResponsive(generatedPath, assetsFolder string, log logrus.FieldLogger) *Responsive {
 	return &Responsive{generatedPath, assetsFolder, log}
 }
 
-func HasResponsive(originalSrc string) bool {
+// HasResponsiveExt returns true of the originalSrc's ext has responsive images
+func HasResponsiveExt(originalSrc string) bool {
 	_, hasResponsive := responsiveExtensions[filepath.Ext(originalSrc)]
 	return hasResponsive
 }
 
+// GetResponsiveImage returns the ResponsiveImage of the given getResponsiveImage
 func (r *Responsive) GetResponsiveImage(originalSrc string) *ResponsiveImage {
 	responsiveImage, err := r.getResponsiveImage(originalSrc)
 	if err != nil {
