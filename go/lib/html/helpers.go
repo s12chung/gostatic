@@ -12,7 +12,7 @@ import (
 func defaultTemplateFuncs() template.FuncMap {
 	scratch := NewScratch()
 
-	// add tests to ./testdata/helpers.tmpl
+	// add tests to ./testdata/helpers.gohtml
 	return template.FuncMap{
 		"scratch": func() *Scratch { return scratch },
 

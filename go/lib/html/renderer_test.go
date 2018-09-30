@@ -79,10 +79,10 @@ func TestRenderer_Render_Settings(t *testing.T) {
 		layoutName  string
 		templateExt string
 	}{
-		{"layout", ".tmpl"},
-		{"", ".tmpl"},
 		{"layout", ".gohtml"},
 		{"", ".gohtml"},
+		{"layout", ".tmpl"},
+		{"", ".tmpl"},
 	}
 
 	for testCaseIndex, tc := range testCases {

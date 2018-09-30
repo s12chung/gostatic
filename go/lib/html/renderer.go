@@ -93,13 +93,13 @@ func (renderer *Renderer) RenderWithLayout(layoutName, templateName string, layo
 		templatePaths = append(templatePaths, path.Join(renderer.settings.TemplatePath, rootTemplateFilename))
 	}
 
-	tmpl, err := template.New("self").Funcs(renderer.templateFuncs()).ParseFiles(templatePaths...)
+	gohtml, err := template.New("self").Funcs(renderer.templateFuncs()).ParseFiles(templatePaths...)
 	if err != nil {
 		return nil, err
 	}
 
 	buffer := &bytes.Buffer{}
-	err = tmpl.ExecuteTemplate(buffer, rootTemplateFilename, layoutData)
+	err = gohtml.ExecuteTemplate(buffer, rootTemplateFilename, layoutData)
 	if err != nil {
 		return nil, err
 	}

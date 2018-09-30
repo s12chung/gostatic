@@ -12,7 +12,7 @@ type Settings struct {
 func DefaultSettings() *Settings {
 	return &Settings{
 		"./go/content/templates",
-		".tmpl",
+		".gohtml",
 		"layout",
 		"Your Website Title",
 	}
