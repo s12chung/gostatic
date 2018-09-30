@@ -1,7 +1,8 @@
 package html
 
 import (
-	"path"
+	"fmt"
+	"html/template"
 	"strconv"
 	"strings"
 	"testing"
@@ -9,11 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
-	"fmt"
-	"github.com/s12chung/gostatic/go/lib/markdown"
-	"github.com/s12chung/gostatic/go/lib/webpack"
 	"github.com/s12chung/gostatic/go/test"
-	"html/template"
 )
 
 var updateFixturesPtr = test.UpdateFixtureFlag()
@@ -22,10 +19,7 @@ func defaultRenderer() (*Renderer, *logTest.Hook) {
 	settings := DefaultSettings()
 	settings.TemplatePath = test.FixturePath
 	log, hook := logTest.NewNullLogger()
-
-	w := webpack.NewWebpack(path.Join(test.FixturePath, "generated"), webpack.DefaultSettings(), log)
-	md := markdown.NewMarkdown(&markdown.Settings{MarkdownsPath: path.Join(test.FixturePath, "markdowns")}, log)
-	return NewRenderer(settings, []Plugin{w, md}, log), hook
+	return NewRenderer(settings, []Plugin{}, log), hook
 }
 
 type layoutData struct {
