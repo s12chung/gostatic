@@ -19,6 +19,9 @@ func NewTracker(urls func() []string) *Tracker {
 // When generating the static website files (App.Generate), App works in 2 stages.
 // First, the IndependentURLs() routes are run, then the DependentURLs() are run.
 func (tracker *Tracker) AddDependentURL(url string) {
+	if url[:1] != "/" {
+		url = "/" + url
+	}
 	tracker.dependentURLs[url] = true
 }
 
