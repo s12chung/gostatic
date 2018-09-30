@@ -2,12 +2,6 @@
 
 
 [[projects]]
-  name = "github.com/ernsheong/grand"
-  packages = ["."]
-  revision = "1b2738dec966a11a2b36c0db5d2aee7b95ce424d"
-  version = "1.1"
-
-[[projects]]
   name = "github.com/golang/mock"
   packages = [
     "gomock",
@@ -21,7 +15,6 @@
   name = "github.com/google/go-cmp"
   packages = [
     "cmp",
-    "cmp/cmpopts",
     "cmp/internal/diff",
     "cmp/internal/function",
     "cmp/internal/value"
@@ -36,10 +29,10 @@
   version = "v1.0"
 
 [[projects]]
-  name = "github.com/russross/blackfriday"
+  branch = "master"
+  name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
-  revision = "cadec560ec52d93835bf2f15bd794700d3a2473b"
-  version = "v2.0.0"
+  revision = "b729f2633dfe35f4d1d8a32385f6685610ce1cb5"
 
 [[projects]]
   name = "github.com/s12chung/fastwalk"
@@ -48,19 +41,13 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/shurcooL/sanitized_anchor_name"
-  packages = ["."]
-  revision = "86672fcb3f950f35f2e675df2240550f2a50762f"
-
-[[projects]]
   name = "github.com/sirupsen/logrus"
   packages = [
     ".",
     "hooks/test"
   ]
-  revision = "3e01752db0189b9157070a0e1668a620f9a85da2"
-  version = "v1.0.6"
+  revision = "a67f783a3814b8729bd2dac5780b5f78f8dbd64d"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/spf13/cobra"
@@ -78,13 +65,13 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "614d502a4dac94afa3a6ce146bd1736da82514c6"
+  revision = "5295e8364332db77d75fce11f1d19c053919a9c9"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context"]
-  revision = "922f4815f713f213882e8ef45e0d315b164d705c"
+  revision = "4dfa2610cdf3b287375bbba5b8f2a14d3b01d8de"
 
 [[projects]]
   branch = "master"
@@ -93,11 +80,11 @@
     "unix",
     "windows"
   ]
-  revision = "3b58ed4ad3395d483fc92d5d14123ce2c3581fec"
+  revision = "e4b3c5e9061176387e7cea65e4dc5853801f3fb7"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "eedacd5e723db57f067f97f887ab9d8efd0d3f060777af1bb02cc75274a7e48f"
+  inputs-digest = "db6da3d773aa2faf214a17ff0c06676a801c52bde7abfcb3708dbe117aa595f1"
   solver-name = "gps-cdcl"
   solver-version = 1
