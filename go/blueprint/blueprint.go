@@ -1,3 +1,6 @@
+/*
+Package blueprint copies the blueprint from the srcDir to the destDir with the right config for the gostatic binary
+*/
 package blueprint
 
 import (

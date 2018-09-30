@@ -1,3 +1,6 @@
+/*
+Package cmd is the CLI cmd interface for the gostatic binary (gostatic init, etc.)
+*/
 package cmd
 
 import (
