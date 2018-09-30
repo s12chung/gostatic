@@ -1,3 +1,6 @@
+run:
+  skip-dirs:
+    - vendor$
 linters:
   disable-all: true
   enable:
