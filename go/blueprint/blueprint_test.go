@@ -43,7 +43,7 @@ func TestBlueprint_InitProject(t *testing.T) {
 	gitIgnoreFilePath := path.Join(blueprint.srcDir, gitIgnoreFilename)
 	testGitIgnorePath := path.Join(blueprint.srcDir, gitIgnoreFilename+".test")
 	err := utils.CopyFile(testGitIgnorePath, gitIgnoreFilePath)
-	defer func() { os.Remove(gitIgnoreFilePath) }()
+	defer func() { test.IfError(t, os.Remove(gitIgnoreFilePath)) }()
 	if err != nil {
 		t.Error(err)
 		return
@@ -52,7 +52,7 @@ func TestBlueprint_InitProject(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	defer func() { utils.CopyFile(gitIgnoreFilePath, testGitIgnorePath) }()
+	defer func() { test.IfError(t, utils.CopyFile(gitIgnoreFilePath, testGitIgnorePath)) }()
 
 	msg, err := blueprint.InitProject()
 	if err != nil {

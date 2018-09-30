@@ -19,19 +19,29 @@ func promptStdIn(prompt string) (string, error) {
 }
 
 // from: https://stackoverflow.com/a/33853856/1090482
-func downloadfile(url, dest string) error {
+func downloadfile(url, dest string) (err error) {
 	out, err := os.Create(dest)
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
 
 	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		cerr := resp.Body.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
 
 	// Check server response
 	if resp.StatusCode != http.StatusOK {

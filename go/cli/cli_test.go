@@ -44,7 +44,10 @@ func TestRunDefault(t *testing.T) {
 			"Host":          expect.Host,
 		}[tc.functionName]()
 
-		Run("random name", app, tc.args)
+		err := Run("random name", app, tc.args)
+		if err != nil {
+			t.Error(err)
+		}
 
 		t.Log(context.FieldsString())
 		controller.Finish()

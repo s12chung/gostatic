@@ -86,7 +86,7 @@ func (app *App) ServerPort() int {
 func (app *App) Generate() error {
 	start := time.Now()
 	defer func() {
-		app.log.Infof("Build generated in %v.", time.Now().Sub(start))
+		app.log.Infof("Build generated in %v.", time.Since(start))
 	}()
 
 	err := utils.MkdirAll(app.settings.GeneratedPath)
@@ -117,7 +117,7 @@ func (app *App) setRoutes(r router.Router) *Tracker {
 		defer func() {
 			ending := fmt.Sprintf(" for route")
 
-			log := ctx.Log().WithField("time", time.Now().Sub(start))
+			log := ctx.Log().WithField("time", time.Since(start))
 			if err != nil {
 				log.Errorf("Error"+ending+" - %v", err)
 			} else {

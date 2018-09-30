@@ -18,6 +18,13 @@ import (
 // FixturePath is the path of the fixtures
 const FixturePath = "./testdata"
 
+// IfError calls t.Error if err != nil
+func IfError(t *testing.T, err error) {
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 // AssertInput calls AssertLabel, but sets the context based on input
 func AssertInput(t *testing.T, input, got, exp interface{}) {
 	context := NewContext().SetFields(ContextFields{
@@ -85,7 +92,7 @@ func RandSeed() {
 func TimeDiff(callback func()) time.Duration {
 	start := time.Now()
 	callback()
-	return time.Now().Sub(start)
+	return time.Since(start)
 }
 
 // Time returns a standard time to test with

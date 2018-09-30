@@ -46,7 +46,10 @@ func TestApp_Generate(t *testing.T) {
 	defer clean()
 
 	a, _, _ := defaultApp(setter, generatedPath)
-	a.Generate()
+	err := a.Generate()
+	if err != nil {
+		t.Error(err)
+	}
 
 	filenames := []string{"index.html", "dep", "non_dep"}
 	generatedFiles, err := utils.FilePaths("", generatedPath)

@@ -193,17 +193,19 @@ func SetupAllGetTypeVaried(router Router, allGetType AllGetType) {
 		return
 	}
 
-	handler := func(ctx *Context) error {
+	router.GetRootHTML(func(ctx *Context) error {
 		return nil
-	}
-
-	router.GetRootHTML(handler)
-
+	})
 	for _, htmlRoute := range allGetType.htmlRoutes {
-		router.GetHTML(htmlRoute, handler)
+		router.GetHTML(htmlRoute, func(ctx *Context) error {
+			return nil
+		})
 	}
-	for _, route := range allGetType.otherRoutes {
-		router.Get(route, handler)
+	for index, route := range allGetType.otherRoutes {
+		router.Get(route, func(ctx *Context) error {
+			ctx.SetContentType(allGetType.mimeTypes[index])
+			return nil
+		})
 	}
 }
 

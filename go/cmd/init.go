@@ -44,7 +44,7 @@ var initCmd = &cobra.Command{
 	},
 }
 
-func initProject(projectName string, test bool) error {
+func initProject(projectName string, test bool) (err error) {
 	pwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -60,7 +60,12 @@ func initProject(projectName string, test bool) error {
 	if !test {
 		var clean func() error
 		srcDir, clean, err = downloadSrc()
-		defer clean()
+		defer func() {
+			cerr := clean()
+			if err != nil {
+				err = cerr
+			}
+		}()
 		if err != nil {
 			return err
 		}

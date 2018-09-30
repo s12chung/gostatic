@@ -28,7 +28,12 @@ func CopyFile(src, dst string) (err error) {
 	if err != nil {
 		return
 	}
-	defer in.Close()
+	defer func() {
+		cerr := in.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
 	out, err := os.Create(dst)
 	if err != nil {
 		return

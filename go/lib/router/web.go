@@ -42,7 +42,6 @@ func NewWebRouter(port int, log logrus.FieldLogger) *WebRouter {
 		s := fmt.Sprintf("%v is not being handled", r.URL)
 		log.Errorf(s)
 		http.Error(w, s, http.StatusBadRequest)
-		return
 	}
 
 	router := &WebRouter{
@@ -193,7 +192,7 @@ func newWebRequester(port int) *WebRequester {
 }
 
 // Get gets the response of the route's handler given the url
-func (requester *WebRequester) Get(url string) (*Response, error) {
+func (requester *WebRequester) Get(url string) (resp *Response, err error) {
 	if url[:1] != "/" {
 		url = "/" + url
 	}
@@ -207,7 +206,12 @@ func (requester *WebRequester) Get(url string) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
+	defer func() {
+		cerr := response.Body.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
 
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
 		return nil, fmt.Errorf(strings.TrimSpace(string(body)))
