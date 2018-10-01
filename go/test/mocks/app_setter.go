@@ -59,8 +59,10 @@ func (mr *MockSetterMockRecorder) GeneratedAssetsPath() *gomock.Call {
 }
 
 // SetRoutes mocks base method
-func (m *MockSetter) SetRoutes(arg0 router.Router, arg1 *app.Tracker) {
-	m.ctrl.Call(m, "SetRoutes", arg0, arg1)
+func (m *MockSetter) SetRoutes(arg0 router.Router, arg1 *app.Tracker) error {
+	ret := m.ctrl.Call(m, "SetRoutes", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // SetRoutes indicates an expected call of SetRoutes

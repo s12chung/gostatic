@@ -65,7 +65,11 @@ func (app *App) GeneratedPath() string {
 func (app *App) Host() error {
 	r := router.NewWebRouter(app.settings.ServerPort, app.log)
 	r.FileServe(app.routeSetter.AssetsURL(), app.routeSetter.GeneratedAssetsPath())
-	app.setRoutes(r)
+
+	_, err := app.setRoutes(r)
+	if err != nil {
+		return err
+	}
 
 	return r.Run()
 }
@@ -93,7 +97,12 @@ func (app *App) Generate() error {
 	}
 
 	r := router.NewGenerateRouter(app.log)
-	routeTracker := app.setRoutes(r)
+
+	routeTracker, err := app.setRoutes(r)
+	if err != nil {
+		return err
+	}
+
 	err = app.requestRoutes(r.Requester(), routeTracker)
 	if err != nil {
 		return err
@@ -101,7 +110,7 @@ func (app *App) Generate() error {
 	return nil
 }
 
-func (app *App) setRoutes(r router.Router) *Tracker {
+func (app *App) setRoutes(r router.Router) (*Tracker, error) {
 	r.Around(func(ctx *router.Context, handler router.ContextHandler) error {
 		ctx.SetLog(ctx.Log().WithFields(logrus.Fields{
 			"type": "routes",
@@ -128,8 +137,8 @@ func (app *App) setRoutes(r router.Router) *Tracker {
 	})
 
 	routeTracker := NewTracker(r.Urls)
-	app.routeSetter.SetRoutes(r, routeTracker)
-	return routeTracker
+	err := app.routeSetter.SetRoutes(r, routeTracker)
+	return routeTracker, err
 }
 
 func (app *App) requestRoutes(requester router.Requester, tracker *Tracker) error {

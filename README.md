@@ -89,10 +89,11 @@ func (content *Content) renderHTML(ctx *router.Context, name string, layoutD int
 }
 
 // SetRoutes is where you set the routes
-func (content *Content) SetRoutes(r router.Router, tracker *app.Tracker) {
+func (content *Content) SetRoutes(r router.Router, tracker *app.Tracker) error {
 	r.GetRootHTML(content.getRoot)
 	r.GetHTML("/404.html", content.get404)
 	r.GetHTML("/robots.txt", content.getRobots)
+	return nil
 }
 
 func (content *Content) getRoot(ctx *router.Context) error {
