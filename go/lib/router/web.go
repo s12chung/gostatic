@@ -127,7 +127,7 @@ func (router *WebRouter) htmlHandler(handler ContextHandler) webHandler {
 
 func (router *WebRouter) handler(contentType string, handler ContextHandler) webHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		ctx := NewContext(router.log)
+		ctx := newContext(router.log)
 		ctx.contentType = contentType
 		ctx.url = r.URL.String()
 

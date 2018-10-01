@@ -94,7 +94,7 @@ func (router *GenerateRouter) get(url string) (*Response, error) {
 		return nil, fmt.Errorf("url not found: %v", url)
 	}
 
-	ctx := NewContext(router.log)
+	ctx := newContext(router.log)
 	ctx.url = url
 	ctx.contentType = route.ContentType
 

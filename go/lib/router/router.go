@@ -20,6 +20,8 @@ type ContextHandler func(ctx Context) error
 // AroundHandler is the handler for Router callbacks
 type AroundHandler func(ctx Context, handler ContextHandler) error
 
+// Context is an interface of the context provided for every route,
+// it's an interface to make testing easier
 type Context interface {
 	// Log returns the log of the context
 	Log() logrus.FieldLogger
@@ -38,7 +40,7 @@ type Context interface {
 	Respond(bytes []byte)
 }
 
-// Context provided for every route
+// context provided for every route
 type context struct {
 	log         logrus.FieldLogger
 	contentType string
@@ -47,8 +49,8 @@ type context struct {
 	response []byte
 }
 
-// NewContext returns a new instance of Context
-func NewContext(log logrus.FieldLogger) *context {
+// newContext returns a new instance of Context
+func newContext(log logrus.FieldLogger) *context {
 	return &context{log: log}
 }
 
