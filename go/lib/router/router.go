@@ -15,13 +15,31 @@ import (
 const RootURL = "/"
 
 // ContextHandler is the handler for Router routes
-type ContextHandler func(ctx *Context) error
+type ContextHandler func(ctx Context) error
 
 // AroundHandler is the handler for Router callbacks
-type AroundHandler func(ctx *Context, handler ContextHandler) error
+type AroundHandler func(ctx Context, handler ContextHandler) error
+
+type Context interface {
+	// Log returns the log of the context
+	Log() logrus.FieldLogger
+	// SetLog sets the log of the Context, so that you can set the context of the log
+	SetLog(log logrus.FieldLogger)
+
+	// ContentType returns the Content-Type to be sent to the response
+	ContentType() string
+	// SetContentType sets the Content-Type of the response
+	SetContentType(contentType string)
+
+	// URL returns the URL of the request
+	URL() string
+
+	// Respond sets the response data of the request
+	Respond(bytes []byte)
+}
 
 // Context provided for every route
-type Context struct {
+type context struct {
 	log         logrus.FieldLogger
 	contentType string
 
@@ -30,37 +48,37 @@ type Context struct {
 }
 
 // NewContext returns a new instance of Context
-func NewContext(log logrus.FieldLogger) *Context {
-	return &Context{log: log}
+func NewContext(log logrus.FieldLogger) *context {
+	return &context{log: log}
 }
 
 // Log returns the log of the context
-func (ctx *Context) Log() logrus.FieldLogger {
+func (ctx *context) Log() logrus.FieldLogger {
 	return ctx.log
 }
 
 // SetLog sets the log of the Context, so that you can set the context of the log
-func (ctx *Context) SetLog(log logrus.FieldLogger) {
+func (ctx *context) SetLog(log logrus.FieldLogger) {
 	ctx.log = log
 }
 
 // ContentType returns the Content-Type to be sent to the response
-func (ctx *Context) ContentType() string {
+func (ctx *context) ContentType() string {
 	return ctx.contentType
 }
 
 // SetContentType sets the Content-Type of the response
-func (ctx *Context) SetContentType(contentType string) {
+func (ctx *context) SetContentType(contentType string) {
 	ctx.contentType = contentType
 }
 
 // URL returns the URL of the request
-func (ctx *Context) URL() string {
+func (ctx *context) URL() string {
 	return ctx.url
 }
 
 // Respond sets the response data of the request
-func (ctx *Context) Respond(bytes []byte) {
+func (ctx *context) Respond(bytes []byte) {
 	ctx.response = bytes
 }
 
@@ -120,7 +138,7 @@ func checkAndSetFolders(url string, folders map[string]bool, hasRoute func(url s
 	folders[dir] = true
 }
 
-func callArounds(arounds []AroundHandler, handler ContextHandler, ctx *Context) error {
+func callArounds(arounds []AroundHandler, handler ContextHandler, ctx Context) error {
 	if len(arounds) == 0 {
 		return handler(ctx)
 	}
@@ -130,11 +148,11 @@ func callArounds(arounds []AroundHandler, handler ContextHandler, ctx *Context) 
 		reverseIndex := len(arounds) - 1 - index
 		around := arounds[reverseIndex]
 		if index == 0 {
-			aroundToNext[reverseIndex] = func(ctx *Context) error {
+			aroundToNext[reverseIndex] = func(ctx Context) error {
 				return around(ctx, handler)
 			}
 		} else {
-			aroundToNext[reverseIndex] = func(ctx *Context) error {
+			aroundToNext[reverseIndex] = func(ctx Context) error {
 				return around(ctx, aroundToNext[reverseIndex+1])
 			}
 		}

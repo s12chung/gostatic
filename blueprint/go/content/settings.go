@@ -5,7 +5,9 @@ import (
 	"github.com/s12chung/gostatic/go/lib/webpack"
 )
 
-// Settings contains the settings of your site, each field is for each package used, you can add additional fields for more features
+// Settings contains the settings of your site, each field is for each package used, you can add additional fields for more features,
+// such as packages in github.com/s12chung/gostatic-packages.
+//
 // The settings are read from a JSON file in main.go.
 type Settings struct {
 	HTML    *html.Settings    `json:"html,omitempty"`

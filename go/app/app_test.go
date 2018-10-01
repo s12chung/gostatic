@@ -49,7 +49,7 @@ func setupGenerate(t *testing.T, setRoutes func(r router.Router, tracker *app.Tr
 func TestApp_Generate(t *testing.T) {
 	setupGenerate(t,
 		func(r router.Router, tracker *app.Tracker) {
-			handler := func(ctx *router.Context) error {
+			handler := func(ctx router.Context) error {
 				ctx.Respond([]byte(ctx.URL()))
 				return nil
 			}
@@ -126,7 +126,7 @@ func TestApp_Generate_Order(t *testing.T) {
 		var requestOrder []string
 		setupGenerate(t,
 			func(r router.Router, tracker *app.Tracker) {
-				handler := func(ctx *router.Context) error {
+				handler := func(ctx router.Context) error {
 					requestOrder = append(requestOrder, ctx.URL())
 					ctx.Respond([]byte(ctx.URL()))
 					return nil
