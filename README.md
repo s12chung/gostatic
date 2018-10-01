@@ -115,7 +115,8 @@ func (content *Content) getRobots(ctx router.Context) error {
 }
 ```
 
-See [`router.Router` interface](https://godoc.org/github.com/s12chung/gostatic/go/lib/router#Router) and the [`app.Setter` interface](https://godoc.org/github.com/s12chung/gostatic/go/app#Setter). There are other [helpful packages too](https://godoc.org/github.com/s12chung/gostatic/go/lib).
+See [`router.Router` interface](https://godoc.org/github.com/s12chung/gostatic/go/lib/router#Router) and the [`app.Setter` interface](https://godoc.org/github.com/s12chung/gostatic/go/app#Setter).
+There are helpful packages in [s12chung/gostatic-packages](https://github.com/s12chung/gostatic-packages) too.
 
 ## Webpack
 
