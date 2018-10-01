@@ -136,7 +136,7 @@ func (app *App) setRoutes(r router.Router) (*Tracker, error) {
 		return err
 	})
 
-	routeTracker := NewTracker(r.Urls)
+	routeTracker := NewTracker(r.URLs)
 	err := app.routeSetter.SetRoutes(r, routeTracker)
 	return routeTracker, err
 }

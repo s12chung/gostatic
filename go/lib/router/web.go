@@ -98,8 +98,8 @@ func (router *WebRouter) checkAndSetRoutes(url string) {
 	router.routes[url] = true
 }
 
-// Urls returns a list the URLs defined on the router
-func (router *WebRouter) Urls() []string {
+// URLs returns a list the URLs defined on the router
+func (router *WebRouter) URLs() []string {
 	staticRoutes := make([]string, len(router.routes))
 	i := 0
 	for k := range router.routes {

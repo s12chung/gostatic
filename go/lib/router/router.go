@@ -94,8 +94,8 @@ type Router interface {
 	// Get define a handler for any file type given a url
 	Get(url string, handler ContextHandler)
 
-	// Urls returns a list the URLs defined on the router
-	Urls() []string
+	// URLs returns a list the URLs defined on the router
+	URLs() []string
 	// Requester returns a requester for the given router, to make requests and return the response
 	Requester() Requester
 }

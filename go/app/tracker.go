@@ -2,7 +2,7 @@ package app
 
 import "fmt"
 
-// Tracker tracks all the routes/Urls of the static site,
+// Tracker tracks all the routes/URLs of the static site,
 // so that App knows to generate them
 type Tracker struct {
 	urls          func() []string

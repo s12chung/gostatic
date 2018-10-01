@@ -44,103 +44,6 @@ var contentTypes = map[string]string{
 	".xml":  "text/xml; charset=utf-8",
 }
 
-func setExtraMimeTypes() error {
-	for ext := range extraMimeTypes {
-		err := mime.AddExtensionType(ext, contentTypes[ext])
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-type RouterSetup interface {
-	DefaultRouter() (Router, logrus.FieldLogger, *logTest.Hook)
-	RunServer(router Router, callback func())
-	Requester(router Router) Requester
-}
-
-type RouterTester struct {
-	setup RouterSetup
-}
-
-func NewRouterTester(setup RouterSetup) *RouterTester {
-	return &RouterTester{setup}
-}
-
-func (tester *RouterTester) TestRouter_Around(t *testing.T) {
-	var got []string
-	var previousContext Context
-
-	testPreviousContext := func(ctx Context) {
-		if previousContext == nil {
-			previousContext = ctx
-		} else {
-			test.AssertLabel(t, "ctx", ctx, previousContext)
-		}
-	}
-
-	h := func(before, after string) AroundHandler {
-		return func(ctx Context, handler ContextHandler) error {
-			testPreviousContext(ctx)
-
-			if before != "" {
-				got = append(got, before)
-			}
-			err := handler(ctx)
-			if after != "" {
-				got = append(got, after)
-			}
-			return err
-		}
-	}
-
-	testCases := []struct {
-		handlers []AroundHandler
-		expected []string
-	}{
-		{[]AroundHandler{}, []string{"call"}},
-		{[]AroundHandler{h("b1", "")}, []string{"b1", "call"}},
-		{[]AroundHandler{h("b1", ""), h("b2", "")}, []string{"b1", "b2", "call"}},
-		{[]AroundHandler{h("", "a1")}, []string{"call", "a1"}},
-		{[]AroundHandler{h("", "a1"), h("", "a2")}, []string{"call", "a2", "a1"}},
-		{[]AroundHandler{h("ar1", "ar2")}, []string{"ar1", "call", "ar2"}},
-		{[]AroundHandler{h("ar1", "ar2"), h("arr1", "arr2")}, []string{"ar1", "arr1", "call", "arr2", "ar2"}},
-		{[]AroundHandler{h("ar1", "ar2"), h("", "a1"), h("b1", ""), h("arr1", "arr2")}, []string{"ar1", "b1", "arr1", "call", "arr2", "a1", "ar2"}},
-	}
-
-	for testCaseIndex, tc := range testCases {
-		got = nil
-		previousContext = nil
-		context := test.NewContext().SetFields(test.ContextFields{
-			"index":       testCaseIndex,
-			"handlersLen": len(tc.handlers),
-		})
-
-		router, _, _ := tester.setup.DefaultRouter()
-		router.GetRootHTML(func(ctx Context) error {
-			testPreviousContext(ctx)
-
-			got = append(got, "call")
-			return nil
-		})
-
-		for _, handler := range tc.handlers {
-			router.Around(handler)
-		}
-
-		tester.setup.RunServer(router, func() {
-			_, err := tester.setup.Requester(router).Get(RootURL)
-			if err != nil {
-				t.Error(context.String(err))
-			}
-			if !cmp.Equal(got, tc.expected) {
-				t.Error(context.GotExpString("state", got, tc.expected))
-			}
-		})
-	}
-}
-
 var AllGetTypesWithResponse = []struct {
 	pattern  string
 	mimeType string
@@ -215,144 +118,130 @@ func SetupAllGetTypeVaried(router Router, allGetType AllGetType) {
 	}
 }
 
-func (tester *RouterTester) TestRequester_Get(t *testing.T) {
-	tester.testRequesterGetWorking(t)
-	tester.testRequesterSetupBadFolder(t)
+func setExtraMimeTypes() error {
+	for ext := range extraMimeTypes {
+		err := mime.AddExtensionType(ext, contentTypes[ext])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func (tester *RouterTester) testRequesterGetWorking(t *testing.T) {
-	router, _, _ := tester.setup.DefaultRouter()
-	SetupAllGetTypesWithResponse(router)
+type RouterSetup interface {
+	DefaultRouter() (Router, logrus.FieldLogger, *logTest.Hook)
+	RunServer(router Router, callback func())
+	Requester(router Router) Requester
+}
 
-	tester.setup.RunServer(router, func() {
-		requester := tester.setup.Requester(router)
-		for getIndex, allGetTypeWithResponse := range AllGetTypesWithResponse {
-			pattern := allGetTypeWithResponse.pattern
+func eachRouterSetup(t *testing.T, callback func(setup RouterSetup)) {
+	setups := map[string]RouterSetup{
+		"Generate": NewGenerateRouterSetup(),
+		"Web":      NewWebRouterSetup(),
+	}
+	for name, setup := range setups {
+		t.Log("----" + name + "----")
+		callback(setup)
+	}
+}
+
+func TestRouter_Around(t *testing.T) {
+	eachRouterSetup(t, func(setup RouterSetup) {
+		var got []string
+		var previousContext Context
+
+		testPreviousContext := func(ctx Context) {
+			if previousContext == nil {
+				previousContext = ctx
+			} else {
+				test.AssertLabel(t, "ctx", ctx, previousContext)
+			}
+		}
+
+		h := func(before, after string) AroundHandler {
+			return func(ctx Context, handler ContextHandler) error {
+				testPreviousContext(ctx)
+
+				if before != "" {
+					got = append(got, before)
+				}
+				err := handler(ctx)
+				if after != "" {
+					got = append(got, after)
+				}
+				return err
+			}
+		}
+
+		testCases := []struct {
+			handlers []AroundHandler
+			expected []string
+		}{
+			{[]AroundHandler{}, []string{"call"}},
+			{[]AroundHandler{h("b1", "")}, []string{"b1", "call"}},
+			{[]AroundHandler{h("b1", ""), h("b2", "")}, []string{"b1", "b2", "call"}},
+			{[]AroundHandler{h("", "a1")}, []string{"call", "a1"}},
+			{[]AroundHandler{h("", "a1"), h("", "a2")}, []string{"call", "a2", "a1"}},
+			{[]AroundHandler{h("ar1", "ar2")}, []string{"ar1", "call", "ar2"}},
+			{[]AroundHandler{h("ar1", "ar2"), h("arr1", "arr2")}, []string{"ar1", "arr1", "call", "arr2", "ar2"}},
+			{[]AroundHandler{h("ar1", "ar2"), h("", "a1"), h("b1", ""), h("arr1", "arr2")}, []string{"ar1", "b1", "arr1", "call", "arr2", "a1", "ar2"}},
+		}
+
+		for testCaseIndex, tc := range testCases {
+			got = nil
+			previousContext = nil
 			context := test.NewContext().SetFields(test.ContextFields{
-				"index":    getIndex,
-				"pattern":  pattern,
-				"mimeType": allGetTypeWithResponse.mimeType,
-				"response": allGetTypeWithResponse.response,
+				"index":       testCaseIndex,
+				"handlersLen": len(tc.handlers),
 			})
 
-			response, err := requester.Get(pattern)
-			if err != nil {
-				t.Errorf(context.String(err))
+			router, _, _ := setup.DefaultRouter()
+			router.GetRootHTML(func(ctx Context) error {
+				testPreviousContext(ctx)
+
+				got = append(got, "call")
+				return nil
+			})
+
+			for _, handler := range tc.handlers {
+				router.Around(handler)
 			}
 
-			got := string(response.Body)
-			exp := allGetTypeWithResponse.response
-			if got != exp {
-				t.Error(context.GotExpString("Response.Body", got, exp))
-			}
-
-			got = response.MimeType
-			exp = allGetTypeWithResponse.mimeType
-			if got != exp {
-				t.Error(context.GotExpString("Response.ContentType", got, exp))
-			}
-
-			if pattern != RootURL {
-				_, err := requester.Get(pattern[1:])
+			setup.RunServer(router, func() {
+				_, err := setup.Requester(router).Get(RootURL)
 				if err != nil {
-					t.Error(context.String("Can't handle requester.Get without / prefix"))
+					t.Error(context.String(err))
 				}
-			}
+				if !cmp.Equal(got, tc.expected) {
+					t.Error(context.GotExpString("state", got, tc.expected))
+				}
+			})
 		}
 	})
 }
 
-func (tester *RouterTester) testRequesterSetupBadFolder(t *testing.T) {
-	testCases := []struct {
-		urls  []string
-		panic bool
-	}{
-		{[]string{"/blah"}, false},
-		{[]string{"/blah", "/haha.atom"}, false},
-		{[]string{"/blah", "/blah/haha.atom"}, true},
-		{[]string{"/blah/haha.atom", "/blah"}, true},
-		{[]string{"/blah", "/blah/haha"}, true},
-		{[]string{"/blah/haha", "/blah"}, true},
-		{[]string{"/blah/he", "/blah/haha.atom"}, false},
-		{[]string{"/blah/he", "/blah/haha.atom", "/blah/wa.txt"}, false},
-		{[]string{"/blah/he", "/blah/he/ni.atom"}, true},
-		{[]string{"/blah/he/ni.atom", "/blah/he"}, true},
-		{[]string{"/blah/he", "/blah/he/ni"}, true},
-		{[]string{"/blah/he/ni", "/blah/he"}, true},
-	}
-
-	handler := func(ctx Context) error {
-		ctx.Respond([]byte(ctx.URL()))
-		return nil
-	}
-
-	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
-			"index": testCaseIndex,
-			"urls":  tc.urls,
-		})
-
-		router, _, _ := tester.setup.DefaultRouter()
-		router.GetRootHTML(handler)
-
-		func() {
-			if tc.panic {
-				defer func() {
-					if r := recover(); r == nil {
-						t.Error(context.String("did not panic"))
-					}
-				}()
-			}
-
-			for _, url := range tc.urls {
-				if path.Ext(url) == "" {
-					router.GetHTML(url, handler)
-				} else {
-					router.Get(url, handler)
-				}
-			}
-		}()
-	}
+func testRouteSetup(t *testing.T, url, contentType string, setRoute func(router Router, handler ContextHandler)) {
+	eachRouterSetup(t, func(setup RouterSetup) {
+		testRouterContext(t, setup, url, contentType, setRoute)
+		testRouterErrors(t, setup, url, setRoute)
+	})
 }
 
-func (tester *RouterTester) NewGetTester(requestURL, contentType string, testFunc func(router Router, handler ContextHandler)) *GetTester {
-	if testFunc == nil {
-		testFunc = func(router Router, handler ContextHandler) {}
-	}
-	return &GetTester{
-		tester.setup,
-		requestURL,
-		contentType,
-		testFunc,
-	}
-}
-
-type GetTester struct {
-	setup       RouterSetup
-	requestURL  string
-	contentType string
-	testFunc    func(router Router, handler ContextHandler)
-}
-
-func (getTester *GetTester) Test_Get(t *testing.T) {
-	getTester.testRouterContext(t)
-	getTester.testRouterErrors(t)
-}
-
-func (getTester *GetTester) testRouterContext(t *testing.T) {
+func testRouterContext(t *testing.T, setup RouterSetup, url, contentType string, setRoute func(router Router, handler ContextHandler)) {
 	called := false
+	router, log, _ := setup.DefaultRouter()
+
 	expResponse := "The Response"
-	router, log, _ := getTester.setup.DefaultRouter()
-	getTester.testFunc(router, func(ctx Context) error {
+	setRoute(router, func(ctx Context) error {
 		called = true
 		test.AssertLabel(t, "ctx.Log()", ctx.Log(), log)
-		test.AssertLabel(t, "ctx.URL()", ctx.URL(), getTester.requestURL)
-		test.AssertLabel(t, "ctx.ContentType()", ctx.ContentType(), getTester.contentType)
+		test.AssertLabel(t, "ctx.URL()", ctx.URL(), url)
+		test.AssertLabel(t, "ctx.ContentType()", ctx.ContentType(), contentType)
 		ctx.Respond([]byte(expResponse))
 		return nil
 	})
-	getTester.setup.RunServer(router, func() {
-		response, err := getTester.setup.Requester(router).Get(getTester.requestURL)
+	setup.RunServer(router, func() {
+		response, err := setup.Requester(router).Get(url)
 		if err != nil {
 			t.Error(err)
 		}
@@ -361,20 +250,20 @@ func (getTester *GetTester) testRouterContext(t *testing.T) {
 	})
 }
 
-func (getTester *GetTester) testRouterErrors(t *testing.T) {
+func testRouterErrors(t *testing.T, setup RouterSetup, url string, setRoute func(router Router, handler ContextHandler)) {
 	expError := "test error"
-	router, _, _ := getTester.setup.DefaultRouter()
-	getTester.testFunc(router, func(ctx Context) error {
+	router, _, _ := setup.DefaultRouter()
+	setRoute(router, func(ctx Context) error {
 		return fmt.Errorf(expError)
 	})
 
-	getTester.setup.RunServer(router, func() {
-		_, err := getTester.setup.Requester(router).Get(getTester.requestURL)
+	setup.RunServer(router, func() {
+		_, err := setup.Requester(router).Get(url)
 		test.AssertLabel(t, "Handler error", err.Error(), expError)
 
-		_, err = getTester.setup.Requester(router).Get("/multipart/url")
+		_, err = setup.Requester(router).Get("/multipart/url")
 		if err == nil {
-			t.Error("Multipart Urls are not giving errors")
+			t.Error("Multipart URLs are not giving errors")
 		}
 	})
 	func() {
@@ -383,75 +272,178 @@ func (getTester *GetTester) testRouterErrors(t *testing.T) {
 				t.Errorf("Did not panic for duplicate route setup.")
 			}
 		}()
-		getTester.testFunc(router, func(ctx Context) error {
+		setRoute(router, func(ctx Context) error {
 			return nil
 		})
 	}()
 }
 
-func (tester *RouterTester) TestRouter_GetInvalidRoute(t *testing.T) {
-	router, _, _ := tester.setup.DefaultRouter()
-	tester.setup.RunServer(router, func() {
-		response, err := tester.setup.Requester(router).Get("/does_not_exist")
-		if err == nil {
-			t.Error("expecting error")
-		}
-		if response != nil {
-			t.Error("expecting no response")
-		}
+func TestRouter_GetInvalidRoute(t *testing.T) {
+	eachRouterSetup(t, func(setup RouterSetup) {
+		router, _, _ := setup.DefaultRouter()
+		setup.RunServer(router, func() {
+			response, err := setup.Requester(router).Get("/does_not_exist")
+			if err == nil {
+				t.Error("expecting error")
+			}
+			if response != nil {
+				t.Error("expecting no response")
+			}
+		})
 	})
 }
 
-func (tester *RouterTester) TestRouter_GetRootHTML(t *testing.T) {
-	tester.NewGetTester(RootURL, "text/html; charset=utf-8", func(router Router, handler ContextHandler) {
+func TestRouter_GetRootHTML(t *testing.T) {
+	testRouteSetup(t, RootURL, "text/html; charset=utf-8", func(router Router, handler ContextHandler) {
 		router.GetRootHTML(handler)
-	}).Test_Get(t)
+	})
 }
 
-func (tester *RouterTester) TestRouter_GetHTML(t *testing.T) {
-	tester.NewGetTester("/blah", "text/html; charset=utf-8", func(router Router, handler ContextHandler) {
+func TestRouter_GetHTML(t *testing.T) {
+	testRouteSetup(t, "/blah", "text/html; charset=utf-8", func(router Router, handler ContextHandler) {
 		router.GetHTML("/blah", handler)
-	}).Test_Get(t)
+	})
 }
 
-func (tester *RouterTester) TestRouter_Get(t *testing.T) {
-	tester.NewGetTester("/blah.atom", "application/xml; charset=utf-8", func(router Router, handler ContextHandler) {
+func TestRouter_Get(t *testing.T) {
+	testRouteSetup(t, "/blah.atom", "application/xml; charset=utf-8", func(router Router, handler ContextHandler) {
 		router.Get("/blah.atom", handler)
-	}).Test_Get(t)
+	})
 }
 
-func (tester *RouterTester) TestRouter_GetWithContentTypeSet(t *testing.T) {
-	tester.NewGetTester("/something.fakeext", "text/plain; charset=utf-8", func(router Router, handler ContextHandler) {
+func TestRouter_GetWithContentTypeSet(t *testing.T) {
+	testRouteSetup(t, "/something.fakeext", "text/plain; charset=utf-8", func(router Router, handler ContextHandler) {
 		router.Get("/something.fakeext", func(ctx Context) error {
 			ctx.SetContentType("text/plain; charset=utf-8")
 			return handler(ctx)
 		})
-	}).Test_Get(t)
+	})
 }
 
-func (tester *RouterTester) TestRouter_Urls(t *testing.T) {
-	for testCaseIndex, allGetType := range AllGetTypesVaried {
-		context := test.NewContext().SetFields(test.ContextFields{
-			"index":       testCaseIndex,
-			"htmlRoutes":  allGetType.htmlRoutes,
-			"otherRoutes": allGetType.otherRoutes,
+func TestRouter_URLs(t *testing.T) {
+	eachRouterSetup(t, func(setup RouterSetup) {
+		for testCaseIndex, allGetType := range AllGetTypesVaried {
+			context := test.NewContext().SetFields(test.ContextFields{
+				"index":       testCaseIndex,
+				"htmlRoutes":  allGetType.htmlRoutes,
+				"otherRoutes": allGetType.otherRoutes,
+			})
+
+			router, _, _ := setup.DefaultRouter()
+			SetupAllGetTypeVaried(router, allGetType)
+
+			got := router.URLs()
+			exp := append(allGetType.htmlRoutes, allGetType.otherRoutes...)
+			exp = append(exp, RootURL)
+			if allGetType.htmlRoutes == nil {
+				exp = []string{}
+			}
+
+			sort.Strings(got)
+			sort.Strings(exp)
+
+			if !cmp.Equal(got, exp) {
+				t.Error(context.GotExpString("Result", got, exp))
+			}
+		}
+	})
+}
+
+func TestRequester_Get(t *testing.T) {
+	eachRouterSetup(t, func(setup RouterSetup) {
+		router, _, _ := setup.DefaultRouter()
+		SetupAllGetTypesWithResponse(router)
+
+		setup.RunServer(router, func() {
+			requester := setup.Requester(router)
+			for getIndex, allGetTypeWithResponse := range AllGetTypesWithResponse {
+				pattern := allGetTypeWithResponse.pattern
+				context := test.NewContext().SetFields(test.ContextFields{
+					"index":    getIndex,
+					"pattern":  pattern,
+					"mimeType": allGetTypeWithResponse.mimeType,
+					"response": allGetTypeWithResponse.response,
+				})
+
+				response, err := requester.Get(pattern)
+				if err != nil {
+					t.Errorf(context.String(err))
+				}
+
+				got := string(response.Body)
+				exp := allGetTypeWithResponse.response
+				if got != exp {
+					t.Error(context.GotExpString("Response.Body", got, exp))
+				}
+
+				got = response.MimeType
+				exp = allGetTypeWithResponse.mimeType
+				if got != exp {
+					t.Error(context.GotExpString("Response.ContentType", got, exp))
+				}
+
+				if pattern != RootURL {
+					_, err := requester.Get(pattern[1:])
+					if err != nil {
+						t.Error(context.String("Can't handle requester.Get without / prefix"))
+					}
+				}
+			}
 		})
+	})
+}
 
-		router, _, _ := tester.setup.DefaultRouter()
-		SetupAllGetTypeVaried(router, allGetType)
-
-		got := router.Urls()
-		exp := append(allGetType.htmlRoutes, allGetType.otherRoutes...)
-		exp = append(exp, RootURL)
-		if allGetType.htmlRoutes == nil {
-			exp = []string{}
+func TestRequester_GetBadFolder(t *testing.T) {
+	eachRouterSetup(t, func(setup RouterSetup) {
+		testCases := []struct {
+			urls  []string
+			panic bool
+		}{
+			{[]string{"/blah"}, false},
+			{[]string{"/blah", "/haha.atom"}, false},
+			{[]string{"/blah", "/blah/haha.atom"}, true},
+			{[]string{"/blah/haha.atom", "/blah"}, true},
+			{[]string{"/blah", "/blah/haha"}, true},
+			{[]string{"/blah/haha", "/blah"}, true},
+			{[]string{"/blah/he", "/blah/haha.atom"}, false},
+			{[]string{"/blah/he", "/blah/haha.atom", "/blah/wa.txt"}, false},
+			{[]string{"/blah/he", "/blah/he/ni.atom"}, true},
+			{[]string{"/blah/he/ni.atom", "/blah/he"}, true},
+			{[]string{"/blah/he", "/blah/he/ni"}, true},
+			{[]string{"/blah/he/ni", "/blah/he"}, true},
 		}
 
-		sort.Strings(got)
-		sort.Strings(exp)
-
-		if !cmp.Equal(got, exp) {
-			t.Error(context.GotExpString("Result", got, exp))
+		handler := func(ctx Context) error {
+			ctx.Respond([]byte(ctx.URL()))
+			return nil
 		}
-	}
+
+		for testCaseIndex, tc := range testCases {
+			context := test.NewContext().SetFields(test.ContextFields{
+				"index": testCaseIndex,
+				"urls":  tc.urls,
+			})
+
+			router, _, _ := setup.DefaultRouter()
+			router.GetRootHTML(handler)
+
+			func() {
+				if tc.panic {
+					defer func() {
+						if r := recover(); r == nil {
+							t.Error(context.String("did not panic"))
+						}
+					}()
+				}
+
+				for _, url := range tc.urls {
+					if path.Ext(url) == "" {
+						router.GetHTML(url, handler)
+					} else {
+						router.Get(url, handler)
+					}
+				}
+			}()
+		}
+	})
 }

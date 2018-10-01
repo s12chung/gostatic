@@ -23,10 +23,6 @@ func defaultWebRouter() (*WebRouter, logrus.FieldLogger, *logTest.Hook) {
 	return NewWebRouter(8080, log), log, hook
 }
 
-func webRouterTester() *RouterTester {
-	return NewRouterTester(NewWebRouterSetup())
-}
-
 type WebRouterSetup struct {
 	server *httptest.Server
 }
@@ -66,34 +62,6 @@ func (setup *WebRouterSetup) Requester(router Router) Requester {
 	requester := newWebRequester(int(port))
 	requester.hostname = urlObject.Hostname()
 	return requester
-}
-
-func TestWebRouter_Around(t *testing.T) {
-	webRouterTester().TestRouter_Around(t)
-}
-
-func TestWebRouter_GetInvalidRoute(t *testing.T) {
-	generateRouterTester().TestRouter_GetInvalidRoute(t)
-}
-
-func TestWebRouter_GetRootHTML(t *testing.T) {
-	webRouterTester().TestRouter_GetRootHTML(t)
-}
-
-func TestWebRouter_GetHTML(t *testing.T) {
-	webRouterTester().TestRouter_GetHTML(t)
-}
-
-func TestWebRouter_Get(t *testing.T) {
-	webRouterTester().TestRouter_Get(t)
-}
-
-func TestWebRouterRouter_GetWithContentTypeSet(t *testing.T) {
-	generateRouterTester().TestRouter_GetWithContentTypeSet(t)
-}
-
-func TestWebRouter_Urls(t *testing.T) {
-	webRouterTester().TestRouter_Urls(t)
 }
 
 func TestWebRouter_FileServe(t *testing.T) {
@@ -171,8 +139,4 @@ func TestWebRouter_FileServe_PathChecks(t *testing.T) {
 			}
 		}
 	})
-}
-
-func TestWebRequester_Get(t *testing.T) {
-	webRouterTester().TestRequester_Get(t)
 }

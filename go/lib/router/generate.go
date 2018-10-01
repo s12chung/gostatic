@@ -104,8 +104,8 @@ func (router *GenerateRouter) get(url string) (*Response, error) {
 	return NewResponse(ctx.response, ctx.contentType), nil
 }
 
-// Urls returns a list the URLs defined on the router
-func (router *GenerateRouter) Urls() []string {
+// URLs returns a list the URLs defined on the router
+func (router *GenerateRouter) URLs() []string {
 	staticRoutes := make([]string, len(router.routes))
 	i := 0
 	for k := range router.routes {
