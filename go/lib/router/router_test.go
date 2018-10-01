@@ -221,6 +221,52 @@ func TestRouter_Around(t *testing.T) {
 	})
 }
 
+func TestRouter_GetInvalidRoute(t *testing.T) {
+	eachRouterSetup(t, func(setup RouterSetup) {
+		router, _, _ := setup.DefaultRouter()
+		setup.RunServer(router, func() {
+			response, err := setup.Requester(router).Get("/does_not_exist")
+			if err == nil {
+				t.Error("expecting error")
+			}
+			if response != nil {
+				t.Error("expecting no response")
+			}
+		})
+	})
+}
+
+func TestRouter_GetRootHTML(t *testing.T) {
+	testRouteSetup(t, RootURL, "text/html; charset=utf-8", func(router Router, url string, handler ContextHandler) {
+		if url == RootURL {
+			router.GetRootHTML(handler)
+		} else {
+			router.GetHTML(url, handler)
+		}
+	})
+}
+
+func TestRouter_GetHTML(t *testing.T) {
+	testRouteSetup(t, "/blah", "text/html; charset=utf-8", func(router Router, url string, handler ContextHandler) {
+		router.GetHTML(url, handler)
+	})
+}
+
+func TestRouter_Get(t *testing.T) {
+	testRouteSetup(t, "/blah.atom", "application/xml; charset=utf-8", func(router Router, url string, handler ContextHandler) {
+		router.Get(url, handler)
+	})
+}
+
+func TestRouter_GetWithContentTypeSet(t *testing.T) {
+	testRouteSetup(t, "/something.fakeext", "text/plain; charset=utf-8", func(router Router, url string, handler ContextHandler) {
+		router.Get(url, func(ctx Context) error {
+			ctx.SetContentType("text/plain; charset=utf-8")
+			return handler(ctx)
+		})
+	})
+}
+
 func testRouteSetup(t *testing.T, url, contentType string, setRoute func(router Router, url string, handler ContextHandler)) {
 	eachRouterSetup(t, func(setup RouterSetup) {
 		testRouterContext(t, setup, url, contentType, setRoute)
@@ -279,52 +325,6 @@ func testRouterErrors(t *testing.T, setup RouterSetup, url string, setRoute func
 			return nil
 		})
 	}()
-}
-
-func TestRouter_GetInvalidRoute(t *testing.T) {
-	eachRouterSetup(t, func(setup RouterSetup) {
-		router, _, _ := setup.DefaultRouter()
-		setup.RunServer(router, func() {
-			response, err := setup.Requester(router).Get("/does_not_exist")
-			if err == nil {
-				t.Error("expecting error")
-			}
-			if response != nil {
-				t.Error("expecting no response")
-			}
-		})
-	})
-}
-
-func TestRouter_GetRootHTML(t *testing.T) {
-	testRouteSetup(t, RootURL, "text/html; charset=utf-8", func(router Router, url string, handler ContextHandler) {
-		if url == RootURL {
-			router.GetRootHTML(handler)
-		} else {
-			router.GetHTML(url, handler)
-		}
-	})
-}
-
-func TestRouter_GetHTML(t *testing.T) {
-	testRouteSetup(t, "/blah", "text/html; charset=utf-8", func(router Router, url string, handler ContextHandler) {
-		router.GetHTML(url, handler)
-	})
-}
-
-func TestRouter_Get(t *testing.T) {
-	testRouteSetup(t, "/blah.atom", "application/xml; charset=utf-8", func(router Router, url string, handler ContextHandler) {
-		router.Get(url, handler)
-	})
-}
-
-func TestRouter_GetWithContentTypeSet(t *testing.T) {
-	testRouteSetup(t, "/something.fakeext", "text/plain; charset=utf-8", func(router Router, url string, handler ContextHandler) {
-		router.Get(url, func(ctx Context) error {
-			ctx.SetContentType("text/plain; charset=utf-8")
-			return handler(ctx)
-		})
-	})
 }
 
 func testRouterSlash(t *testing.T, setup RouterSetup, url string, setRoute func(router Router, url string, handler ContextHandler)) {
