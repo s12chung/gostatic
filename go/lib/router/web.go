@@ -75,12 +75,19 @@ func (router *WebRouter) GetRootHTML(handler ContextHandler) {
 
 // GetHTML defines a HTML handler given a URL (shorthand for Get with Content-Type set for .html files)
 func (router *WebRouter) GetHTML(url string, handler ContextHandler) {
+	url = handleURLSlash(url)
+	if url == RootURL {
+		router.GetRootHTML(handler)
+		return
+	}
+
 	router.checkAndSetRoutes(url)
 	router.get(url, router.htmlHandler(handler))
 }
 
 // Get define a handler for any file type given a URL
 func (router *WebRouter) Get(url string, handler ContextHandler) {
+	url = handleURLSlash(url)
 	router.checkAndSetRoutes(url)
 	router.get(url, router.handler(mime.TypeByExtension(path.Ext(url)), handler))
 }
@@ -171,13 +178,13 @@ func (router *WebRouter) FileServe(pattern, dirPath string) {
 	})
 }
 
-func (router *WebRouter) get(pattern string, handler webHandler) {
-	if pattern == RootURL {
-		router.log.Errorf("Can not use pattern that touches root, use GetRootHTML instead")
+func (router *WebRouter) get(url string, handler webHandler) {
+	if url == RootURL {
+		router.log.Errorf("Can not use url that touches root, use GetRootHTML instead")
 		return
 	}
 
-	router.serveMux.HandleFunc(pattern, router.getRequestHandler(handler))
+	router.serveMux.HandleFunc(url, router.getRequestHandler(handler))
 }
 
 // Run starts the web server for this router
@@ -202,9 +209,7 @@ func newWebRequester(port int) *WebRequester {
 
 // Get gets the response of the route's handler given the url
 func (requester *WebRequester) Get(url string) (resp *Response, err error) {
-	if url[:1] != "/" {
-		url = "/" + url
-	}
+	url = handleURLSlash(url)
 
 	response, err := http.Get(fmt.Sprintf("http://%v:%v%v", requester.hostname, requester.port, url))
 	if err != nil {

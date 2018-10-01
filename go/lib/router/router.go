@@ -117,6 +117,13 @@ type Requester interface {
 	Get(url string) (*Response, error)
 }
 
+func handleURLSlash(url string) string {
+	if len(url) == 0 || url[:1] != "/" {
+		url = "/" + url
+	}
+	return url
+}
+
 func panicDuplicateRoute(url string) {
 	panic(fmt.Sprintf("%v is a duplicate route", url))
 }

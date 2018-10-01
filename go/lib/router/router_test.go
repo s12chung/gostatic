@@ -7,6 +7,7 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -140,7 +141,7 @@ func eachRouterSetup(t *testing.T, callback func(setup RouterSetup)) {
 		"Web":      NewWebRouterSetup(),
 	}
 	for name, setup := range setups {
-		t.Log("----" + name + "----")
+		t.Log(name)
 		callback(setup)
 	}
 }
@@ -220,19 +221,20 @@ func TestRouter_Around(t *testing.T) {
 	})
 }
 
-func testRouteSetup(t *testing.T, url, contentType string, setRoute func(router Router, handler ContextHandler)) {
+func testRouteSetup(t *testing.T, url, contentType string, setRoute func(router Router, url string, handler ContextHandler)) {
 	eachRouterSetup(t, func(setup RouterSetup) {
 		testRouterContext(t, setup, url, contentType, setRoute)
 		testRouterErrors(t, setup, url, setRoute)
+		testRouterSlash(t, setup, url, setRoute)
 	})
 }
 
-func testRouterContext(t *testing.T, setup RouterSetup, url, contentType string, setRoute func(router Router, handler ContextHandler)) {
+func testRouterContext(t *testing.T, setup RouterSetup, url, contentType string, setRoute func(router Router, url string, handler ContextHandler)) {
 	called := false
 	router, log, _ := setup.DefaultRouter()
 
 	expResponse := "The Response"
-	setRoute(router, func(ctx Context) error {
+	setRoute(router, url, func(ctx Context) error {
 		called = true
 		test.AssertLabel(t, "ctx.Log()", ctx.Log(), log)
 		test.AssertLabel(t, "ctx.URL()", ctx.URL(), url)
@@ -250,10 +252,11 @@ func testRouterContext(t *testing.T, setup RouterSetup, url, contentType string,
 	})
 }
 
-func testRouterErrors(t *testing.T, setup RouterSetup, url string, setRoute func(router Router, handler ContextHandler)) {
+func testRouterErrors(t *testing.T, setup RouterSetup, url string, setRoute func(router Router, url string, handler ContextHandler)) {
 	expError := "test error"
+
 	router, _, _ := setup.DefaultRouter()
-	setRoute(router, func(ctx Context) error {
+	setRoute(router, url, func(ctx Context) error {
 		return fmt.Errorf(expError)
 	})
 
@@ -272,7 +275,7 @@ func testRouterErrors(t *testing.T, setup RouterSetup, url string, setRoute func
 				t.Errorf("Did not panic for duplicate route setup.")
 			}
 		}()
-		setRoute(router, func(ctx Context) error {
+		setRoute(router, url, func(ctx Context) error {
 			return nil
 		})
 	}()
@@ -294,30 +297,68 @@ func TestRouter_GetInvalidRoute(t *testing.T) {
 }
 
 func TestRouter_GetRootHTML(t *testing.T) {
-	testRouteSetup(t, RootURL, "text/html; charset=utf-8", func(router Router, handler ContextHandler) {
-		router.GetRootHTML(handler)
+	testRouteSetup(t, RootURL, "text/html; charset=utf-8", func(router Router, url string, handler ContextHandler) {
+		if url == RootURL {
+			router.GetRootHTML(handler)
+		} else {
+			router.GetHTML(url, handler)
+		}
 	})
 }
 
 func TestRouter_GetHTML(t *testing.T) {
-	testRouteSetup(t, "/blah", "text/html; charset=utf-8", func(router Router, handler ContextHandler) {
-		router.GetHTML("/blah", handler)
+	testRouteSetup(t, "/blah", "text/html; charset=utf-8", func(router Router, url string, handler ContextHandler) {
+		router.GetHTML(url, handler)
 	})
 }
 
 func TestRouter_Get(t *testing.T) {
-	testRouteSetup(t, "/blah.atom", "application/xml; charset=utf-8", func(router Router, handler ContextHandler) {
-		router.Get("/blah.atom", handler)
+	testRouteSetup(t, "/blah.atom", "application/xml; charset=utf-8", func(router Router, url string, handler ContextHandler) {
+		router.Get(url, handler)
 	})
 }
 
 func TestRouter_GetWithContentTypeSet(t *testing.T) {
-	testRouteSetup(t, "/something.fakeext", "text/plain; charset=utf-8", func(router Router, handler ContextHandler) {
-		router.Get("/something.fakeext", func(ctx Context) error {
+	testRouteSetup(t, "/something.fakeext", "text/plain; charset=utf-8", func(router Router, url string, handler ContextHandler) {
+		router.Get(url, func(ctx Context) error {
 			ctx.SetContentType("text/plain; charset=utf-8")
 			return handler(ctx)
 		})
 	})
+}
+
+func testRouterSlash(t *testing.T, setup RouterSetup, url string, setRoute func(router Router, url string, handler ContextHandler)) {
+	trimmedURL := strings.TrimLeft(url, "/")
+
+	testCases := []struct {
+		routeURL   string
+		requestURL string
+	}{
+		{url, url},
+		{trimmedURL, url},
+		{url, trimmedURL},
+		{trimmedURL, trimmedURL},
+	}
+
+	for testCaseIndex, tc := range testCases {
+		context := test.NewContext().SetFields(test.ContextFields{
+			"index":      testCaseIndex,
+			"routeURL":   tc.routeURL,
+			"requestURL": tc.requestURL,
+		})
+
+		router, _, _ := setup.DefaultRouter()
+		setRoute(router, tc.routeURL, func(ctx Context) error {
+			return nil
+		})
+
+		setup.RunServer(router, func() {
+			_, err := setup.Requester(router).Get(tc.requestURL)
+			if err != nil {
+				t.Error(context.String(err))
+			}
+		})
+	}
 }
 
 func TestRouter_URLs(t *testing.T) {

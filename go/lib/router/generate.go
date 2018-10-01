@@ -80,6 +80,7 @@ func (router *GenerateRouter) hasRoute(url string) bool {
 }
 
 func (router *GenerateRouter) checkAndSetRoutes(url, contentType string, handler ContextHandler) {
+	url = handleURLSlash(url)
 	if router.hasRoute(url) {
 		panicDuplicateRoute(url)
 	}
@@ -129,8 +130,6 @@ type GenerateRequester struct {
 
 // Get gets the response of the route's handler given the url
 func (requester *GenerateRequester) Get(url string) (*Response, error) {
-	if url[:1] != "/" {
-		url = "/" + url
-	}
+	url = handleURLSlash(url)
 	return requester.router.get(url)
 }
