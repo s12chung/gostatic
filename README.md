@@ -15,15 +15,12 @@ Meant to be simple, so defaults are given (SASS, image optimization, S3 deployme
 - Optional [direnv](https://github.com/direnv/direnv) to automatically export/unexport ENV variables. You can export them yourself via `source ./.envrc`.
 
 ## New Project
-You can install the `gostatic` binary via `go get`:
+You can install the `gostatic` binary via `go get` and run it:
 
 ```bash
 go get github.com/s12chung/gostatic
-```
-
-Then run:
-```bash
-$(GOPATH)/bin/gostatic new some_project_name
+...
+gostatic new some_project_name
 ```
 
 This is will create a new project in the current directory. After:
