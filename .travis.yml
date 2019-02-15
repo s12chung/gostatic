@@ -20,7 +20,7 @@ install:
 
 script:
   - make docker-test-report
-  - make test-init
+  - make test-new
   - make lint
 
 after_success:

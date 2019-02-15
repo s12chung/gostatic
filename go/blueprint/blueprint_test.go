@@ -54,13 +54,13 @@ func TestBlueprint_InitProject(t *testing.T) {
 	}
 	defer func() { test.IfError(t, utils.CopyFile(gitIgnoreFilePath, testGitIgnorePath)) }()
 
-	msg, err := blueprint.InitProject()
+	msg, err := blueprint.NewProject()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	if msg == "" {
-		t.Error("Did not expect blueprint.InitProject() msg to be empty")
+		t.Error("Did not expect blueprint.NewProject() msg to be empty")
 	}
 
 	err = os.Rename(path.Join(blueprint.ProjectDir(), gitIgnoreFilename), path.Join(blueprint.ProjectDir(), gitIgnoreFilename+".test"))
@@ -77,13 +77,13 @@ func TestBlueprint_InitProject(t *testing.T) {
 		t.Error(err)
 	}
 
-	msg, err = blueprint.InitProject()
+	msg, err = blueprint.NewProject()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	if msg != "" {
-		t.Error("Expect blueprint.InitProject() msg to be empty because .example real files already exist")
+		t.Error("Expect blueprint.NewProject() msg to be empty because .example real files already exist")
 	}
 }
 

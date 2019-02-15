@@ -21,11 +21,11 @@ const goStaticZipFilename = "gostatic-master"
 var testOnlyFilePaths = []string{"Gopkg.toml"}
 
 func init() {
-	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(newCmd)
 }
 
-var initCmd = &cobra.Command{
-	Use:   "init",
+var newCmd = &cobra.Command{
+	Use:   "new",
 	Short: "Start a new project",
 	Long:  `Start a new project via using a blueprint from the gostatic repo`,
 	Args: func(cmd *cobra.Command, args []string) error {
@@ -37,14 +37,14 @@ var initCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		projectName := args[0]
 		fmt.Printf("New project: %v\n", projectName)
-		err := initProject(projectName, test)
+		err := newProject(projectName, test)
 		if err != nil {
 			fmt.Printf("\nError: %v\n", err)
 		}
 	},
 }
 
-func initProject(projectName string, test bool) (err error) {
+func newProject(projectName string, test bool) (err error) {
 	pwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -78,7 +78,7 @@ func initProject(projectName string, test bool) (err error) {
 		return err
 	}
 
-	bpMessage, err := bp.InitProject()
+	bpMessage, err := bp.NewProject()
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func downloadSrc() (srcDir string, clean func() error, err error) {
 func confirmSafeOverride(projectDir string) error {
 	_, err := os.Stat(projectDir)
 	if !os.IsNotExist(err) {
-		fmt.Printf("%v already exists, do you want to replace it's files with init?\n", projectDir)
+		fmt.Printf("%v already exists, do you want to replace it's files with the new project?\n", projectDir)
 
 		var yn string
 		yn, err = promptStdIn("Replace? (y/n)")

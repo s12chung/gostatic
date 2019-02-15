@@ -122,8 +122,8 @@ func NewBlueprint(srcDir, destDir, namespace string) *Blueprint {
 	return &Blueprint{srcDir, destDir, namespace}
 }
 
-// InitProject initializes the project via copying files
-func (blueprint *Blueprint) InitProject() (string, error) {
+// NewProject creates a new project via copying files
+func (blueprint *Blueprint) NewProject() (string, error) {
 	ignoreMap, err := blueprint.ignoreMap()
 	if err != nil {
 		return "", err
@@ -162,7 +162,7 @@ func (blueprint *Blueprint) InitProject() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return initMessage(exampleFiles), nil
+	return newProjectMessage(exampleFiles), nil
 }
 
 func exampleRealDestPath(destPath string) string {
@@ -186,7 +186,7 @@ func forEachDestPath(destPaths []string, f func(destPath string) error) error {
 	return nil
 }
 
-func initMessage(exampleFiles []string) string {
+func newProjectMessage(exampleFiles []string) string {
 	if len(exampleFiles) == 0 {
 		return ""
 	}

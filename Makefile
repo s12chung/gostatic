@@ -13,10 +13,10 @@ lint:
 test-report:
 	go test -v -covermode=atomic -coverprofile=coverage.out ./go/...
 
-test-init:
-	bash -c './test-init.sh'
+test-new:
+	bash -c './test-new.sh'
 
-test-all: test test-init
+test-all: test test-new
 
 mock:
 	go install ./vendor/github.com/golang/mock/mockgen

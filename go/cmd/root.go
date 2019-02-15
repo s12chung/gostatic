@@ -1,5 +1,5 @@
 /*
-Package cmd is the CLI cmd interface for the gostatic binary (gostatic init, etc.)
+Package cmd is the CLI cmd interface for the gostatic binary (gostatic new, etc.)
 */
 package cmd
 

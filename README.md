@@ -23,7 +23,7 @@ go get github.com/s12chung/gostatic
 
 Then run:
 ```bash
-$(GOPATH)/bin/gostatic init some_project_name
+$(GOPATH)/bin/gostatic new some_project_name
 ```
 
 This is will create a new project in the current directory. After:
