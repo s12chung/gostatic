@@ -11,7 +11,7 @@ RUN echo '@testing http://nl.alpinelinux.org/alpine/edge/testing' >> /etc/apk/re
     # aws
     aws-cli@testing\
     # imagemin-webpack-plugin
-    optipng gifsicle\
+    optipng\
     # https://github.com/imagemin/gifsicle-bin/issues/79
     autoconf automake\
     # lovell/sharp image resizing (runtime)
