@@ -89,7 +89,7 @@ func (content *Content) renderHTML(ctx router.Context, name string, layoutD inte
 func (content *Content) SetRoutes(r router.Router, tracker *app.Tracker) error {
 	r.GetRootHTML(content.getRoot)
 	r.GetHTML("/404.html", content.get404)
-	r.GetHTML("/robots.txt", content.getRobots)
+	r.Get("/robots.txt", content.getRobots)
 	return nil
 }
 
@@ -102,12 +102,11 @@ func (content *Content) get404(ctx router.Context) error {
 }
 
 func (content *Content) getRobots(ctx router.Context) error {
-	// "github.com/s12chung/gostatic-packages/robots"
-	// userAgents := []*robots.UserAgent {
-	//	 robots.NewUserAgent(robots.EverythingUserAgent, []string { "/" }),
-	// }
-	//return ctx.Respond([]byte(robots.ToFileString(userAgents)))
-	ctx.Respond([]byte{})
+	userAgents := []*robots.UserAgent{
+		robots.NewUserAgent(robots.EverythingUserAgent, []string{"/"}),
+	}
+	ctx.SetContentType(mime.TypeByExtension(".txt"))
+	ctx.Respond([]byte(robots.ToFileString(userAgents)))
 	return nil
 }
 ```
