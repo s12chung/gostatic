@@ -1,17 +1,22 @@
-FROM golang:1.10.3-alpine3.8
+FROM golang:1.11-alpine3.9
 
 ARG DOCKER_WORKDIR
 
-# apk purposes for each line:
-# go, webpack, aws
-# imagemin-webpack-plugin, lovell/sharp image resizing (runtime), lovell/sharp image resizing (install/when yarn runs)
 RUN echo '@testing http://nl.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories &\
     apk --no-cache add\
+    # go
     git make dep\
+    # webpack
     nodejs nodejs-npm yarn\
+    # aws
     aws-cli@testing\
+    # imagemin-webpack-plugin
     optipng gifsicle\
-    fftw-dev@testing vips-dev@testing\
+    # https://github.com/imagemin/gifsicle-bin/issues/79
+    autoconf automake\
+    # lovell/sharp image resizing (runtime)
+    fftw-dev vips-dev@testing\
+    # lovell/sharp image resizing (install/when yarn runs)
     g++ python2
 
 RUN yarn global add webpack webpack-cli
