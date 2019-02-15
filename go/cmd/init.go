@@ -148,8 +148,8 @@ func endingMessages(bpMessage string) {
 	err := exec.Command("direnv", "version").Run()
 	dirEnvMessage := ""
 	if err != nil {
-		dirEnvMessage = " (without direnv, you require DOCKER_WORKDIR ENV variable from .envrc file)"
-		fmt.Print("direnv not installed, please note that Makefile and Docker use the environment variables set in .envrc file.\n\n")
+		dirEnvMessage = " (without direnv, you may need to export ENV variables via. `source ./.envrc`)"
+		fmt.Print("direnv not installed, please note that Makefile and Docker use the ENV variables set in .envrc file.\n\n")
 	}
 
 	err = exec.Command("docker", "-v").Run() // # #nosec G204
@@ -169,9 +169,9 @@ func getNamepace(pwd, projectName string) (string, error) {
 	rel, err := filepath.Rel(goPathSrc, pwd)
 
 	var namespace string
-	if err != nil || strings.Index(rel, "..") == 0 {
+	if err != nil && strings.Index(rel, "..") == 0 {
 		fmt.Println("Not in $GOPATH/src. Please indicate a Go namespace.")
-		namespaceDefault := "github.com/s12chung/" + projectName
+		namespaceDefault := projectName
 		namespace, err = promptStdIn(fmt.Sprintf("Go namespace (%v)", namespaceDefault))
 		if err != nil {
 			return "", err
