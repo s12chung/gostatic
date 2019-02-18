@@ -6,7 +6,6 @@ package mocks
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	app "github.com/s12chung/gostatic/go/app"
 	router "github.com/s12chung/gostatic/go/lib/router"
 	reflect "reflect"
 )
@@ -36,6 +35,7 @@ func (m *MockSetter) EXPECT() *MockSetterMockRecorder {
 
 // AssetsURL mocks base method
 func (m *MockSetter) AssetsURL() string {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssetsURL")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -43,11 +43,13 @@ func (m *MockSetter) AssetsURL() string {
 
 // AssetsURL indicates an expected call of AssetsURL
 func (mr *MockSetterMockRecorder) AssetsURL() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssetsURL", reflect.TypeOf((*MockSetter)(nil).AssetsURL))
 }
 
 // GeneratedAssetsPath mocks base method
 func (m *MockSetter) GeneratedAssetsPath() string {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GeneratedAssetsPath")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -55,17 +57,35 @@ func (m *MockSetter) GeneratedAssetsPath() string {
 
 // GeneratedAssetsPath indicates an expected call of GeneratedAssetsPath
 func (mr *MockSetterMockRecorder) GeneratedAssetsPath() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GeneratedAssetsPath", reflect.TypeOf((*MockSetter)(nil).GeneratedAssetsPath))
 }
 
 // SetRoutes mocks base method
-func (m *MockSetter) SetRoutes(arg0 router.Router, arg1 *app.Tracker) error {
-	ret := m.ctrl.Call(m, "SetRoutes", arg0, arg1)
+func (m *MockSetter) SetRoutes(arg0 router.Router) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetRoutes", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SetRoutes indicates an expected call of SetRoutes
-func (mr *MockSetterMockRecorder) SetRoutes(arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRoutes", reflect.TypeOf((*MockSetter)(nil).SetRoutes), arg0, arg1)
+func (mr *MockSetterMockRecorder) SetRoutes(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRoutes", reflect.TypeOf((*MockSetter)(nil).SetRoutes), arg0)
+}
+
+// URLBatches mocks base method
+func (m *MockSetter) URLBatches(arg0 router.Router) ([][]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "URLBatches", arg0)
+	ret0, _ := ret[0].([][]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// URLBatches indicates an expected call of URLBatches
+func (mr *MockSetterMockRecorder) URLBatches(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "URLBatches", reflect.TypeOf((*MockSetter)(nil).URLBatches), arg0)
 }

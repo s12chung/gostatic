@@ -18,8 +18,6 @@ import (
 	"github.com/s12chung/gostatic/go/test/mocks"
 )
 
-//go:generate mockgen -destination=../test/mocks/app_setter.go -package=mocks github.com/s12chung/gostatic/go/app Setter
-
 func defaultApp(setter app.Setter, generatedPath string) (*app.App, logrus.FieldLogger, *logTest.Hook) {
 	settings := app.DefaultSettings()
 	settings.GeneratedPath = generatedPath
@@ -27,19 +25,12 @@ func defaultApp(setter app.Setter, generatedPath string) (*app.App, logrus.Field
 	return app.NewApp(setter, settings, log), log, hook
 }
 
-func setupGenerate(t *testing.T, setRoutes func(r router.Router, tracker *app.Tracker), callback func(generatedPath string)) {
-	controller := gomock.NewController(t)
-	defer controller.Finish()
-
-	setter := mocks.NewMockSetter(controller)
-	setter.EXPECT().SetRoutes(gomock.Any(), gomock.Any()).Do(setRoutes)
-
+func runGenerate(t *testing.T, setter app.Setter, callback func(generatedPath string)) {
 	generatedPath, clean := test.SandboxDir(t, "generated")
 	defer clean()
 
 	a, _, _ := defaultApp(setter, generatedPath)
-	err := a.Generate()
-	if err != nil {
+	if err := a.Generate(); err != nil {
 		t.Error(err)
 	}
 
@@ -47,24 +38,32 @@ func setupGenerate(t *testing.T, setRoutes func(r router.Router, tracker *app.Tr
 }
 
 func TestApp_Generate(t *testing.T) {
-	setupGenerate(t,
-		func(r router.Router, tracker *app.Tracker) {
-			handler := func(ctx router.Context) error {
-				ctx.Respond([]byte(ctx.URL()))
-				return nil
-			}
+	controller := gomock.NewController(t)
+	defer controller.Finish()
 
-			r.GetRootHTML(handler)
-			r.GetHTML("/dep", handler)
-			r.GetHTML("/non_dep", handler)
-			r.GetHTML("/fold/me", handler)
-			r.GetHTML("/fold/me_again", handler)
-			r.GetHTML("/fold/go.json", handler)
-			r.GetHTML("/fold/deeper/in.txt", handler)
-			r.GetHTML("/fold/deeper/out", handler)
-			r.GetHTML("/fold/deeper/with", handler)
-			tracker.AddDependentURL("/dep")
-		},
+	setter := mocks.NewMockSetter(controller)
+	setter.EXPECT().SetRoutes(gomock.Any()).Do(func(r router.Router) error {
+		handler := func(ctx router.Context) error {
+			ctx.Respond([]byte(ctx.URL()))
+			return nil
+		}
+
+		r.GetRootHTML(handler)
+		r.GetHTML("/fold/me", handler)
+		r.GetHTML("/fold/me_again", handler)
+		r.GetHTML("/fold/go.json", handler)
+		r.GetHTML("/fold/deeper/in.txt", handler)
+		r.GetHTML("/fold/deeper/out", handler)
+		r.GetHTML("/fold/deeper/with", handler)
+
+		return nil
+	})
+	setter.EXPECT().URLBatches(gomock.Any()).DoAndReturn(func(r router.Router) ([][]string, error) {
+		return [][]string{r.URLs()}, nil
+	})
+
+	runGenerate(t,
+		setter,
 		func(generatedPath string) {
 			var generatedFiles []string
 			err := filepath.Walk(generatedPath, func(path string, info os.FileInfo, err error) error {
@@ -78,8 +77,7 @@ func TestApp_Generate(t *testing.T) {
 				t.Error(err)
 			}
 
-			got := len(generatedFiles)
-			test.AssertLabel(t, "filename len", got, 9)
+			test.AssertLabel(t, "filename len", len(generatedFiles), 7)
 
 			for index, generatedFile := range generatedFiles {
 				context := test.NewContext().SetFields(test.ContextFields{
@@ -106,8 +104,11 @@ func TestApp_Generate(t *testing.T) {
 }
 
 func TestApp_Generate_Order(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
 	testCases := []struct {
-		urlDeps []bool
+		isSecond []bool
 	}{
 		{[]bool{true}},
 		{[]bool{false}},
@@ -117,42 +118,62 @@ func TestApp_Generate_Order(t *testing.T) {
 		{[]bool{true, false, false, true}},
 	}
 
+	isSecondURL := func(url string) bool {
+		return strings.Contains(url, "/second")
+	}
+
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
-			"index":   testCaseIndex,
-			"urlDeps": tc.urlDeps,
+		var requestOrder []string
+		setter := mocks.NewMockSetter(controller)
+		setter.EXPECT().SetRoutes(gomock.Any()).DoAndReturn(func(r router.Router) error {
+			handler := func(ctx router.Context) error {
+				requestOrder = append(requestOrder, ctx.URL())
+				ctx.Respond([]byte(ctx.URL()))
+				return nil
+			}
+
+			r.GetRootHTML(handler)
+
+			for i, isSecond := range tc.isSecond {
+				url := fmt.Sprintf("/first-%v", i)
+				if isSecond {
+					url = fmt.Sprintf("/second-%v", i)
+				}
+				r.GetHTML(url, handler)
+			}
+			return nil
+		})
+		setter.EXPECT().URLBatches(gomock.Any()).DoAndReturn(func(r router.Router) ([][]string, error) {
+			var first []string
+			var second []string
+
+			for _, url := range r.URLs() {
+				if isSecondURL(url) {
+					second = append(second, url)
+				} else {
+					first = append(first, url)
+				}
+			}
+			return [][]string{first, second}, nil
 		})
 
-		var requestOrder []string
-		setupGenerate(t,
-			func(r router.Router, tracker *app.Tracker) {
-				handler := func(ctx router.Context) error {
-					requestOrder = append(requestOrder, ctx.URL())
-					ctx.Respond([]byte(ctx.URL()))
-					return nil
-				}
+		context := test.NewContext().SetFields(test.ContextFields{
+			"index":    testCaseIndex,
+			"isSecond": tc.isSecond,
+		})
 
-				r.GetRootHTML(handler)
-
-				for i, dep := range tc.urlDeps {
-					url := fmt.Sprintf("/non_dep%v", i)
-					if dep {
-						url = fmt.Sprintf("/dep%v", i)
-						tracker.AddDependentURL(url)
-					}
-					r.GetHTML(url, handler)
-				}
-			},
+		runGenerate(t,
+			setter,
 			func(generatedPath string) {
-				reachedDep := false
+				test.AssertLabel(t, "requestOrder len", len(requestOrder), len(tc.isSecond)+1)
+
+				reachedSecond := false
 				for _, url := range requestOrder {
-					if strings.Contains(url, "/non_dep") {
-						if reachedDep {
-							t.Error(context.Stringf("Contains a non-dep after dep"))
-						}
+					if isSecondURL(url) {
+						reachedSecond = true
 					} else {
-						if url != router.RootURL {
-							reachedDep = true
+						if reachedSecond {
+							t.Error(context.Stringf("A /second route went before other route"))
 						}
 					}
 				}

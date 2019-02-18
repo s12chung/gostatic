@@ -34,6 +34,7 @@ func (m *MockApp) EXPECT() *MockAppMockRecorder {
 
 // FileServerPort mocks base method
 func (m *MockApp) FileServerPort() int {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FileServerPort")
 	ret0, _ := ret[0].(int)
 	return ret0
@@ -41,11 +42,13 @@ func (m *MockApp) FileServerPort() int {
 
 // FileServerPort indicates an expected call of FileServerPort
 func (mr *MockAppMockRecorder) FileServerPort() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FileServerPort", reflect.TypeOf((*MockApp)(nil).FileServerPort))
 }
 
 // Generate mocks base method
 func (m *MockApp) Generate() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Generate")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -53,11 +56,13 @@ func (m *MockApp) Generate() error {
 
 // Generate indicates an expected call of Generate
 func (mr *MockAppMockRecorder) Generate() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockApp)(nil).Generate))
 }
 
 // GeneratedPath mocks base method
 func (m *MockApp) GeneratedPath() string {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GeneratedPath")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -65,11 +70,13 @@ func (m *MockApp) GeneratedPath() string {
 
 // GeneratedPath indicates an expected call of GeneratedPath
 func (mr *MockAppMockRecorder) GeneratedPath() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GeneratedPath", reflect.TypeOf((*MockApp)(nil).GeneratedPath))
 }
 
 // Host mocks base method
 func (m *MockApp) Host() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Host")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -77,11 +84,13 @@ func (m *MockApp) Host() error {
 
 // Host indicates an expected call of Host
 func (mr *MockAppMockRecorder) Host() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Host", reflect.TypeOf((*MockApp)(nil).Host))
 }
 
 // RunFileServer mocks base method
 func (m *MockApp) RunFileServer() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RunFileServer")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -89,11 +98,13 @@ func (m *MockApp) RunFileServer() error {
 
 // RunFileServer indicates an expected call of RunFileServer
 func (mr *MockAppMockRecorder) RunFileServer() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunFileServer", reflect.TypeOf((*MockApp)(nil).RunFileServer))
 }
 
 // ServerPort mocks base method
 func (m *MockApp) ServerPort() int {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ServerPort")
 	ret0, _ := ret[0].(int)
 	return ret0
@@ -101,5 +112,6 @@ func (m *MockApp) ServerPort() int {
 
 // ServerPort indicates an expected call of ServerPort
 func (mr *MockAppMockRecorder) ServerPort() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ServerPort", reflect.TypeOf((*MockApp)(nil).ServerPort))
 }

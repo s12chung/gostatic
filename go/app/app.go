@@ -32,15 +32,15 @@ func DefaultLog() logrus.FieldLogger {
 //
 // See cli.App interface for core functions.
 type App struct {
-	routeSetter Setter
-	settings    *Settings
-	log         logrus.FieldLogger
+	Setter
+	settings *Settings
+	log      logrus.FieldLogger
 }
 
 // NewApp returns a new instance of App
-func NewApp(routeSetter Setter, settings *Settings, log logrus.FieldLogger) *App {
+func NewApp(setter Setter, settings *Settings, log logrus.FieldLogger) *App {
 	return &App{
-		routeSetter,
+		setter,
 		settings,
 		log,
 	}
@@ -64,13 +64,11 @@ func (app *App) GeneratedPath() string {
 // Host runs a web application server that computes the route responses in real time
 func (app *App) Host() error {
 	r := router.NewWebRouter(app.settings.ServerPort, app.log)
-	r.FileServe(app.routeSetter.AssetsURL(), app.routeSetter.GeneratedAssetsPath())
+	r.FileServe(app.AssetsURL(), app.GeneratedAssetsPath())
 
-	_, err := app.setRoutes(r)
-	if err != nil {
+	if err := app.setRoutes(r); err != nil {
 		return err
 	}
-
 	return r.Run()
 }
 
@@ -81,36 +79,25 @@ func (app *App) ServerPort() int {
 
 // Generate generates the static web pages concurrently.
 //
-// For speed and concurrency reasons (like file/map read/writing), this is done in two stages:
-// First, the Tracker.IndependentURLs routes are generated. After, the Tracker.DependentURLs.
-//
-// Use Tracker.AddDependentURL to generate the route's file during the second stage.
+// Generated concurrently in the batches, in the order given by Setter.URLBatches()
 func (app *App) Generate() error {
 	start := time.Now()
 	defer func() {
 		app.log.Infof("Build generated in %v.", time.Since(start))
 	}()
 
-	err := utils.MkdirAll(app.settings.GeneratedPath)
-	if err != nil {
+	if err := utils.MkdirAll(app.settings.GeneratedPath); err != nil {
 		return err
 	}
 
 	r := router.NewGenerateRouter(app.log)
-
-	routeTracker, err := app.setRoutes(r)
-	if err != nil {
+	if err := app.setRoutes(r); err != nil {
 		return err
 	}
-
-	err = app.requestRoutes(r.Requester(), routeTracker)
-	if err != nil {
-		return err
-	}
-	return nil
+	return app.requestRoutes(r)
 }
 
-func (app *App) setRoutes(r router.Router) (*Tracker, error) {
+func (app *App) setRoutes(r router.Router) error {
 	r.Around(func(ctx router.Context, handler router.ContextHandler) error {
 		ctx.SetLog(ctx.Log().WithFields(logrus.Fields{
 			"type": "routes",
@@ -132,37 +119,21 @@ func (app *App) setRoutes(r router.Router) (*Tracker, error) {
 			}
 		}()
 
-		err = handler(ctx)
-		return err
+		return handler(ctx)
 	})
 
-	routeTracker := NewTracker(r.URLs)
-	err := app.routeSetter.SetRoutes(r, routeTracker)
-	return routeTracker, err
+	return app.SetRoutes(r)
 }
 
-func (app *App) requestRoutes(requester router.Requester, tracker *Tracker) error {
-	urlBatches, err := app.urlBatches(tracker)
+func (app *App) requestRoutes(r router.Router) error {
+	urlBatches, err := app.URLBatches(r)
 	if err != nil {
 		return err
 	}
 
-	generator := newGenerator(app.settings.GeneratedPath, requester, app.settings.GeneratorSettings, app.log)
+	generator := newGenerator(app.settings.GeneratedPath, r.Requester(), app.settings.GeneratorSettings, app.log)
 	for _, urlBatch := range urlBatches {
 		generator.generate(urlBatch)
 	}
 	return nil
-}
-
-func (app *App) urlBatches(tracker *Tracker) ([][]string, error) {
-	var urlBatches [][]string
-
-	independentUrls, err := tracker.IndependentURLs()
-	if err != nil {
-		return nil, err
-	}
-
-	urlBatches = append(urlBatches, independentUrls)
-	urlBatches = append(urlBatches, tracker.DependentURLs())
-	return urlBatches, nil
 }
