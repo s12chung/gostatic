@@ -38,7 +38,7 @@ var contentTypes = map[string]string{
 	".html": "text/html; charset=utf-8",
 	".ico":  "image/x-icon",
 	".jpg":  "image/jpeg",
-	".js":   "application/x-javascript",
+	".js":   "application/javascript",
 	".png":  "image/png",
 	".svg":  "image/svg+xml",
 	".txt":  "text/plain; charset=utf-8",

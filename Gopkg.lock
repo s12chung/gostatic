@@ -41,6 +41,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/s12chung/gostatic-packages"
+  packages = ["robots"]
+  revision = "6c8d3836483be7160fee483a6e912f1dfeb886d6"
+
+[[projects]]
   name = "github.com/sirupsen/logrus"
   packages = [
     ".",
@@ -85,6 +91,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "db6da3d773aa2faf214a17ff0c06676a801c52bde7abfcb3708dbe117aa595f1"
+  inputs-digest = "1e575eb91e18b0c16b9d8c2d10642c74b0f97ceea5452f40b9464d518e07641c"
   solver-name = "gps-cdcl"
   solver-version = 1
