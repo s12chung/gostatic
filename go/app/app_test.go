@@ -15,6 +15,7 @@ import (
 	"github.com/s12chung/gostatic/go/lib/router"
 	"github.com/s12chung/gostatic/go/test"
 	"github.com/s12chung/gostatic/go/test/mocks"
+	"github.com/s12chung/gostatic/go/test/testfile"
 )
 
 func defaultApp(setter Setter, generatedPath string) (*App, logrus.FieldLogger, *logTest.Hook) {
@@ -25,7 +26,7 @@ func defaultApp(setter Setter, generatedPath string) (*App, logrus.FieldLogger, 
 }
 
 func runGenerate(t *testing.T, setter Setter, callback func(generatedPath string)) {
-	generatedPath, clean := test.SandboxDir(t, "generated")
+	generatedPath, clean := testfile.SandboxDir(t, "generated")
 	defer clean()
 
 	app, _, _ := defaultApp(setter, generatedPath)

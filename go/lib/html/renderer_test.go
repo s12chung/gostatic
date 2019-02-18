@@ -11,13 +11,15 @@ import (
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
 	"github.com/s12chung/gostatic/go/test"
+	"github.com/s12chung/gostatic/go/test/factory"
+	"github.com/s12chung/gostatic/go/test/testfile"
 )
 
-var updateFixturesPtr = test.UpdateFixtureFlag()
+var updateFixturesPtr = testfile.UpdateFixtureFlag()
 
 func defaultRenderer() (*Renderer, *logTest.Hook) {
 	settings := DefaultSettings()
-	settings.TemplatePath = test.FixturePath
+	settings.TemplatePath = testfile.FixturePath
 	log, hook := logTest.NewNullLogger()
 	return NewRenderer(settings, []Plugin{}, log), hook
 }
@@ -39,7 +41,7 @@ func TestRenderer_RenderWithLayout(t *testing.T) {
 		{"layout_with_title", "title", layoutData{"The Given", nil}},
 		{"layout_with_title", "title", layoutData{"something", nil}},
 		{"", "no_template_content", layoutData{}},
-		{"layout", "helpers", layoutData{"", map[string]interface{}{"HTML": `<span>html_data</span>`, "Date": test.Time(1)}}},
+		{"layout", "helpers", layoutData{"", map[string]interface{}{"HTML": `<span>html_data</span>`, "Date": factory.Time(1)}}},
 	}
 
 	for testCaseIndex, tc := range testCases {
@@ -63,11 +65,11 @@ func TestRenderer_RenderWithLayout(t *testing.T) {
 			fixtureName = tc.name + strconv.Itoa(testCaseIndex) + ".html"
 		}
 		if *updateFixturesPtr {
-			test.WriteFixture(t, fixtureName, []byte(got))
+			testfile.WriteFixture(t, fixtureName, []byte(got))
 			continue
 		}
 
-		exp := strings.TrimSpace(string(test.ReadFixture(t, fixtureName)))
+		exp := strings.TrimSpace(string(testfile.ReadFixture(t, fixtureName)))
 		if got != exp {
 			t.Error(context.DiffString("Result", got, exp, cmp.Diff(got, exp)))
 		}
@@ -105,11 +107,11 @@ func TestRenderer_Render_Settings(t *testing.T) {
 
 		fixtureName := fmt.Sprintf("settings%v.html", testCaseIndex)
 		if *updateFixturesPtr {
-			test.WriteFixture(t, fixtureName, []byte(got))
+			testfile.WriteFixture(t, fixtureName, []byte(got))
 			continue
 		}
 
-		exp := strings.TrimSpace(string(test.ReadFixture(t, fixtureName)))
+		exp := strings.TrimSpace(string(testfile.ReadFixture(t, fixtureName)))
 		if got != exp {
 			t.Error(context.DiffString("Result", got, exp, cmp.Diff(got, exp)))
 		}
@@ -164,11 +166,11 @@ func TestRenderer_Render_Plugins(t *testing.T) {
 		got := strings.TrimSpace(string(rendered))
 		fixtureName := "plugins.html"
 		if *updateFixturesPtr {
-			test.WriteFixture(t, fixtureName, []byte(got))
+			testfile.WriteFixture(t, fixtureName, []byte(got))
 			continue
 		}
 
-		exp := strings.TrimSpace(string(test.ReadFixture(t, fixtureName)))
+		exp := strings.TrimSpace(string(testfile.ReadFixture(t, fixtureName)))
 		if got != exp {
 			t.Error(context.DiffString("Result", got, exp, cmp.Diff(got, exp)))
 		}

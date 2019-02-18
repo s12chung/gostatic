@@ -10,9 +10,10 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/s12chung/gostatic/go/test"
+	"github.com/s12chung/gostatic/go/test/testfile"
 )
 
-var generatedPath = path.Join(test.FixturePath, "generated")
+var generatedPath = path.Join(testfile.FixturePath, "generated")
 
 var jpgResponsiveImage = &ResponsiveImage{
 	"assets/content/images/test-37a65f446db3e9da33606b7eb48721bb-325.jpg",

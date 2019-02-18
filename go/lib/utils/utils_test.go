@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/s12chung/gostatic/go/test"
+	"github.com/s12chung/gostatic/go/test/testfile"
 )
 
 func TestCleanFilePath(t *testing.T) {
@@ -96,7 +97,7 @@ func TestFilePaths(t *testing.T) {
 
 		dirPaths := make([]string, len(tc.dirPaths))
 		for i, d := range tc.dirPaths {
-			dirPaths[i] = path.Join(test.FixturePath, d)
+			dirPaths[i] = path.Join(testfile.FixturePath, d)
 		}
 
 		got, err := FilePaths(tc.ext, dirPaths...)
@@ -111,7 +112,7 @@ func TestFilePaths(t *testing.T) {
 		var exp []string
 		for relativePath, files := range tc.expected {
 			for _, file := range files {
-				exp = append(exp, path.Join(test.FixturePath, relativePath, file))
+				exp = append(exp, path.Join(testfile.FixturePath, relativePath, file))
 			}
 		}
 

@@ -14,13 +14,14 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/s12chung/gostatic/go/lib/utils"
 	"github.com/s12chung/gostatic/go/test"
+	"github.com/s12chung/gostatic/go/test/testfile"
 )
 
-var updateFixturesPtr = test.UpdateFixtureFlag()
+var updateFixturesPtr = testfile.UpdateFixtureFlag()
 
 func defaultBlueprint(t *testing.T) (*Blueprint, func()) {
-	dir, clean := test.SandboxDir(t, "")
-	return NewBlueprint(path.Join(test.FixturePath, "blueprint"), dir, "github.com/s12chung/testproject"), clean
+	dir, clean := testfile.SandboxDir(t, "")
+	return NewBlueprint(path.Join(testfile.FixturePath, "blueprint"), dir, "github.com/s12chung/testproject"), clean
 }
 
 func dirFilenames(dirPath string) ([]string, error) {
@@ -76,7 +77,7 @@ func TestBlueprint_InitProject(t *testing.T) {
 		return
 	}
 
-	expDir := path.Join(test.FixturePath, "exp")
+	expDir := path.Join(testfile.FixturePath, "exp")
 	err = fastwalk.Walk(blueprint.ProjectDir(), walkAndCompareF(t, func(p string) string {
 		return path.Join(expDir, strings.TrimPrefix(p, blueprint.ProjectDir()))
 	}))

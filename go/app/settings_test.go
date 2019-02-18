@@ -7,10 +7,12 @@ import (
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
 	"github.com/s12chung/gostatic/go/test"
+	"github.com/s12chung/gostatic/go/test/settings"
+	"github.com/s12chung/gostatic/go/test/testfile"
 )
 
 func TestDefaultSettings(t *testing.T) {
-	test.EnvSetting(t, "GENERATED_PATH", "./generated", func() string {
+	settings.EnvSetting(t, "GENERATED_PATH", "./generated", func() string {
 		return DefaultSettings().GeneratedPath
 	})
 }
@@ -48,7 +50,7 @@ func TestSettingsFromFile(t *testing.T) {
 		})
 		log, hook := logTest.NewNullLogger()
 
-		SettingsFromFile(path.Join(test.FixturePath, tc.path), tc.settings, log)
+		SettingsFromFile(path.Join(testfile.FixturePath, tc.path), tc.settings, log)
 
 		got := test.SafeLogEntries(hook)
 		if got != tc.safeLogEntries {

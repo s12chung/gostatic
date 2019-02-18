@@ -16,6 +16,7 @@ import (
 
 	"github.com/s12chung/gostatic/go/lib/utils"
 	"github.com/s12chung/gostatic/go/test"
+	"github.com/s12chung/gostatic/go/test/testfile"
 )
 
 func defaultWebRouter() (*WebRouter, logrus.FieldLogger, *logTest.Hook) {
@@ -66,11 +67,11 @@ func (setup *WebRouterSetup) Requester(router Router) Requester {
 
 func TestWebRouter_FileServe(t *testing.T) {
 	router, _, _ := defaultWebRouter()
-	router.FileServe(fmt.Sprintf("/%v/", utils.CleanFilePath(test.FixturePath)), test.FixturePath)
+	router.FileServe(fmt.Sprintf("/%v/", utils.CleanFilePath(testfile.FixturePath)), testfile.FixturePath)
 
 	setup := NewWebRouterSetup()
 	setup.RunServer(router, func() {
-		filePaths, err := utils.FilePaths("", test.FixturePath)
+		filePaths, err := utils.FilePaths("", testfile.FixturePath)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -84,7 +85,7 @@ func TestWebRouter_FileServe(t *testing.T) {
 				"index":    index,
 				"filePath": filePath,
 			})
-			response, err := requester.Get("/" + strings.Join([]string{utils.CleanFilePath(test.FixturePath), path.Base(filePath)}, "/"))
+			response, err := requester.Get("/" + strings.Join([]string{utils.CleanFilePath(testfile.FixturePath), path.Base(filePath)}, "/"))
 			if err != nil {
 				t.Error(context.String(err))
 			}
@@ -92,7 +93,7 @@ func TestWebRouter_FileServe(t *testing.T) {
 			ext := path.Ext(filePath)
 			context.Assert("mimeType", response.MimeType, contentTypes[ext])
 
-			expBody, err := ioutil.ReadFile(path.Join(test.FixturePath, path.Base(filePath)))
+			expBody, err := ioutil.ReadFile(path.Join(testfile.FixturePath, path.Base(filePath)))
 			if err != nil {
 				t.Error(context.String(err))
 			}
@@ -105,7 +106,7 @@ func TestWebRouter_FileServe(t *testing.T) {
 
 func TestWebRouter_FileServe_PathChecks(t *testing.T) {
 	router, _, _ := defaultWebRouter()
-	router.FileServe(fmt.Sprintf("/%v/", utils.CleanFilePath(test.FixturePath)), test.FixturePath)
+	router.FileServe(fmt.Sprintf("/%v/", utils.CleanFilePath(testfile.FixturePath)), testfile.FixturePath)
 
 	setup := NewWebRouterSetup()
 	setup.RunServer(router, func() {
@@ -128,7 +129,7 @@ func TestWebRouter_FileServe_PathChecks(t *testing.T) {
 				"url":   tc.url,
 			})
 
-			_, err := requester.Get("/" + strings.Join([]string{utils.CleanFilePath(test.FixturePath), tc.url}, "/"))
+			_, err := requester.Get("/" + strings.Join([]string{utils.CleanFilePath(testfile.FixturePath), tc.url}, "/"))
 			if err != nil {
 				if tc.hasError {
 					continue
