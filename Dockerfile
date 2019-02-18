@@ -1,11 +1,11 @@
 FROM golang:1.11-alpine3.9
 
 ARG DOCKER_WORKDIR
+ENV GO111MODULE on
 
 RUN apk --no-cache add\
     git \
     make \
-    dep \
     # for golangci-lint linters
     build-base
 

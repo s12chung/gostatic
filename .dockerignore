@@ -1,4 +1,9 @@
 .idea
-
-blueprint
 vendor
+
+blueprint/.idea
+blueprint/vendor
+blueprint/node_modules
+blueprint/generated
+blueprint/logs
+blueprint/cache

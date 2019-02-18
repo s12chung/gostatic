@@ -1,5 +1,6 @@
 install:
-	dep ensure
+	go install ./blueprint/...
+	go install ./go/...
 
 test:
 	go test ./go/...
@@ -33,7 +34,7 @@ docker.build:
 docker: docker.build
 	docker run --rm $(DOCKER_RUN_ARGS) $(WHAT)
 
-docker.dev:
+docker.dev: docker.build
 	docker run --rm -i -v "$$(pwd)":$(DOCKER_WORKDIR):cached $(DOCKER_RUN_ARGS) ash
 
 docker.test-report: docker.build
