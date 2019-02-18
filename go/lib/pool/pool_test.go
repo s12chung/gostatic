@@ -26,7 +26,7 @@ func TestPool(t *testing.T) {
 
 	log, _ := logTest.NewNullLogger()
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":            testCaseIndex,
 			"tasksWithSuccess": tc.tasksWithSuccess,
 		})
@@ -47,9 +47,7 @@ func TestPool(t *testing.T) {
 		p := NewPool(tasks, 10)
 		p.Run()
 
-		if runCount != len(tc.tasksWithSuccess) {
-			t.Error(context.GotExpString("runCount", runCount, len(tc.tasksWithSuccess)))
-		}
+		context.Assert("runCount", runCount, len(tc.tasksWithSuccess))
 
 		errorCount := 0
 		p.EachError(func(task *Task) {

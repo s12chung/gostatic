@@ -80,7 +80,7 @@ func TestWebRouter_FileServe(t *testing.T) {
 
 		requester := setup.Requester(router)
 		for index, filePath := range filePaths {
-			context := test.NewContext().SetFields(test.ContextFields{
+			context := test.NewContext(t).SetFields(test.ContextFields{
 				"index":    index,
 				"filePath": filePath,
 			})
@@ -90,16 +90,14 @@ func TestWebRouter_FileServe(t *testing.T) {
 			}
 
 			ext := path.Ext(filePath)
-			if response.MimeType != contentTypes[ext] {
-				t.Error(context.GotExpString("mimeType", response.MimeType, contentTypes[ext]))
-			}
+			context.Assert("mimeType", response.MimeType, contentTypes[ext])
 
 			expBody, err := ioutil.ReadFile(path.Join(test.FixturePath, path.Base(filePath)))
 			if err != nil {
 				t.Error(context.String(err))
 			}
 			if !cmp.Equal(response.Body, expBody) {
-				t.Error(context.GotExpString("Response.Body", response.Body, expBody))
+				t.Error(context.AssertString("Response.Body", response.Body, expBody))
 			}
 		}
 	})
@@ -125,7 +123,7 @@ func TestWebRouter_FileServe_PathChecks(t *testing.T) {
 		}
 
 		for index, tc := range testCases {
-			context := test.NewContext().SetFields(test.ContextFields{
+			context := test.NewContext(t).SetFields(test.ContextFields{
 				"index": index,
 				"url":   tc.url,
 			})

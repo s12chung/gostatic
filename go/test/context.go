@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"testing"
 )
 
 // ContextFields is the fields of the context
@@ -11,13 +12,16 @@ type ContextFields map[string]interface{}
 
 // Context represents a context of a test loop
 type Context struct {
+	t            *testing.T
 	fields       ContextFields
 	fieldsString string
 }
 
 // NewContext returns a new Context
-func NewContext() *Context {
-	return &Context{}
+func NewContext(t *testing.T) *Context {
+	context := &Context{t: t}
+	context.SetFields(ContextFields{})
+	return context
 }
 
 // SetFields sets the fields of Context
@@ -56,12 +60,19 @@ func (context *Context) Stringf(format string, args ...interface{}) string {
 	return strings.Join([]string{context.FieldsString(), fmt.Sprintf(format, args...)}, " - ")
 }
 
-// GotExpString is String() for assertions
-func (context *Context) GotExpString(label string, got, exp interface{}) string {
+// AssertString is String() for assertions
+func (context *Context) AssertString(label string, got, exp interface{}) string {
 	return context.String(AssertLabelString(label, got, exp))
 }
 
 // DiffString is String() for diffs
 func (context *Context) DiffString(label string, got, exp, diff interface{}) string {
 	return context.Stringf(DiffString(label, got, exp, diff))
+}
+
+// Assert is String() for diffs
+func (context *Context) Assert(label string, got, exp interface{}) {
+	if got != exp {
+		context.t.Error(context.AssertString(label, got, exp))
+	}
 }

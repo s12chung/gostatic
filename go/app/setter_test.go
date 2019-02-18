@@ -11,7 +11,7 @@ import (
 	logTest "github.com/sirupsen/logrus/hooks/test"
 )
 
-func setupRouter(t *testing.T, setRoutes func(r router.Router)) (*logTest.Hook, *router.Response, error) {
+func setupRouter(setRoutes func(r router.Router)) (*logTest.Hook, *router.Response, error) {
 	log, hook := logTest.NewNullLogger()
 
 	r := router.NewGenerateRouter(log)
@@ -30,12 +30,12 @@ func TestSetDefaultAroundHandlers(t *testing.T) {
 	}
 
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":   testCaseIndex,
 			"content": tc.content,
 		})
 
-		hook, response, err := setupRouter(t, func(r router.Router) {
+		hook, response, err := setupRouter(func(r router.Router) {
 			r.GetRootHTML(func(ctx router.Context) error {
 				if tc.content == "" {
 					return fmt.Errorf("err")
@@ -46,10 +46,7 @@ func TestSetDefaultAroundHandlers(t *testing.T) {
 			SetDefaultAroundHandlers(r)
 		})
 
-		if len(hook.AllEntries()) != 2 {
-			t.Error(context.GotExpString("logEntries", len(hook.AllEntries()), 2))
-		}
-
+		context.Assert("logEntries", len(hook.AllEntries()), 2)
 		if tc.content == "" {
 			if err == nil {
 				t.Error(context.String("request did not return err"))
@@ -57,16 +54,12 @@ func TestSetDefaultAroundHandlers(t *testing.T) {
 
 			exp := []logrus.Level{logrus.InfoLevel, logrus.ErrorLevel}
 			if !cmp.Equal(test.LogEntryLevels(hook), exp) {
-				t.Error(context.GotExpString("Log.Entry.Levels", test.LogEntryLevels(hook), exp))
+				t.Error(context.AssertString("Log.Entry.Levels", test.LogEntryLevels(hook), exp))
 			}
 
 		} else {
-			if string(response.Body) != tc.content {
-				t.Error(context.GotExpString("response", string(response.Body), tc.content))
-			}
-			if test.SafeLogEntries(hook) != true {
-				t.Error(context.GotExpString("SafeLogEntries", test.SafeLogEntries(hook), true))
-			}
+			context.Assert("response", string(response.Body), tc.content)
+			context.Assert("SafeLogEntries", test.SafeLogEntries(hook), true)
 		}
 
 		entryTestCases := []struct {
@@ -78,20 +71,12 @@ func TestSetDefaultAroundHandlers(t *testing.T) {
 
 		for i, entryTc := range entryTestCases {
 			entry := hook.AllEntries()[i]
-			if len(entry.Data) != entryTc.dataLength {
-				t.Error(context.GotExpString(fmt.Sprintf("Log.Entry[%v].Data", i), len(entry.Data), entryTc.dataLength))
-			}
-			if entry.Data["type"] != logRouteType {
-				t.Error(context.GotExpString(fmt.Sprintf("Log.Entry[%v].Data.type", i), entry.Data["type"], logRouteType))
-			}
-			if entry.Data["URL"] != router.RootURL {
-				t.Error(context.GotExpString(fmt.Sprintf("Log.Entry[%v].Data.URL", i), entry.Data["URL"], router.RootURL))
-			}
+			context.Assert(fmt.Sprintf("Log.Entry[%v].Data", i), len(entry.Data), entryTc.dataLength)
+			context.Assert(fmt.Sprintf("Log.Entry[%v].Data.type", i), entry.Data["type"], LogRouteType)
+			context.Assert(fmt.Sprintf("Log.Entry[%v].Data.URL", i), entry.Data["URL"], router.RootURL)
 		}
 
 		_, exists := hook.AllEntries()[1].Data["duration"]
-		if exists != true {
-			t.Error(context.GotExpString("Log.Entry[1].Data.duration.exists", exists, true))
-		}
+		context.Assert("Log.Entry[1].Data.duration.exists", exists, true)
 	}
 }

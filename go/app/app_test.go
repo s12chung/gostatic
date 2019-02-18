@@ -79,7 +79,7 @@ func TestApp_Generate(t *testing.T) {
 			test.AssertLabel(t, "filename len", len(generatedFiles), 7)
 
 			for index, generatedFile := range generatedFiles {
-				context := test.NewContext().SetFields(test.ContextFields{
+				context := test.NewContext(t).SetFields(test.ContextFields{
 					"index":         index,
 					"generatedFile": generatedFile,
 				})
@@ -94,9 +94,7 @@ func TestApp_Generate(t *testing.T) {
 				if exp == "/index.html" {
 					exp = "/"
 				}
-				if got != exp {
-					t.Error(context.GotExpString("File Contents", got, exp))
-				}
+				context.Assert("File Contents", got, exp)
 			}
 		},
 	)
@@ -156,7 +154,7 @@ func TestApp_Generate_Order(t *testing.T) {
 			return [][]string{first, second}, nil
 		})
 
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":    testCaseIndex,
 			"isSecond": tc.isSecond,
 		})

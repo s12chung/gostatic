@@ -18,23 +18,6 @@ import (
 // FixturePath is the path of the fixtures
 const FixturePath = "./testdata"
 
-// IfError calls t.Error if err != nil
-func IfError(t *testing.T, err error) {
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-// AssertInput calls AssertLabel, but sets the context based on input
-func AssertInput(t *testing.T, input, got, exp interface{}) {
-	context := NewContext().SetFields(ContextFields{
-		"input": input,
-	})
-	if got != exp {
-		t.Error(context.GotExpString("Result", got, exp))
-	}
-}
-
 // AssertLabel does a simple assertion
 func AssertLabel(t *testing.T, label string, got, exp interface{}) {
 	if got != exp {
@@ -63,7 +46,7 @@ func EnvSetting(t *testing.T, envKey, defaultValue string, callDefaultSettings f
 	}
 
 	for testCaseIndex, tc := range testCases {
-		context := NewContext().SetFields(ContextFields{
+		context := NewContext(t).SetFields(ContextFields{
 			"index": testCaseIndex,
 			"env":   tc.env,
 		})
@@ -72,10 +55,7 @@ func EnvSetting(t *testing.T, envKey, defaultValue string, callDefaultSettings f
 		if err != nil {
 			t.Error(err)
 		}
-		got := callDefaultSettings()
-		if got != tc.exp {
-			t.Error(context.GotExpString("Result", got, tc.exp))
-		}
+		context.Assert("Result", callDefaultSettings(), tc.exp)
 	}
 	err := os.Setenv(envKey, "")
 	if err != nil {

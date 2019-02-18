@@ -41,7 +41,7 @@ func TestSettingsFromFile(t *testing.T) {
 	}
 
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":      testCaseIndex,
 			"path":       tc.path,
 			"structName": tc.structName,
@@ -53,7 +53,7 @@ func TestSettingsFromFile(t *testing.T) {
 		got := test.SafeLogEntries(hook)
 		if got != tc.safeLogEntries {
 			test.PrintLogEntries(t, hook)
-			t.Error(context.GotExpString("SafeLogEntries", got, tc.safeLogEntries))
+			t.Error(context.AssertString("SafeLogEntries", got, tc.safeLogEntries))
 		}
 		if len(hook.AllEntries()) > 0 {
 			continue

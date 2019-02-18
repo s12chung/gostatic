@@ -191,7 +191,7 @@ func TestRouter_Around(t *testing.T) {
 		for testCaseIndex, tc := range testCases {
 			got = nil
 			previousContext = nil
-			context := test.NewContext().SetFields(test.ContextFields{
+			context := test.NewContext(t).SetFields(test.ContextFields{
 				"index":       testCaseIndex,
 				"handlersLen": len(tc.handlers),
 			})
@@ -214,7 +214,7 @@ func TestRouter_Around(t *testing.T) {
 					t.Error(context.String(err))
 				}
 				if !cmp.Equal(got, tc.expected) {
-					t.Error(context.GotExpString("state", got, tc.expected))
+					t.Error(context.AssertString("state", got, tc.expected))
 				}
 			})
 		}
@@ -341,7 +341,7 @@ func testRouterSlash(t *testing.T, setup RouterSetup, url string, setRoute func(
 	}
 
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":      testCaseIndex,
 			"routeURL":   tc.routeURL,
 			"requestURL": tc.requestURL,
@@ -364,7 +364,7 @@ func testRouterSlash(t *testing.T, setup RouterSetup, url string, setRoute func(
 func TestRouter_URLs(t *testing.T) {
 	eachRouterSetup(t, func(setup RouterSetup) {
 		for testCaseIndex, allGetType := range AllGetTypesVaried {
-			context := test.NewContext().SetFields(test.ContextFields{
+			context := test.NewContext(t).SetFields(test.ContextFields{
 				"index":       testCaseIndex,
 				"htmlRoutes":  allGetType.htmlRoutes,
 				"otherRoutes": allGetType.otherRoutes,
@@ -384,7 +384,7 @@ func TestRouter_URLs(t *testing.T) {
 			sort.Strings(exp)
 
 			if !cmp.Equal(got, exp) {
-				t.Error(context.GotExpString("Result", got, exp))
+				t.Error(context.AssertString("Result", got, exp))
 			}
 		}
 	})
@@ -399,7 +399,7 @@ func TestRequester_Get(t *testing.T) {
 			requester := setup.Requester(router)
 			for getIndex, allGetTypeWithResponse := range AllGetTypesWithResponse {
 				pattern := allGetTypeWithResponse.pattern
-				context := test.NewContext().SetFields(test.ContextFields{
+				context := test.NewContext(t).SetFields(test.ContextFields{
 					"index":    getIndex,
 					"pattern":  pattern,
 					"mimeType": allGetTypeWithResponse.mimeType,
@@ -411,17 +411,8 @@ func TestRequester_Get(t *testing.T) {
 					t.Errorf(context.String(err))
 				}
 
-				got := string(response.Body)
-				exp := allGetTypeWithResponse.response
-				if got != exp {
-					t.Error(context.GotExpString("Response.Body", got, exp))
-				}
-
-				got = response.MimeType
-				exp = allGetTypeWithResponse.mimeType
-				if got != exp {
-					t.Error(context.GotExpString("Response.ContentType", got, exp))
-				}
+				context.Assert("Response.Body", string(response.Body), allGetTypeWithResponse.response)
+				context.Assert("Response.ContentType", response.MimeType, allGetTypeWithResponse.mimeType)
 
 				if pattern != RootURL {
 					_, err := requester.Get(pattern[1:])
@@ -460,7 +451,7 @@ func TestRequester_GetBadFolder(t *testing.T) {
 		}
 
 		for testCaseIndex, tc := range testCases {
-			context := test.NewContext().SetFields(test.ContextFields{
+			context := test.NewContext(t).SetFields(test.ContextFields{
 				"index": testCaseIndex,
 				"urls":  tc.urls,
 			})

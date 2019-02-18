@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"path"
 	"sort"
 	"testing"
@@ -27,7 +28,7 @@ func TestCleanFilePath(t *testing.T) {
 
 	for _, tc := range testCases {
 		got := CleanFilePath(tc.input)
-		test.AssertInput(t, tc.input, got, tc.expected)
+		test.AssertLabel(t, tc.input, got, tc.expected)
 	}
 }
 
@@ -43,7 +44,7 @@ func TestToSimpleQuery(t *testing.T) {
 
 	for _, tc := range testCases {
 		got := ToSimpleQuery(tc.input)
-		test.AssertInput(t, tc.input, got, tc.expected)
+		test.AssertLabel(t, fmt.Sprintf("input: %v", tc.input), got, tc.expected)
 	}
 }
 
@@ -60,7 +61,7 @@ func TestSliceList(t *testing.T) {
 
 	for _, tc := range testCases {
 		got := SliceList(tc.input)
-		test.AssertInput(t, tc.input, got, tc.expected)
+		test.AssertLabel(t, fmt.Sprintf("input: %v", tc.input), got, tc.expected)
 	}
 }
 
@@ -87,7 +88,7 @@ func TestFilePaths(t *testing.T) {
 	}
 
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":    testCaseIndex,
 			"ext":      tc.ext,
 			"dirPaths": tc.dirPaths,

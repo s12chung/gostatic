@@ -24,14 +24,11 @@ func TestHasResponsiveExt(t *testing.T) {
 	}
 
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":       testCaseIndex,
 			"originalSrc": tc.originalSrc,
 		})
-		got := HasResponsiveExt(tc.originalSrc)
-		if got != tc.exp {
-			t.Error(context.GotExpString("result", got, tc.exp))
-		}
+		context.Assert("result", HasResponsiveExt(tc.originalSrc), tc.exp)
 	}
 }
 
@@ -48,7 +45,7 @@ func TestResponsive_GetResponsiveImage(t *testing.T) {
 	}
 
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":       testCaseIndex,
 			"originalSrc": tc.originalSrc,
 		})
@@ -57,7 +54,7 @@ func TestResponsive_GetResponsiveImage(t *testing.T) {
 		got := responsive.GetResponsiveImage(tc.originalSrc)
 
 		if !cmp.Equal(got, tc.exp) {
-			t.Error(context.GotExpString("result", got, tc.exp))
+			t.Error(context.AssertString("result", got, tc.exp))
 		}
 	}
 }

@@ -21,13 +21,14 @@ type Setter interface {
 	GeneratedAssetsPath() string
 }
 
-const logRouteType = "routes"
+// LogRouteType is the value set for "type" in the logs given by SetDefaultAroundHandlers
+const LogRouteType = "routes"
 
 // SetDefaultAroundHandlers adds the default around handlers on the route
 func SetDefaultAroundHandlers(r router.Router) {
 	r.Around(func(ctx router.Context, handler router.ContextHandler) error {
 		ctx.SetLog(ctx.Log().WithFields(logrus.Fields{
-			"type": logRouteType,
+			"type": LogRouteType,
 			"URL":  ctx.URL(),
 		}))
 		ctx.Log().Infof("Running route")

@@ -28,7 +28,7 @@ func TestManifest_ManifestUrl(t *testing.T) {
 	}
 
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":        testCaseIndex,
 			"assetsFolder": tc.assetsFolder,
 			"key":          tc.key,
@@ -36,13 +36,7 @@ func TestManifest_ManifestUrl(t *testing.T) {
 
 		manifest, hook := defaultManifest()
 		manifest.assetsFolder = tc.assetsFolder
-		got := manifest.ManifestURL(tc.key)
-
-		if got != tc.exp {
-			t.Error(context.GotExpString("Result", got, tc.exp))
-		}
-		if test.SafeLogEntries(hook) != tc.safeLog {
-			t.Error(context.GotExpString("test.SafeLogEntries(hook)", test.SafeLogEntries(hook), tc.safeLog))
-		}
+		context.Assert("Result", manifest.ManifestURL(tc.key), tc.exp)
+		context.Assert("test.SafeLogEntries(hook)", test.SafeLogEntries(hook), tc.safeLog)
 	}
 }

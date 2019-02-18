@@ -43,7 +43,7 @@ func TestRenderer_RenderWithLayout(t *testing.T) {
 	}
 
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":      testCaseIndex,
 			"layoutName": tc.layoutName,
 			"name":       tc.name,
@@ -86,7 +86,7 @@ func TestRenderer_Render_Settings(t *testing.T) {
 	}
 
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":       testCaseIndex,
 			"layoutName":  tc.layoutName,
 			"templateExt": tc.templateExt,
@@ -145,7 +145,7 @@ func TestRenderer_Render_Plugins(t *testing.T) {
 	}
 
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":   testCaseIndex,
 			"plugins": tc.plugins,
 		})

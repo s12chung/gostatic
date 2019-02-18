@@ -67,7 +67,7 @@ func TestWebpack_GetResponsiveImage(t *testing.T) {
 	}
 
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":       testCaseIndex,
 			"originalSrc": tc.originalSrc,
 			"unsafeLog":   tc.unsafeLog,
@@ -75,11 +75,11 @@ func TestWebpack_GetResponsiveImage(t *testing.T) {
 
 		got := webpack.GetResponsiveImage(tc.originalSrc)
 		if !cmp.Equal(got, tc.expected) {
-			t.Error(context.GotExpString("result", got, tc.expected))
+			t.Error(context.AssertString("result", got, tc.expected))
 		}
 		if test.SafeLogEntries(hook) == tc.unsafeLog {
 			test.PrintLogEntries(t, hook)
-			t.Error(context.GotExpString("test.SafeLogEntries(hook)", test.SafeLogEntries(hook), tc.unsafeLog))
+			t.Error(context.AssertString("test.SafeLogEntries(hook)", test.SafeLogEntries(hook), tc.unsafeLog))
 		}
 	}
 }
@@ -104,7 +104,7 @@ func TestWebpack_ReplaceResponsiveAttrs(t *testing.T) {
 	}
 
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":         testCaseIndex,
 			"imageFilename": tc.imageFilename,
 			"srcPrefix":     tc.srcPrefix,
@@ -125,11 +125,11 @@ func TestWebpack_ReplaceResponsiveAttrs(t *testing.T) {
 			if i == 1 && tc.skipEmptyNamespace {
 				continue
 			}
-
-			got := webpack.ReplaceResponsiveAttrs(stc.srcPrefix, stc.input)
-			if got != tc.expected {
-				t.Error(context.GotExpString(fmt.Sprintf("result with srcPrefix: %v", stc.srcPrefix), got, tc.expected))
-			}
+			context.Assert(
+				fmt.Sprintf("result with srcPrefix: %v", stc.srcPrefix),
+				webpack.ReplaceResponsiveAttrs(stc.srcPrefix, stc.input),
+				tc.expected,
+			)
 		}
 	}
 }

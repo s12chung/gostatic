@@ -23,7 +23,7 @@ func TestRunDefault(t *testing.T) {
 		{[]string{"-file-server", "-blah"}, ""},
 	}
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index":        testCaseIndex,
 			"args":         tc.args,
 			"functionName": tc.functionName,

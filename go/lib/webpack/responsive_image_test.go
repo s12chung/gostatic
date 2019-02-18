@@ -94,7 +94,7 @@ func TestResponsiveImage_ChangeSrcPrefix(t *testing.T) {
 		}
 
 		for _, prefix := range prefixes {
-			context := test.NewContext().SetFields(test.ContextFields{
+			context := test.NewContext(t).SetFields(test.ContextFields{
 				"index":  testCaseIndex,
 				"img":    tc.img,
 				"prefix": prefix,
@@ -114,11 +114,9 @@ func TestResponsiveImage_ChangeSrcPrefix(t *testing.T) {
 			exp.SrcSet = strings.Replace(exp.SrcSet, placeholder, fullPrefix, -1)
 
 			if !cmp.Equal(got, exp) {
-				t.Error(context.GotExpString("Result", got, exp))
+				t.Error(context.AssertString("Result", got, exp))
 			}
-			if test.SafeLogEntries(hook) != tc.safeLog {
-				t.Error(context.GotExpString("test.SafeLogEntries(hook)", test.SafeLogEntries(hook), tc.safeLog))
-			}
+			context.Assert("test.SafeLogEntries(hook)", test.SafeLogEntries(hook), tc.safeLog)
 		}
 	}
 }
@@ -152,14 +150,10 @@ func TestResponsiveImage_HtmlAttrs(t *testing.T) {
 	}
 
 	for testCaseIndex, tc := range testCases {
-		context := test.NewContext().SetFields(test.ContextFields{
+		context := test.NewContext(t).SetFields(test.ContextFields{
 			"index": testCaseIndex,
 			"img":   tc.img,
 		})
-
-		got := tc.img.HTMLAttrs()
-		if got != tc.exp {
-			t.Error(context.GotExpString("Result", got, tc.exp))
-		}
+		context.Assert("Result", tc.img.HTMLAttrs(), tc.exp)
 	}
 }

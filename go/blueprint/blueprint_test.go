@@ -36,23 +36,42 @@ func dirFilenames(dirPath string) ([]string, error) {
 	return filenames, nil
 }
 
-func TestBlueprint_InitProject(t *testing.T) {
-	blueprint, clean := defaultBlueprint(t)
-	defer clean()
-
+func setupGitIgnore(t *testing.T, blueprint *Blueprint) (func(), error) {
 	gitIgnoreFilePath := path.Join(blueprint.srcDir, gitIgnoreFilename)
 	testGitIgnorePath := path.Join(blueprint.srcDir, gitIgnoreFilename+".test")
+
 	err := utils.CopyFile(testGitIgnorePath, gitIgnoreFilePath)
-	defer func() { test.IfError(t, os.Remove(gitIgnoreFilePath)) }()
-	if err != nil {
-		t.Error(err)
-		return
+	clean := func() {
+		if e := os.Remove(gitIgnoreFilePath); e != nil {
+			t.Error(e)
+		}
 	}
+	if err != nil {
+		return clean, err
+	}
+
 	err = os.Remove(testGitIgnorePath)
 	if err != nil {
 		t.Error(err)
 	}
-	defer func() { test.IfError(t, utils.CopyFile(gitIgnoreFilePath, testGitIgnorePath)) }()
+	return func() {
+		if e := utils.CopyFile(gitIgnoreFilePath, testGitIgnorePath); e != nil {
+			t.Error(e)
+		}
+		clean()
+	}, nil
+}
+
+func TestBlueprint_InitProject(t *testing.T) {
+	blueprint, clean := defaultBlueprint(t)
+	defer clean()
+
+	cleanGitIgnore, err := setupGitIgnore(t, blueprint)
+	defer cleanGitIgnore()
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	msg, err := blueprint.NewProject()
 	if err != nil {
