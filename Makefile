@@ -20,7 +20,7 @@ test-integration:
 test-all: test test-integration
 
 mock:
-	go install ./vendor/github.com/golang/mock/mockgen
+	go install github.com/golang/mock/mockgen
 	go generate ./go/...
 
 DOCKER_TAG := gostatic
