@@ -1,4 +1,4 @@
-package app_test
+package app
 
 import (
 	"fmt"
@@ -12,25 +12,24 @@ import (
 	"github.com/sirupsen/logrus"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
-	"github.com/s12chung/gostatic/go/app"
 	"github.com/s12chung/gostatic/go/lib/router"
 	"github.com/s12chung/gostatic/go/test"
 	"github.com/s12chung/gostatic/go/test/mocks"
 )
 
-func defaultApp(setter app.Setter, generatedPath string) (*app.App, logrus.FieldLogger, *logTest.Hook) {
-	settings := app.DefaultSettings()
+func defaultApp(setter Setter, generatedPath string) (*App, logrus.FieldLogger, *logTest.Hook) {
+	settings := DefaultSettings()
 	settings.GeneratedPath = generatedPath
 	log, hook := logTest.NewNullLogger()
-	return app.NewApp(setter, settings, log), log, hook
+	return NewApp(setter, settings, log), log, hook
 }
 
-func runGenerate(t *testing.T, setter app.Setter, callback func(generatedPath string)) {
+func runGenerate(t *testing.T, setter Setter, callback func(generatedPath string)) {
 	generatedPath, clean := test.SandboxDir(t, "generated")
 	defer clean()
 
-	a, _, _ := defaultApp(setter, generatedPath)
-	if err := a.Generate(); err != nil {
+	app, _, _ := defaultApp(setter, generatedPath)
+	if err := app.Generate(); err != nil {
 		t.Error(err)
 	}
 
