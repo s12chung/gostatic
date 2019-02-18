@@ -1,6 +1,10 @@
 package app
 
-import "github.com/s12chung/gostatic/go/lib/router"
+import (
+	"github.com/s12chung/gostatic/go/lib/router"
+	"github.com/sirupsen/logrus"
+	"time"
+)
 
 // Setter is an interface for App to talk to your code and set routes.
 type Setter interface {
@@ -15,4 +19,34 @@ type Setter interface {
 	AssetsURL() string
 	// GeneratedAssetsPath is the local file path of the generated assets
 	GeneratedAssetsPath() string
+}
+
+const logRouteType = "routes"
+
+// SetDefaultAroundHandlers adds the default around handlers on the route
+func SetDefaultAroundHandlers(r router.Router) {
+	r.Around(func(ctx router.Context, handler router.ContextHandler) error {
+		ctx.SetLog(ctx.Log().WithFields(logrus.Fields{
+			"type": logRouteType,
+			"URL":  ctx.URL(),
+		}))
+		ctx.Log().Infof("Running route")
+
+		var err error
+		start := time.Now()
+		defer func() {
+			log := ctx.Log().WithField("duration", time.Since(start))
+
+			ending := " for route"
+			if err != nil {
+				log.Errorf("Error"+ending+" - %v", err)
+				return
+			}
+
+			log.Infof("Success" + ending)
+		}()
+
+		err = handler(ctx)
+		return err
+	})
 }

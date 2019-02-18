@@ -4,7 +4,6 @@ Package app glues your routes together to generate files concurrently or host th
 package app
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -98,30 +97,6 @@ func (app *App) Generate() error {
 }
 
 func (app *App) setRoutes(r router.Router) error {
-	r.Around(func(ctx router.Context, handler router.ContextHandler) error {
-		ctx.SetLog(ctx.Log().WithFields(logrus.Fields{
-			"type": "routes",
-			"URL":  ctx.URL(),
-		}))
-
-		var err error
-
-		ctx.Log().Infof("Running route")
-		start := time.Now()
-		defer func() {
-			ending := fmt.Sprintf(" for route")
-
-			log := ctx.Log().WithField("time", time.Since(start))
-			if err != nil {
-				log.Errorf("Error"+ending+" - %v", err)
-			} else {
-				log.Infof("Success" + ending)
-			}
-		}()
-
-		return handler(ctx)
-	})
-
 	return app.SetRoutes(r)
 }
 

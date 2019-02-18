@@ -28,3 +28,12 @@ func SafeLogEntries(hook *logTest.Hook) bool {
 	}
 	return true
 }
+
+// LogEntryLevels returns an array of all the log levels of the entries
+func LogEntryLevels(hook *logTest.Hook) []logrus.Level {
+	var levels []logrus.Level
+	for _, entry := range hook.AllEntries() {
+		levels = append(levels, entry.Level)
+	}
+	return levels
+}
