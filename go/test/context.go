@@ -76,3 +76,10 @@ func (context *Context) Assert(label string, got, exp interface{}) {
 		context.t.Error(context.AssertString(label, got, exp))
 	}
 }
+
+// AssertError checks if there's an error and reports it
+func (context *Context) AssertError(err error, label string) {
+	if err != nil {
+		context.t.Error(AssertErrorString(err, context.String(label)))
+	}
+}

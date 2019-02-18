@@ -290,9 +290,7 @@ func testRouterContext(t *testing.T, setup RouterSetup, url, contentType string,
 	})
 	setup.RunServer(router, func() {
 		response, err := setup.Requester(router).Get(url)
-		if err != nil {
-			t.Error(err)
-		}
+		test.AssertError(t, err, "setup.Requester")
 		test.AssertLabel(t, "response", string(response.Body), expResponse)
 		test.AssertLabel(t, "called", called, true)
 	})

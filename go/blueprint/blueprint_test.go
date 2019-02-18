@@ -41,23 +41,14 @@ func setupGitIgnore(t *testing.T, blueprint *Blueprint) (func(), error) {
 	testGitIgnorePath := path.Join(blueprint.srcDir, gitIgnoreFilename+".test")
 
 	err := utils.CopyFile(testGitIgnorePath, gitIgnoreFilePath)
-	clean := func() {
-		if e := os.Remove(gitIgnoreFilePath); e != nil {
-			t.Error(e)
-		}
-	}
+	clean := func() { test.AssertError(t, os.Remove(gitIgnoreFilePath), "os.Remove") }
 	if err != nil {
 		return clean, err
 	}
 
-	err = os.Remove(testGitIgnorePath)
-	if err != nil {
-		t.Error(err)
-	}
+	test.AssertError(t, os.Remove(testGitIgnorePath), "os.Remove")
 	return func() {
-		if e := utils.CopyFile(gitIgnoreFilePath, testGitIgnorePath); e != nil {
-			t.Error(e)
-		}
+		test.AssertError(t, utils.CopyFile(gitIgnoreFilePath, testGitIgnorePath), "utils.CopyFile")
 		clean()
 	}, nil
 }
@@ -68,14 +59,11 @@ func TestBlueprint_InitProject(t *testing.T) {
 
 	cleanGitIgnore, err := setupGitIgnore(t, blueprint)
 	defer cleanGitIgnore()
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	test.AssertError(t, err, "setupGitIgnore")
 
 	msg, err := blueprint.NewProject()
 	if err != nil {
-		t.Error(err)
+		t.Error(test.AssertErrorString(err, "blueprint.NewProject"))
 		return
 	}
 	if msg == "" {
@@ -84,7 +72,7 @@ func TestBlueprint_InitProject(t *testing.T) {
 
 	err = os.Rename(path.Join(blueprint.ProjectDir(), gitIgnoreFilename), path.Join(blueprint.ProjectDir(), gitIgnoreFilename+".test"))
 	if err != nil {
-		t.Error(err)
+		t.Error(test.AssertErrorString(err, "os.Rename"))
 		return
 	}
 
@@ -92,13 +80,11 @@ func TestBlueprint_InitProject(t *testing.T) {
 	err = fastwalk.Walk(blueprint.ProjectDir(), walkAndCompareF(t, func(p string) string {
 		return path.Join(expDir, strings.TrimPrefix(p, blueprint.ProjectDir()))
 	}))
-	if err != nil {
-		t.Error(err)
-	}
+	test.AssertError(t, err, "fastwalk.Walk")
 
 	msg, err = blueprint.NewProject()
 	if err != nil {
-		t.Error(err)
+		t.Error(test.AssertErrorString(err, "blueprint.NewProject 2"))
 		return
 	}
 	if msg != "" {

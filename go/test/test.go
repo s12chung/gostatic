@@ -18,6 +18,18 @@ import (
 // FixturePath is the path of the fixtures
 const FixturePath = "./testdata"
 
+// AssertError checks if there's an error and reports it
+func AssertError(t *testing.T, err error, label string) {
+	if err != nil {
+		t.Error(AssertErrorString(err, label))
+	}
+}
+
+// AssertErrorString returns a string format for AssertError
+func AssertErrorString(err error, label string) string {
+	return fmt.Sprintf("error - %v - %v", label, err)
+}
+
 // AssertLabel does a simple assertion
 func AssertLabel(t *testing.T, label string, got, exp interface{}) {
 	if got != exp {
@@ -50,17 +62,10 @@ func EnvSetting(t *testing.T, envKey, defaultValue string, callDefaultSettings f
 			"index": testCaseIndex,
 			"env":   tc.env,
 		})
-
-		err := os.Setenv(envKey, tc.env)
-		if err != nil {
-			t.Error(err)
-		}
+		context.AssertError(os.Setenv(envKey, tc.env), "os.Setenv")
 		context.Assert("Result", callDefaultSettings(), tc.exp)
 	}
-	err := os.Setenv(envKey, "")
-	if err != nil {
-		t.Error(err)
-	}
+	AssertError(t, os.Setenv(envKey, ""), "os.Setenv")
 }
 
 // RandSeed sets the rand.Seed
@@ -88,14 +93,10 @@ func cleanFilePath(filePath string) string {
 // SandboxDir sets up a TempDir for a sandbox
 func SandboxDir(t *testing.T, originalPath string) (string, func()) {
 	dir, err := ioutil.TempDir("", "sandbox")
-	if err != nil {
-		t.Error(err)
-	}
+	AssertError(t, err, "ioutil.TempDir")
 	return filepath.Join(dir, cleanFilePath(originalPath)), func() {
 		err := os.RemoveAll(dir)
-		if err != nil {
-			t.Error(err)
-		}
+		AssertError(t, err, "os.RemoveAll")
 	}
 }
 
@@ -107,16 +108,12 @@ func UpdateFixtureFlag() *bool {
 // ReadFixture reads the fixture given the filename
 func ReadFixture(t *testing.T, filename string) []byte {
 	bytes, err := ioutil.ReadFile(filepath.Join(FixturePath, filename))
-	if err != nil {
-		t.Error(err)
-	}
+	AssertError(t, err, "ioutil.ReadFile")
 	return bytes
 }
 
 // WriteFixture writes the fixture given the filename
 func WriteFixture(t *testing.T, filename string, data []byte) {
 	err := ioutil.WriteFile(filepath.Join(FixturePath, filename), data, 0755)
-	if err != nil {
-		t.Error(err)
-	}
+	AssertError(t, err, "ioutil.WriteFile")
 }

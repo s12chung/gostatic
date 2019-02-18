@@ -29,10 +29,7 @@ func runGenerate(t *testing.T, setter Setter, callback func(generatedPath string
 	defer clean()
 
 	app, _, _ := defaultApp(setter, generatedPath)
-	if err := app.Generate(); err != nil {
-		t.Error(err)
-	}
-
+	test.AssertError(t, app.Generate(), "app.Generate()")
 	callback(generatedPath)
 }
 
@@ -72,10 +69,7 @@ func TestApp_Generate(t *testing.T) {
 				generatedFiles = append(generatedFiles, path)
 				return nil
 			})
-			if err != nil {
-				t.Error(err)
-			}
-
+			test.AssertError(t, err, "filepath.Walk()")
 			test.AssertLabel(t, "filename len", len(generatedFiles), 7)
 
 			for index, generatedFile := range generatedFiles {

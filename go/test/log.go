@@ -12,9 +12,7 @@ import (
 func PrintLogEntries(t *testing.T, hook *logTest.Hook) {
 	for _, entry := range hook.AllEntries() {
 		s, err := entry.String()
-		if err != nil {
-			t.Error(err)
-		}
+		AssertError(t, err, "entry.String")
 		t.Log(strings.TrimSpace(s))
 	}
 }
