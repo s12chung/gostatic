@@ -1,10 +1,12 @@
 package cli
 
 import (
+	"testing"
+
 	"github.com/golang/mock/gomock"
+
 	"github.com/s12chung/gostatic/go/test"
 	"github.com/s12chung/gostatic/go/test/mocks"
-	"testing"
 )
 
 //go:generate mockgen -destination=../test/mocks/cli_app.go -package=mocks github.com/s12chung/gostatic/go/cli App

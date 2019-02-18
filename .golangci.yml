@@ -4,8 +4,8 @@ run:
 linters:
   disable-all: true
   enable:
+    - goimports
     - golint
-    - gofmt
     - govet
     - gocyclo
     - misspell

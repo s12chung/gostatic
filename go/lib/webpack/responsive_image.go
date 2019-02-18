@@ -2,11 +2,13 @@ package webpack
 
 import (
 	"fmt"
-	"github.com/s12chung/gostatic/go/lib/utils"
-	"github.com/sirupsen/logrus"
 	"path"
 	"regexp"
 	"strings"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/s12chung/gostatic/go/lib/utils"
 )
 
 // ResponsiveImage represents a ResponsiveImage

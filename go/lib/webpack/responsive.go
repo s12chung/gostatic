@@ -3,10 +3,11 @@ package webpack
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"path"
 	"path/filepath"
+
+	"github.com/sirupsen/logrus"
 )
 
 const responsiveFolder = "responsive"

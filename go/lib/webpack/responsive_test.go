@@ -1,10 +1,12 @@
 package webpack
 
 import (
-	"github.com/google/go-cmp/cmp"
-	"github.com/s12chung/gostatic/go/test"
-	logTest "github.com/sirupsen/logrus/hooks/test"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	logTest "github.com/sirupsen/logrus/hooks/test"
+
+	"github.com/s12chung/gostatic/go/test"
 )
 
 func defaultResponsive() (*Responsive, *logTest.Hook) {

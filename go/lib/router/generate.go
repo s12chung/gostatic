@@ -1,13 +1,13 @@
 package router
 
 import (
+	"fmt"
+	"mime"
 	"net/http"
+	"path"
 	"strconv"
 
-	"fmt"
 	"github.com/sirupsen/logrus"
-	"mime"
-	"path"
 )
 
 // RunFileServer hosts the files of targetDir into given port with the log

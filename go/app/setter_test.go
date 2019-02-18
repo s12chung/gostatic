@@ -2,13 +2,14 @@ package app
 
 import (
 	"fmt"
-	"github.com/google/go-cmp/cmp"
-	"github.com/s12chung/gostatic/go/lib/router"
-	"github.com/s12chung/gostatic/go/test"
-	"github.com/sirupsen/logrus"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/sirupsen/logrus"
 	logTest "github.com/sirupsen/logrus/hooks/test"
+
+	"github.com/s12chung/gostatic/go/lib/router"
+	"github.com/s12chung/gostatic/go/test"
 )
 
 func setupRouter(setRoutes func(r router.Router)) (*logTest.Hook, *router.Response, error) {

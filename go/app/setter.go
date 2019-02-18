@@ -1,9 +1,11 @@
 package app
 
 import (
-	"github.com/s12chung/gostatic/go/lib/router"
-	"github.com/sirupsen/logrus"
 	"time"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/s12chung/gostatic/go/lib/router"
 )
 
 // Setter is an interface for App to talk to your code and set routes.

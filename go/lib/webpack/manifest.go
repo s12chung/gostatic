@@ -2,10 +2,11 @@ package webpack
 
 import (
 	"encoding/json"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"path/filepath"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 )
 
 const manifestPath = "manifest.json"
