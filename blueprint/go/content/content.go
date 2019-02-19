@@ -31,12 +31,14 @@ func NewContent(generatedPath string, settings *Settings, log logrus.FieldLogger
 	return &Content{settings, log, htmlRenderer, w}
 }
 
-// AssetsURL is the URL path prefix of all your assets, so the server can redirect this prefix to your assets
+// AssetsURL is the URL path prefix of all your assets.
+// Used when App.Host()-ing to generate the routes real-time, so the server can redirect this prefix to your assets
 func (content *Content) AssetsURL() string {
 	return content.Webpack.AssetsURL()
 }
 
-// GeneratedAssetsPath is the local file path of the generated assets
+// GeneratedAssetsPath is the local file path of the generated assets.
+// Used when App.Host()-ing to generate the routes real-time.
 func (content *Content) GeneratedAssetsPath() string {
 	return content.Webpack.GeneratedAssetsPath()
 }

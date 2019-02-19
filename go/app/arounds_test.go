@@ -12,6 +12,8 @@ import (
 	"github.com/s12chung/gostatic/go/test"
 )
 
+//go:generate mockgen -destination=../test/mocks/router_router.go -package=mocks github.com/s12chung/gostatic/go/lib/router Router
+
 func setupRouter(setRoutes func(r router.Router)) (*logTest.Hook, *router.Response, error) {
 	log, hook := logTest.NewNullLogger()
 
@@ -22,7 +24,7 @@ func setupRouter(setRoutes func(r router.Router)) (*logTest.Hook, *router.Respon
 	return hook, response, err
 }
 
-func TestSetDefaultAroundHandlers(t *testing.T) {
+func TestSetDefaultRouterAroundHandlers(t *testing.T) {
 	testCases := []struct {
 		content string
 	}{
@@ -44,7 +46,7 @@ func TestSetDefaultAroundHandlers(t *testing.T) {
 				ctx.Respond([]byte(tc.content))
 				return nil
 			})
-			SetDefaultAroundHandlers(r)
+			SetDefaultRouterAroundHandlers(r)
 		})
 
 		context.Assert("logEntries", len(hook.AllEntries()), 2)

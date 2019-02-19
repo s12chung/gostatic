@@ -4,6 +4,9 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/google/go-cmp/cmp"
+	"github.com/sirupsen/logrus"
+	logTest "github.com/sirupsen/logrus/hooks/test"
 
 	"github.com/s12chung/gostatic/go/test"
 	"github.com/s12chung/gostatic/go/test/mocks"
@@ -50,5 +53,29 @@ func TestRunDefault(t *testing.T) {
 
 		t.Log(context.FieldsString())
 		controller.Finish()
+	}
+}
+
+func TestSetDefaultAppARoundHandlers(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
+	log, hook := logTest.NewNullLogger()
+
+	app := mocks.NewMockApp(controller)
+	app.EXPECT().Log().Return(log)
+	app.EXPECT().Around(gomock.Any()).DoAndReturn(func(handler func(handler func() error) error) {
+		err := handler(func() error {
+			return nil
+		})
+		test.AssertError(t, err, "handler")
+	})
+
+	SetDefaultAppARoundHandlers(app)
+
+	got := test.LogEntryLevels(hook)
+	exp := []logrus.Level{logrus.InfoLevel}
+	if !cmp.Equal(got, exp) {
+		t.Error(test.AssertLabelString("test.LogEntryLevels", got, exp))
 	}
 }

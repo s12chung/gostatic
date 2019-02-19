@@ -7,6 +7,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 // App has the high level commands that the CLI can work with
@@ -17,6 +20,8 @@ type App interface {
 	Host() error
 	// Generate generate the static web pages
 	Generate() error
+	// Around is a callback/handler that is called around Generate
+	Around(handler func(handler func() error) error)
 
 	// GeneratedPath returns the path of the generates files of the static web page
 	GeneratedPath() string
@@ -24,6 +29,9 @@ type App interface {
 	FileServerPort() int
 	// ServerPort returns the port of the web application server
 	ServerPort() int
+
+	// Log returns the log of the App
+	Log() logrus.FieldLogger
 }
 
 // DefaultName returns the name of the executable from the Args
@@ -59,4 +67,15 @@ func Run(name string, application App, args []string) error {
 		return application.Host()
 	}
 	return application.Generate()
+}
+
+// SetDefaultAppARoundHandlers adds default around handlers for the App
+func SetDefaultAppARoundHandlers(app App) {
+	app.Around(func(handler func() error) error {
+		start := time.Now()
+		defer func() {
+			app.Log().Infof("Build generated in %v.", time.Since(start))
+		}()
+		return handler()
+	})
 }

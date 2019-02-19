@@ -6,6 +6,7 @@ package mocks
 
 import (
 	gomock "github.com/golang/mock/gomock"
+	logrus "github.com/sirupsen/logrus"
 	reflect "reflect"
 )
 
@@ -30,6 +31,18 @@ func NewMockApp(ctrl *gomock.Controller) *MockApp {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockApp) EXPECT() *MockAppMockRecorder {
 	return m.recorder
+}
+
+// Around mocks base method
+func (m *MockApp) Around(arg0 func(func() error) error) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Around", arg0)
+}
+
+// Around indicates an expected call of Around
+func (mr *MockAppMockRecorder) Around(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Around", reflect.TypeOf((*MockApp)(nil).Around), arg0)
 }
 
 // FileServerPort mocks base method
@@ -86,6 +99,20 @@ func (m *MockApp) Host() error {
 func (mr *MockAppMockRecorder) Host() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Host", reflect.TypeOf((*MockApp)(nil).Host))
+}
+
+// Log mocks base method
+func (m *MockApp) Log() logrus.FieldLogger {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Log")
+	ret0, _ := ret[0].(logrus.FieldLogger)
+	return ret0
+}
+
+// Log indicates an expected call of Log
+func (mr *MockAppMockRecorder) Log() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Log", reflect.TypeOf((*MockApp)(nil).Log))
 }
 
 // RunFileServer mocks base method

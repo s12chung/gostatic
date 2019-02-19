@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/google/go-cmp/cmp"
 	"github.com/sirupsen/logrus"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
@@ -17,6 +18,8 @@ import (
 	"github.com/s12chung/gostatic/go/test/mocks"
 	"github.com/s12chung/gostatic/go/test/testfile"
 )
+
+//go:generate mockgen -destination=../test/mocks/app_setter.go -package=mocks github.com/s12chung/gostatic/go/app Setter
 
 func defaultApp(setter Setter, generatedPath string) (*App, logrus.FieldLogger, *logTest.Hook) {
 	settings := DefaultSettings()
@@ -171,5 +174,67 @@ func TestApp_Generate_Order(t *testing.T) {
 				}
 			},
 		)
+	}
+}
+
+func TestApp_Around(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
+	var got []string
+
+	h := func(before, after string) AroundHandler {
+		return func(handler func() error) error {
+			if before != "" {
+				got = append(got, before)
+			}
+			err := handler()
+			if after != "" {
+				got = append(got, after)
+			}
+			return err
+		}
+	}
+
+	testCases := []struct {
+		handlers []AroundHandler
+		expected []string
+	}{
+		{[]AroundHandler{}, []string{"call"}},
+		{[]AroundHandler{h("b1", "")}, []string{"b1", "call"}},
+		{[]AroundHandler{h("b1", ""), h("b2", "")}, []string{"b1", "b2", "call"}},
+		{[]AroundHandler{h("", "a1")}, []string{"call", "a1"}},
+		{[]AroundHandler{h("", "a1"), h("", "a2")}, []string{"call", "a2", "a1"}},
+		{[]AroundHandler{h("ar1", "ar2")}, []string{"ar1", "call", "ar2"}},
+		{[]AroundHandler{h("ar1", "ar2"), h("arr1", "arr2")}, []string{"ar1", "arr1", "call", "arr2", "ar2"}},
+		{[]AroundHandler{h("ar1", "ar2"), h("", "a1"), h("b1", ""), h("arr1", "arr2")}, []string{"ar1", "b1", "arr1", "call", "arr2", "a1", "ar2"}},
+	}
+
+	for testCaseIndex, tc := range testCases {
+		got = nil
+		context := test.NewContext(t).SetFields(test.ContextFields{
+			"index":       testCaseIndex,
+			"handlersLen": len(tc.handlers),
+		})
+
+		setter := mocks.NewMockSetter(controller)
+		setter.EXPECT().SetRoutes(gomock.Any()).DoAndReturn(func(r router.Router) error {
+			got = append(got, "call")
+			return nil
+		})
+		setter.EXPECT().URLBatches(gomock.Any())
+
+		generatedPath, clean := testfile.SandboxDir(t, "generated")
+		app, _, _ := defaultApp(setter, generatedPath)
+		for _, handler := range tc.handlers {
+			app.Around(handler)
+		}
+
+		context.AssertError(app.Generate(), "app.Generate")
+		if !cmp.Equal(got, tc.expected) {
+			t.Error(context.AssertString("state", got, tc.expected))
+		}
+
+		clean()
 	}
 }

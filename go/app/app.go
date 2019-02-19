@@ -5,7 +5,6 @@ package app
 
 import (
 	"os"
-	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -34,6 +33,7 @@ type App struct {
 	Setter
 	settings *Settings
 	log      logrus.FieldLogger
+	arounds  []AroundHandler
 }
 
 // NewApp returns a new instance of App
@@ -42,6 +42,7 @@ func NewApp(setter Setter, settings *Settings, log logrus.FieldLogger) *App {
 		setter,
 		settings,
 		log,
+		nil,
 	}
 }
 
@@ -65,7 +66,7 @@ func (app *App) Host() error {
 	r := router.NewWebRouter(app.settings.ServerPort, app.log)
 	r.FileServe(app.AssetsURL(), app.GeneratedAssetsPath())
 
-	if err := app.setRoutes(r); err != nil {
+	if err := app.SetRoutes(r); err != nil {
 		return err
 	}
 	return r.Run()
@@ -80,24 +81,27 @@ func (app *App) ServerPort() int {
 //
 // Generated concurrently in the batches, in the order given by Setter.URLBatches()
 func (app *App) Generate() error {
-	start := time.Now()
-	defer func() {
-		app.log.Infof("Build generated in %v.", time.Since(start))
-	}()
+	return callArounds(app.arounds, func() error {
+		if err := utils.MkdirAll(app.settings.GeneratedPath); err != nil {
+			return err
+		}
 
-	if err := utils.MkdirAll(app.settings.GeneratedPath); err != nil {
-		return err
-	}
-
-	r := router.NewGenerateRouter(app.log)
-	if err := app.setRoutes(r); err != nil {
-		return err
-	}
-	return app.requestRoutes(r)
+		r := router.NewGenerateRouter(app.log)
+		if err := app.SetRoutes(r); err != nil {
+			return err
+		}
+		return app.requestRoutes(r)
+	})
 }
 
-func (app *App) setRoutes(r router.Router) error {
-	return app.SetRoutes(r)
+// Around is a callback/handler that is called around Generate
+func (app *App) Around(handler func(handler func() error) error) {
+	app.arounds = append(app.arounds, handler)
+}
+
+// Log returns the log of the App
+func (app *App) Log() logrus.FieldLogger {
+	return app.log
 }
 
 func (app *App) requestRoutes(r router.Router) error {
