@@ -64,29 +64,35 @@ func (gen *generator) getURLTask(url string) *pool.Task {
 		}
 
 		generatedFilePath := path.Join(gen.generatedPath, filename)
-
-		generatedDir := path.Dir(generatedFilePath)
-
-		gen.dirsMutex.RLock()
-		_, has := gen.dirs[generatedDir]
-		gen.dirsMutex.RUnlock()
-
-		if !has {
-			_, err = os.Stat(generatedDir)
-			if os.IsNotExist(err) {
-				err = utils.MkdirAll(generatedDir)
-				if err != nil {
-					return err
-				}
-			}
-			gen.dirsMutex.Lock()
-			gen.dirs[generatedDir] = true
-			gen.dirsMutex.Unlock()
+		if err := gen.generateDirIfNeeded(generatedFilePath); err != nil {
+			return err
 		}
 
 		log.Infof("Writing response into %v", generatedFilePath)
 		return utils.WriteFile(generatedFilePath, response.Body)
 	})
+}
+
+func (gen *generator) generateDirIfNeeded(generatedFilePath string) error {
+	generatedDir := path.Dir(generatedFilePath)
+
+	gen.dirsMutex.RLock()
+	_, has := gen.dirs[generatedDir]
+	gen.dirsMutex.RUnlock()
+
+	if !has {
+		_, err := os.Stat(generatedDir)
+		if os.IsNotExist(err) {
+			err = utils.MkdirAll(generatedDir)
+			if err != nil {
+				return err
+			}
+		}
+		gen.dirsMutex.Lock()
+		gen.dirs[generatedDir] = true
+		gen.dirsMutex.Unlock()
+	}
+	return nil
 }
 
 func (gen *generator) runTasks(tasks []*pool.Task) {
