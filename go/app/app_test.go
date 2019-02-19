@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/google/go-cmp/cmp"
 	"github.com/sirupsen/logrus"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
@@ -243,9 +242,7 @@ func TestApp_Around(t *testing.T) {
 		}
 
 		context.AssertError(app.Generate(), "app.Generate")
-		if !cmp.Equal(got, tc.expected) {
-			t.Error(context.AssertString("state", got, tc.expected))
-		}
+		context.AssertArray("around", got, tc.expected)
 
 		clean()
 	}

@@ -3,7 +3,6 @@ package webpack
 import (
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
 	"github.com/s12chung/gostatic/go/test"
@@ -53,10 +52,6 @@ func TestResponsive_GetResponsiveImage(t *testing.T) {
 		})
 
 		responsive, _ := defaultResponsive()
-		got := responsive.GetResponsiveImage(tc.originalSrc)
-
-		if !cmp.Equal(got, tc.exp) {
-			t.Error(context.AssertString("result", got, tc.exp))
-		}
+		context.AssertArray("result", responsive.GetResponsiveImage(tc.originalSrc), tc.exp)
 	}
 }

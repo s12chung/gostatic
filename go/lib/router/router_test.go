@@ -10,7 +10,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/sirupsen/logrus"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
@@ -210,12 +209,8 @@ func TestRouter_Around(t *testing.T) {
 
 			setup.RunServer(router, func() {
 				_, err := setup.Requester(router).Get(RootURL)
-				if err != nil {
-					t.Error(context.String(err))
-				}
-				if !cmp.Equal(got, tc.expected) {
-					t.Error(context.AssertString("state", got, tc.expected))
-				}
+				context.AssertError(err, "Requester.Get")
+				context.AssertArray("arounds", got, tc.expected)
 			})
 		}
 	})
@@ -381,9 +376,7 @@ func TestRouter_URLs(t *testing.T) {
 			sort.Strings(got)
 			sort.Strings(exp)
 
-			if !cmp.Equal(got, exp) {
-				t.Error(context.AssertString("Result", got, exp))
-			}
+			context.AssertArray("result", got, exp)
 		}
 	})
 }

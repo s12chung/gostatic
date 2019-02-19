@@ -11,7 +11,6 @@ import (
 
 	"github.com/s12chung/fastwalk"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/s12chung/gostatic/go/lib/utils"
 	"github.com/s12chung/gostatic/go/test"
 	"github.com/s12chung/gostatic/go/test/testfile"
@@ -112,9 +111,7 @@ func walkAndCompareF(t *testing.T, destPathF func(p string) string) func(p strin
 			if err != nil {
 				return err
 			}
-			if !cmp.Equal(projectFilenames, expFileNames) {
-				t.Error(test.DiffString("projectFilenames for "+p, projectFilenames, expFileNames, cmp.Diff(projectFilenames, expFileNames)))
-			}
+			test.AssertArray(t, "projectFilenames for "+p, projectFilenames, expFileNames)
 			return nil
 		}
 		projectFile, err := ioutil.ReadFile(p)

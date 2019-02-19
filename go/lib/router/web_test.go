@@ -10,7 +10,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/sirupsen/logrus"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
@@ -94,12 +93,8 @@ func TestWebRouter_FileServe(t *testing.T) {
 			context.Assert("mimeType", response.MimeType, contentTypes[ext])
 
 			expBody, err := ioutil.ReadFile(path.Join(testfile.FixturePath, path.Base(filePath)))
-			if err != nil {
-				t.Error(context.String(err))
-			}
-			if !cmp.Equal(response.Body, expBody) {
-				t.Error(context.AssertString("Response.Body", response.Body, expBody))
-			}
+			context.AssertError(err, "ioutil.ReadFile")
+			context.AssertArray("Response.Body", response.Body, expBody)
 		}
 	})
 }

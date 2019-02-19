@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/google/go-cmp/cmp"
 	"github.com/sirupsen/logrus"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
@@ -73,9 +72,5 @@ func TestSetDefaultAppARoundHandlers(t *testing.T) {
 
 	SetDefaultAppARoundHandlers(app)
 
-	got := test.LogEntryLevels(hook)
-	exp := []logrus.Level{logrus.InfoLevel}
-	if !cmp.Equal(got, exp) {
-		t.Error(test.AssertLabelString("test.LogEntryLevels", got, exp))
-	}
+	test.AssertArray(t, "test.LogEntryLevels", test.LogEntryLevels(hook), []logrus.Level{logrus.InfoLevel})
 }

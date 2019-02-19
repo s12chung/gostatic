@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/google/go-cmp/cmp"
 	"github.com/sirupsen/logrus"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
@@ -66,11 +65,11 @@ func TestSetDefaultRouterAroundHandlers(t *testing.T) {
 			if err == nil {
 				t.Error(context.String("request did not return err"))
 			}
-
-			exp := []logrus.Level{logrus.InfoLevel, logrus.InfoLevel, logrus.ErrorLevel}
-			if !cmp.Equal(test.LogEntryLevels(hook), exp) {
-				t.Error(context.AssertString("Log.Entry.Levels", test.LogEntryLevels(hook), exp))
-			}
+			context.AssertArray(
+				"Log.Entry.Levels",
+				test.LogEntryLevels(hook),
+				[]logrus.Level{logrus.InfoLevel, logrus.InfoLevel, logrus.ErrorLevel},
+			)
 		}
 
 		entryTestCases := []struct {

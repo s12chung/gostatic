@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
 	"github.com/s12chung/gostatic/go/lib/utils"
@@ -113,9 +112,7 @@ func TestResponsiveImage_ChangeSrcPrefix(t *testing.T) {
 			exp.Src = strings.Replace(exp.Src, placeholder, fullPrefix, 1)
 			exp.SrcSet = strings.Replace(exp.SrcSet, placeholder, fullPrefix, -1)
 
-			if !cmp.Equal(got, exp) {
-				t.Error(context.AssertString("Result", got, exp))
-			}
+			context.AssertArray("result", got, exp)
 			context.Assert("test.SafeLogEntries(hook)", test.SafeLogEntries(hook), tc.safeLog)
 		}
 	}

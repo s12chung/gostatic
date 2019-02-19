@@ -6,8 +6,6 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-
 	"github.com/s12chung/gostatic/go/test"
 	"github.com/s12chung/gostatic/go/test/testfile"
 )
@@ -116,11 +114,9 @@ func TestFilePaths(t *testing.T) {
 			}
 		}
 
-		sort.Strings(exp)
 		sort.Strings(got)
+		sort.Strings(exp)
 
-		if !cmp.Equal(got, exp) {
-			t.Error(context.DiffString("Result", got, exp, cmp.Diff(got, exp)))
-		}
+		context.AssertArray("result", got, exp)
 	}
 }

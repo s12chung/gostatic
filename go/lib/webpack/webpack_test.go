@@ -8,7 +8,6 @@ import (
 
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/s12chung/gostatic/go/test"
 	"github.com/s12chung/gostatic/go/test/testfile"
 )
@@ -55,7 +54,7 @@ func TestWebpack_GetResponsiveImage(t *testing.T) {
 
 	testCases := []struct {
 		originalSrc string
-		expected    *ResponsiveImage
+		exp         *ResponsiveImage
 		unsafeLog   bool
 	}{
 		{"content/images/test.jpg", jpgResponsiveImage, false},
@@ -74,10 +73,7 @@ func TestWebpack_GetResponsiveImage(t *testing.T) {
 			"unsafeLog":   tc.unsafeLog,
 		})
 
-		got := webpack.GetResponsiveImage(tc.originalSrc)
-		if !cmp.Equal(got, tc.expected) {
-			t.Error(context.AssertString("result", got, tc.expected))
-		}
+		context.AssertArray("result", webpack.GetResponsiveImage(tc.originalSrc), tc.exp)
 		if test.SafeLogEntries(hook) == tc.unsafeLog {
 			test.PrintLogEntries(t, hook)
 			t.Error(context.AssertString("test.SafeLogEntries(hook)", test.SafeLogEntries(hook), tc.unsafeLog))

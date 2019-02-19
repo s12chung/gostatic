@@ -5,6 +5,8 @@ import (
 	"sort"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 // ContextFields is the fields of the context
@@ -81,5 +83,12 @@ func (context *Context) Assert(label string, got, exp interface{}) {
 func (context *Context) AssertError(err error, label string) {
 	if err != nil {
 		context.t.Error(AssertErrorString(err, context.String(label)))
+	}
+}
+
+// AssertLabel does an assertion on an array
+func (context *Context) AssertArray(label string, got, exp interface{}) {
+	if !cmp.Equal(got, exp) {
+		context.t.Error(context.DiffString(label, got, exp, cmp.Diff(got, exp)))
 	}
 }
