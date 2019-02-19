@@ -2,72 +2,81 @@ package app
 
 import (
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
+	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
 	"github.com/s12chung/gostatic/go/lib/router"
 	"github.com/s12chung/gostatic/go/test"
+	"github.com/s12chung/gostatic/go/test/mocks"
 )
 
 //go:generate mockgen -destination=../test/mocks/router_router.go -package=mocks github.com/s12chung/gostatic/go/lib/router Router
-
-func setupRouter(setRoutes func(r router.Router)) (*logTest.Hook, *router.Response, error) {
-	log, hook := logTest.NewNullLogger()
-
-	r := router.NewGenerateRouter(log)
-	setRoutes(r)
-
-	response, err := r.Requester().Get(router.RootURL)
-	return hook, response, err
-}
+//go:generate mockgen -destination=../test/mocks/router_context.go -package=mocks github.com/s12chung/gostatic/go/lib/router Context
 
 func TestSetDefaultRouterAroundHandlers(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
 	testCases := []struct {
-		content string
+		err error
 	}{
-		{"Hi"},
-		{""},
+		{nil},
+		{fmt.Errorf("err")},
 	}
 
 	for testCaseIndex, tc := range testCases {
 		context := test.NewContext(t).SetFields(test.ContextFields{
-			"index":   testCaseIndex,
-			"content": tc.content,
+			"index": testCaseIndex,
+			"err":   tc.err,
 		})
 
-		hook, response, err := setupRouter(func(r router.Router) {
-			r.GetRootHTML(func(ctx router.Context) error {
-				if tc.content == "" {
-					return fmt.Errorf("err")
-				}
-				ctx.Respond([]byte(tc.content))
-				return nil
+		log, hook := logTest.NewNullLogger()
+		url := "some_url"
+		message := "waka"
+
+		var ctxLog logrus.FieldLogger = log
+		ctx := mocks.NewMockContext(controller)
+		ctx.EXPECT().Log().AnyTimes().DoAndReturn(func() logrus.FieldLogger {
+			return ctxLog
+		})
+		ctx.EXPECT().SetLog(gomock.Any()).DoAndReturn(func(log logrus.FieldLogger) {
+			ctxLog = log
+		})
+		ctx.EXPECT().URL().Return(url)
+
+		var err error
+		r := mocks.NewMockRouter(controller)
+		r.EXPECT().Around(gomock.Any()).DoAndReturn(func(handler router.AroundHandler) {
+			err = handler(ctx, func(ctx router.Context) error {
+				ctx.Log().Info(message)
+				return tc.err
 			})
-			SetDefaultRouterAroundHandlers(r)
 		})
 
-		context.Assert("logEntries", len(hook.AllEntries()), 2)
-		if tc.content == "" {
+		SetDefaultRouterAroundHandlers(r)
+
+		context.Assert("logEntries", len(hook.AllEntries()), 3)
+		if tc.err == nil {
+			context.Assert("SafeLogEntries", test.SafeLogEntries(hook), true)
+		} else {
 			if err == nil {
 				t.Error(context.String("request did not return err"))
 			}
 
-			exp := []logrus.Level{logrus.InfoLevel, logrus.ErrorLevel}
+			exp := []logrus.Level{logrus.InfoLevel, logrus.InfoLevel, logrus.ErrorLevel}
 			if !cmp.Equal(test.LogEntryLevels(hook), exp) {
 				t.Error(context.AssertString("Log.Entry.Levels", test.LogEntryLevels(hook), exp))
 			}
-
-		} else {
-			context.Assert("response", string(response.Body), tc.content)
-			context.Assert("SafeLogEntries", test.SafeLogEntries(hook), true)
 		}
 
 		entryTestCases := []struct {
 			dataLength int
 		}{
+			{2},
 			{2},
 			{3},
 		}
@@ -76,10 +85,12 @@ func TestSetDefaultRouterAroundHandlers(t *testing.T) {
 			entry := hook.AllEntries()[i]
 			context.Assert(fmt.Sprintf("Log.Entry[%v].Data", i), len(entry.Data), entryTc.dataLength)
 			context.Assert(fmt.Sprintf("Log.Entry[%v].Data.type", i), entry.Data["type"], LogRouteType)
-			context.Assert(fmt.Sprintf("Log.Entry[%v].Data.URL", i), entry.Data["URL"], router.RootURL)
+			context.Assert(fmt.Sprintf("Log.Entry[%v].Data.URL", i), entry.Data["URL"], url)
 		}
 
-		_, exists := hook.AllEntries()[1].Data["duration"]
-		context.Assert("Log.Entry[1].Data.duration.exists", exists, true)
+		context.Assert("Log.Entry[1].Message", hook.AllEntries()[1].Message, message)
+
+		_, exists := hook.AllEntries()[2].Data["duration"]
+		context.Assert("Log.Entry[2].Data.duration.exists", exists, true)
 	}
 }
