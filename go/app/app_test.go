@@ -118,15 +118,15 @@ func TestApp_Generate_Order(t *testing.T) {
 	}
 
 	for testCaseIndex, tc := range testCases {
-		var requestOrder []string
+		requestOrderChan := make(chan string)
+		handler := func(ctx router.Context) error {
+			requestOrderChan <- ctx.URL()
+			ctx.Respond([]byte(ctx.URL()))
+			return nil
+		}
+
 		setter := mocks.NewMockSetter(controller)
 		setter.EXPECT().SetRoutes(gomock.Any()).DoAndReturn(func(r router.Router) error {
-			handler := func(ctx router.Context) error {
-				requestOrder = append(requestOrder, ctx.URL())
-				ctx.Respond([]byte(ctx.URL()))
-				return nil
-			}
-
 			r.GetRootHTML(handler)
 
 			for i, isSecond := range tc.isSecond {
@@ -157,10 +157,22 @@ func TestApp_Generate_Order(t *testing.T) {
 			"isSecond": tc.isSecond,
 		})
 
+		var requestOrder []string
+		done := make(chan bool)
+		go func() {
+			for url := range requestOrderChan {
+				requestOrder = append(requestOrder, url)
+			}
+			done <- true
+		}()
+
 		runGenerate(t,
 			setter,
 			func(generatedPath string) {
-				test.AssertLabel(t, "requestOrder len", len(requestOrder), len(tc.isSecond)+1)
+				close(requestOrderChan)
+				<-done
+
+				context.Assert(fmt.Sprintf("requestOrder len: %v", requestOrder), len(requestOrder), len(tc.isSecond)+1)
 
 				reachedSecond := false
 				for _, url := range requestOrder {

@@ -2,10 +2,10 @@ package app
 
 import (
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/google/go-cmp/cmp"
 	"github.com/sirupsen/logrus"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 
