@@ -5,3 +5,6 @@ cd test-integration
 source ./.envrc
 make docker-install
 docker-compose run web make prod
+
+cd ..
+rm -rf test-integration
