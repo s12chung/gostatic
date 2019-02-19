@@ -55,7 +55,7 @@ func TestRenderer_RenderWithLayout(t *testing.T) {
 		rendered, err := renderer.RenderWithLayout(tc.layoutName, tc.name, tc.layoutData)
 		if err != nil {
 			test.PrintLogEntries(t, hook)
-			t.Error(context.String(err))
+			context.AssertError(err, "renderer.RenderWithLayout")
 		}
 
 		got := strings.TrimSpace(string(rendered))
@@ -100,7 +100,7 @@ func TestRenderer_Render_Settings(t *testing.T) {
 		rendered, err := renderer.Render("settings", nil)
 		if err != nil {
 			test.PrintLogEntries(t, hook)
-			t.Error(context.String(err))
+			context.AssertError(err, "renderer.Render")
 		}
 
 		got := strings.TrimSpace(string(rendered))
@@ -158,7 +158,7 @@ func TestRenderer_Render_Plugins(t *testing.T) {
 		if err != nil {
 			if len(tc.plugins) != 0 {
 				test.PrintLogEntries(t, hook)
-				t.Error(context.String(err))
+				context.AssertError(err, "renderer.Render")
 			}
 			continue
 		}

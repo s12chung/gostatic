@@ -103,7 +103,7 @@ func TestFilePaths(t *testing.T) {
 			continue
 		}
 		if err != nil {
-			t.Error(context.String(err))
+			context.AssertError(err, "requester.Get")
 			continue
 		}
 

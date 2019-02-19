@@ -347,9 +347,7 @@ func testRouterSlash(t *testing.T, setup RouterSetup, url string, setRoute func(
 
 		setup.RunServer(router, func() {
 			_, err := setup.Requester(router).Get(tc.requestURL)
-			if err != nil {
-				t.Error(context.String(err))
-			}
+			context.AssertError(err, "Requester.Get")
 		})
 	}
 }
@@ -398,10 +396,7 @@ func TestRequester_Get(t *testing.T) {
 				})
 
 				response, err := requester.Get(pattern)
-				if err != nil {
-					t.Errorf(context.String(err))
-				}
-
+				context.AssertError(err, "requester.Get")
 				context.Assert("Response.Body", string(response.Body), allGetTypeWithResponse.response)
 				context.Assert("Response.ContentType", response.MimeType, allGetTypeWithResponse.mimeType)
 

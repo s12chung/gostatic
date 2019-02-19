@@ -85,12 +85,8 @@ func TestWebRouter_FileServe(t *testing.T) {
 				"filePath": filePath,
 			})
 			response, err := requester.Get("/" + strings.Join([]string{utils.CleanFilePath(testfile.FixturePath), path.Base(filePath)}, "/"))
-			if err != nil {
-				t.Error(context.String(err))
-			}
-
-			ext := path.Ext(filePath)
-			context.Assert("mimeType", response.MimeType, contentTypes[ext])
+			context.AssertError(err, "requester.Get")
+			context.Assert("mimeType", response.MimeType, contentTypes[path.Ext(filePath)])
 
 			expBody, err := ioutil.ReadFile(path.Join(testfile.FixturePath, path.Base(filePath)))
 			context.AssertError(err, "ioutil.ReadFile")
@@ -129,7 +125,7 @@ func TestWebRouter_FileServe_PathChecks(t *testing.T) {
 				if tc.hasError {
 					continue
 				}
-				t.Error(context.String(err))
+				context.AssertError(err, "requester.Get")
 			}
 		}
 	})

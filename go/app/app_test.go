@@ -82,11 +82,9 @@ func TestApp_Generate(t *testing.T) {
 				})
 
 				bytes, err := ioutil.ReadFile(generatedFile)
-				if err != nil {
-					t.Error(context.String(err))
-				}
-				got := strings.TrimSpace(string(bytes))
+				context.AssertError(err, "ioutil.ReadFile")
 
+				got := strings.TrimSpace(string(bytes))
 				exp := strings.TrimPrefix(generatedFile, generatedPath)
 				if exp == "/index.html" {
 					exp = "/"
